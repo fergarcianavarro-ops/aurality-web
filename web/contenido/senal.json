@@ -1,0 +1,66 @@
+{
+  "senal_playlist": "https://open.spotify.com/playlist/62bELlnb4xBNBX2etnHpB8",
+  "senal": [
+    {
+      "code": "10_26",
+      "mes": 10,
+      "anio": 2026,
+      "cover": "senal/10_26.jpg",
+      "temas": null,
+      "duracion": "≈ 1 h",
+      "descripcion": "Lanzamientos, hallazgos y obsesiones del mes. Una selección curada por aurality: música ajena que nos mira de cerca.",
+      "destacados": [
+        {
+          "artista": "ALBERRRT",
+          "tema": "HAAT IST LIEFDE.",
+          "prod": ""
+        },
+        {
+          "artista": "SLIKBACK",
+          "tema": "ANVIL",
+          "prod": ""
+        },
+        {
+          "artista": "ROBERT DINERO",
+          "tema": "NEVERA",
+          "prod": "MYTO"
+        },
+        {
+          "artista": "METH MATH",
+          "tema": "",
+          "prod": ""
+        },
+        {
+          "artista": "BAMBINODJ",
+          "tema": "",
+          "prod": ""
+        },
+        {
+          "artista": "SWIPER",
+          "tema": "",
+          "prod": ""
+        },
+        {
+          "artista": "DUNA",
+          "tema": "F.M.K.",
+          "prod": ""
+        },
+        {
+          "artista": "1111",
+          "tema": "QUE ME BAILE",
+          "prod": ""
+        },
+        {
+          "artista": "FLAKO NKO",
+          "tema": "",
+          "prod": ""
+        },
+        {
+          "artista": "28MINIMAL",
+          "tema": "",
+          "prod": ""
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,145 @@
+# aurality · panel privado (Decap CMS)
+# Solo puede entrar quien tenga permiso de escritura en el repositorio de GitHub de la web.
+# Cada vez que guardas, el cambio se sube a GitHub y Netlify vuelve a publicar la web sola (≈ 1 minuto).
+
+backend:
+  name: github
+  repo: fergarcianavarro-ops/aurality-web     # usuario de GitHub / repositorio de la web
+  branch: main
+  commit_messages:
+    update: "panel: actualiza {{slug}}"
+    uploadMedia: "panel: sube {{path}}"
+    deleteMedia: "panel: borra {{path}}"
+
+local_backend: true                 # solo para pruebas en el propio ordenador; en la web publicada no hace nada
+locale: es
+logo_url: /img/lettering.png
+
+media_folder: web/covers            # portadas, fotos de artistas…
+public_folder: covers
+
+collections:
+  - name: web
+    label: aurality
+    format: json
+    editor: { preview: false }
+    files:
+
+      # ---------------------------------------------------------------- lanzamientos
+      - name: lanzamientos
+        label: Lanzamientos
+        file: web/contenido/lanzamientos.json
+        fields:
+          - name: releases
+            label: Catálogo
+            label_singular: lanzamiento
+            widget: list
+            add_to_top: true
+            collapsed: true
+            summary: "{{fields.code}} · {{fields.artist}} — {{fields.title}}"
+            hint: "El más nuevo arriba. «Añadir lanzamiento» lo crea el primero de la lista."
+            fields:
+              - { name: code, label: Código, widget: string, pattern: ['^AU\d{4}$', 'Formato AU0000, por ejemplo AU0213'], hint: "Siguiente al último (mira el primero de la lista)." }
+              - { name: artist, label: Artista, widget: string, hint: "En mayúsculas. Colaboraciones separadas con ×  →  ANY1N3 × PARANOID REALM" }
+              - { name: title, label: Título, widget: string, required: false, hint: "Vacío = sin título." }
+              - { name: format, label: Formato, widget: select, options: [SINGLE, EP, REMIXES, ÁLBUM, EDIT], default: SINGLE }
+              - { name: genre, label: Género, widget: string, required: false, hint: "CLUB, RAP, DRILL, EDIT…" }
+              - { name: year, label: Año, widget: number, value_type: int, min: 2020, max: 2100 }
+              - { name: cover, label: Portada, widget: image, required: false, choose_url: false, hint: "Cuadrada, JPG de unos 1200 px. Sin portada la web muestra una placa con el código." }
+              - { name: soundcloud, label: SoundCloud, widget: string, required: false, hint: "Enlace al tema o al set. Si lo hay, la ficha muestra el reproductor." }
+              - { name: spotify, label: Spotify, widget: string, required: false }
+              - { name: bandcamp, label: Bandcamp, widget: string, required: false }
+              - name: credits
+                label: Créditos
+                label_singular: crédito
+                widget: list
+                required: false
+                summary: "{{fields.rol}} · {{fields.nombre}}"
+                default:
+                  - { rol: PRODUCCIÓN, nombre: "" }
+                  - { rol: MEZCLA, nombre: "" }
+                  - { rol: MÁSTER, nombre: "" }
+                  - { rol: ARTE, nombre: "" }
+                fields:
+                  - { name: rol, label: Rol, widget: string }
+                  - { name: nombre, label: Nombre, widget: string, required: false, hint: "Vacío = «Por definir»." }
+              - name: tracks
+                label: Tracklist
+                label_singular: tema
+                widget: list
+                required: false
+                field: { name: titulo, label: Tema, widget: string }
+
+      # ---------------------------------------------------------------- artistas
+      - name: artistas
+        label: Artistas
+        file: web/contenido/artistas.json
+        fields:
+          - name: artists
+            label: Roster
+            label_singular: artista
+            widget: list
+            collapsed: true
+            summary: "{{fields.name}} · {{fields.role}}"
+            hint: "El nombre tiene que coincidir con el que pones en los lanzamientos."
+            fields:
+              - { name: name, label: Nombre, widget: string }
+              - { name: role, label: Rol, widget: string, required: false, hint: "Por ejemplo: ARTISTA · RAP" }
+              - { name: bio, label: Biografía, widget: text, required: false }
+              - { name: photo, label: Foto, widget: image, required: false, choose_url: false, hint: "Se muestra en blanco y negro." }
+              - { name: instagram, label: Instagram, widget: string, required: false }
+              - { name: spotify, label: Spotify, widget: string, required: false }
+              - { name: soundcloud, label: SoundCloud, widget: string, required: false }
+
+      # ---------------------------------------------------------------- señal mensual
+      - name: senal
+        label: Señal mensual
+        file: web/contenido/senal.json
+        fields:
+          - { name: senal_playlist, label: Enlace de la playlist (Spotify), widget: string, hint: "Siempre la misma: cada mes se sobrescribe en Spotify." }
+          - name: senal
+            label: Ediciones
+            label_singular: edición
+            widget: list
+            add_to_top: true
+            collapsed: true
+            summary: "{{fields.mes}} / {{fields.anio}}"
+            hint: "La más reciente sale «En antena»; las anteriores pasan solas a «Archivada»."
+            fields:
+              - { name: mes, label: Mes, widget: number, value_type: int, min: 1, max: 12 }
+              - { name: anio, label: Año, widget: number, value_type: int, min: 2024, max: 2100 }
+              - { name: code, label: Código, widget: string, required: false, hint: "MM_AA, por ejemplo 11_26. Vacío = se calcula solo." }
+              - { name: cover, label: Portada, widget: image, required: false, choose_url: false, media_folder: /web/senal, public_folder: senal }
+              - { name: temas, label: Número de temas, widget: number, value_type: int, required: false }
+              - { name: duracion, label: Duración, widget: string, required: false, default: "≈ 1 h" }
+              - { name: descripcion, label: Descripción, widget: text, required: false }
+              - name: destacados
+                label: Destacados
+                label_singular: destacado
+                widget: list
+                required: false
+                summary: "{{fields.artista}} — {{fields.tema}}"
+                fields:
+                  - { name: artista, label: Artista, widget: string }
+                  - { name: tema, label: Tema, widget: string, required: false }
+                  - { name: prod, label: Productor, widget: string, required: false }
+
+      # ---------------------------------------------------------------- textos
+      - name: textos
+        label: Manifiesto y contacto
+        file: web/contenido/textos.json
+        fields:
+          - name: contacto
+            label: Contacto
+            widget: object
+            fields:
+              - { name: email, label: Email, widget: string }
+              - { name: instagram, label: Instagram (enlace), widget: string }
+              - { name: nota, label: Nota bajo el formulario, widget: string, required: false }
+          - name: manifiesto
+            label: Manifiesto
+            widget: object
+            fields:
+              - { name: titular, label: Titular, widget: string }
+              - { name: parrafos, label: Párrafos, label_singular: párrafo, widget: list, field: { name: texto, label: Párrafo, widget: text }, hint: "Los de menos de 90 caracteres se destacan como frase corta." }
+              - { name: cierre, label: Cierre, widget: string, required: false }

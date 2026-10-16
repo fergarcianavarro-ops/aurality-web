@@ -1,0 +1,1296 @@
+<title>aurality AU-00</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600&family=JetBrains+Mono:wght@500;700;800&family=Michroma&display=swap">
+<style>
+/* Concepto: la web es un aparato (AU-00 · receptor). Faja de cromo = navegación; escena 3D en vivo = mandos; pletina = radio. */
+:root{
+  --cielo-1:#9DAFC5; --cielo-2:#D3D9E0; --suelo:#93A3B8;
+  --blanco:#E6E4DE; --tecla:#ECEBE6; --agujero:#17181B; --tinta:#0E0F12; --grabado:#6F6D68;
+  --ahumado:#4A5265; --ahumado-2:#7A8193; --letra-relieve:#EEF1F6;
+  --azul:#1A206E; --rojo:#D62C2C; --sombra:rgba(56,72,98,.28);
+  --f-display:"Michroma","Eurostile","Arial Black",sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,"SFMono-Regular",Menlo,monospace;
+  --f-texto:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --faja-w:calc(100vh * 400 / 2160);
+  --hueco:clamp(240px,26vw,460px);   /* hueco entre faja y panel donde se coloca la pieza en foco (la escena lo replica en JS) */
+  --chaflan:polygon(10px 0,calc(100% - 10px) 0,100% 10px,100% calc(100% - 10px),calc(100% - 10px) 100%,10px 100%,0 calc(100% - 10px),0 10px);
+  color-scheme:light;
+}
+html,body{height:100%}
+body{margin:0}
+[hidden]{display:none!important}
+body{background:linear-gradient(180deg,var(--cielo-1) 0%,var(--cielo-2) 72%);color:var(--tinta);font-family:var(--f-texto);overflow:hidden}
+#escena{position:fixed;inset:0;display:block;width:100%;height:100%}
+.grano{position:fixed;inset:-50%;pointer-events:none;opacity:.07;z-index:3;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");
+  animation:grano 1s steps(4) infinite}
+@keyframes grano{0%{transform:translate(0,0)}25%{transform:translate(-3%,2%)}50%{transform:translate(2%,-3%)}75%{transform:translate(-2%,-1%)}100%{transform:translate(0,0)}}
+
+/* ---------- faja ---------- */
+.faja{position:fixed;left:0;top:0;height:100%;aspect-ratio:400/2160;z-index:10;container-type:size;
+  background:url(img/faja_nav.png) left top/100% 100% no-repeat;filter:drop-shadow(0 0 0 transparent)}
+.faja a.home{position:absolute;left:5.5%;top:1%;width:79%;height:18%}
+.placa{position:absolute;left:5.5%;width:72.5%;height:8.673%;display:flex;flex-direction:column;justify-content:center;gap:.5cqh;box-sizing:border-box;overflow:hidden;
+  padding:0 7%;text-decoration:none;color:var(--letra-relieve);clip-path:var(--chaflan);transition:background .3s}
+.placa .n{font:500 .95cqh/1 var(--f-mono);letter-spacing:.12em;opacity:.62}
+.placa .t{font:400 1.18cqh/1.1 var(--f-display);letter-spacing:.03em;white-space:nowrap;text-transform:uppercase;
+  text-shadow:0 -1px 0 rgba(0,0,0,.55),0 1px 0 rgba(255,255,255,.18)}
+.placa .d{font:500 .9cqh/1.2 var(--f-mono);opacity:.62;text-transform:uppercase;letter-spacing:.06em}
+.placa:hover{background:rgba(255,255,255,.06)}
+.placa[aria-current="page"] .t{color:#fff}
+.placa[aria-current="page"] .n,.placa[aria-current="page"] .d{opacity:.9}
+.placa:focus-visible{outline:2px solid var(--letra-relieve);outline-offset:-4px}
+.punta{position:absolute;left:81.5%;width:17.5%;aspect-ratio:70/132;background:url(img/punta.png) 0 0/100% 100%;
+  transition:top .55s cubic-bezier(.3,.7,.2,1);pointer-events:none}
+.testigo{position:absolute;top:83.1%;width:8%;aspect-ratio:1;transition:background .6s,box-shadow .6s}
+.testigo.azul{left:61.5%;border-radius:50%;background:#20263a}
+.testigo.rojo{left:72.5%;background:#2a2228}
+.testigo.azul.on{background:radial-gradient(circle at 40% 35%,#6a74e8,var(--azul) 70%);box-shadow:0 0 .6cqh rgba(70,82,220,.55)}
+.testigo.rojo.on{background:radial-gradient(circle at 40% 35%,#ff7a6a,var(--rojo) 70%);box-shadow:0 0 .6cqh rgba(214,44,44,.5)}
+.codigo-mes{position:absolute;left:10%;top:85.463%;width:70%;height:3.889%;display:flex;align-items:center;justify-content:space-between;
+  padding:0 6%;color:var(--letra-relieve);font:800 1.3cqh/1 var(--f-mono);letter-spacing:.02em;box-sizing:border-box}
+.codigo-mes small{font:500 .85cqh/1 var(--f-mono);opacity:.75;letter-spacing:.1em}
+
+/* ---------- cabecera de estado ---------- */
+.estado{position:fixed;top:20px;right:28px;z-index:6;display:flex;gap:22px;font:500 11px/1.4 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:#2b3242;text-align:right}
+.estado b{font-weight:800;color:var(--tinta)}
+
+/* ---------- tarjetas sobre la escena ---------- */
+.lateral{position:fixed;right:28px;bottom:132px;z-index:6;width:min(360px,34vw);display:flex;flex-direction:column;gap:14px}
+.ficha{background:linear-gradient(180deg,#59627a,#3f4659);color:var(--letra-relieve);clip-path:var(--chaflan);padding:18px 20px 20px;display:grid;gap:12px;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.18)}
+.ficha .eti{font:700 10px/1 var(--f-mono);letter-spacing:.16em;text-transform:uppercase;opacity:.75;display:flex;justify-content:space-between}
+.ficha .cuerpo{display:grid;grid-template-columns:96px 1fr;gap:14px;align-items:start}
+.ficha img{width:96px;height:96px;object-fit:cover;display:block;filter:saturate(.9)}
+.ficha .cod{font:500 10.5px/1.3 var(--f-mono);letter-spacing:.08em;opacity:.8}
+.ficha .art{font:800 17px/1.1 var(--f-mono);letter-spacing:.02em;margin-top:6px}
+.ficha .tit{font:500 12.5px/1.35 var(--f-texto);opacity:.9;margin-top:4px;text-wrap:balance}
+.ficha .acciones{display:flex;gap:8px;flex-wrap:wrap}
+.tecla{appearance:none;border:0;cursor:pointer;font:700 10.5px/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;text-decoration:none;
+  color:var(--tinta);background:linear-gradient(180deg,#f3f2ee,#dedcd5);padding:11px 14px 10px;border-radius:4px;
+  box-shadow:0 1px 0 #fff inset,0 -2px 0 rgba(0,0,0,.12) inset,0 3px 6px var(--sombra);transition:transform .12s,box-shadow .12s;display:inline-flex;gap:8px;align-items:center}
+.tecla:hover{background:linear-gradient(180deg,#fbfaf7,#e4e2db)}
+.tecla:active,.tecla[aria-pressed="true"]{transform:translateY(2px);box-shadow:0 1px 0 rgba(255,255,255,.6) inset,0 1px 2px var(--sombra)}
+.tecla:focus-visible{outline:2px solid var(--azul);outline-offset:2px}
+.tecla.oscura{color:var(--letra-relieve);background:linear-gradient(180deg,#6b748b,#555d72);box-shadow:0 1px 0 rgba(255,255,255,.25) inset,0 -2px 0 rgba(0,0,0,.25) inset,0 3px 6px rgba(0,0,0,.25)}
+.senal{background:var(--blanco);clip-path:var(--chaflan);padding:14px 18px;display:grid;grid-template-columns:1fr auto;gap:6px 14px;align-items:center;
+  box-shadow:inset 0 1px 0 #fff}
+.senal .eti{font:700 10px/1 var(--f-mono);letter-spacing:.16em;color:#4a5060;text-transform:uppercase}
+.senal .nom{font:400 13px/1.1 var(--f-display);letter-spacing:.04em;grid-column:1;white-space:nowrap}
+.senal .nom b{font:800 15px/1 var(--f-mono);margin-left:8px;letter-spacing:.02em}
+.senal .des{font:500 11.5px/1.35 var(--f-texto);color:#3b4150;grid-column:1}
+.senal .tecla{grid-column:2;grid-row:1/4}
+
+/* ---------- pletina ---------- */
+.pletina{position:fixed;left:calc(var(--faja-w) + 20px);right:28px;bottom:20px;z-index:7;height:92px;background:linear-gradient(180deg,#eceae4,#dddbd4);
+  clip-path:var(--chaflan);display:grid;grid-template-columns:minmax(0,1.3fr) auto minmax(0,1fr) auto;align-items:center;gap:26px;padding:0 26px;
+  box-shadow:inset 0 1px 0 #fff}
+.pletina::after{content:"AURALITY  AU-00 · PLETINA";position:absolute;right:26px;bottom:7px;font:500 8.5px/1 var(--f-mono);letter-spacing:.2em;color:var(--grabado);white-space:pre}
+.ahora{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:center;min-width:0}
+.led{width:11px;height:11px;border-radius:50%;background:#9aa0ab;box-shadow:inset 0 1px 2px rgba(0,0,0,.35);grid-row:1/4;transition:background .4s,box-shadow .4s}
+.led.on{background:radial-gradient(circle at 40% 35%,#6a74e8,var(--azul) 70%);box-shadow:0 0 6px rgba(70,82,220,.55)}
+.ahora .k{font:700 10px/1 var(--f-mono);letter-spacing:.16em;color:#4a5060;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.ahora .t{font:800 16px/1.1 var(--f-mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.ahora .s{font:500 11px/1.2 var(--f-mono);color:#4a5060;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.transporte{display:flex;gap:8px}
+.transporte .tecla{width:52px;height:44px;justify-content:center;padding:0}
+.transporte svg{width:16px;height:16px;fill:var(--tinta)}
+.vu{display:flex;gap:3px;align-items:flex-end;height:30px}
+.vu i{flex:1;max-width:7px;height:100%;background:#c9c7c0;box-shadow:inset 0 1px 1px rgba(0,0,0,.18)}
+.vu i.on{background:var(--tinta)}
+.vu i.on.pico{background:var(--rojo)}
+.canales{display:grid;gap:6px}
+.canales .k{font:700 9.5px/1 var(--f-mono);letter-spacing:.16em;color:#4a5060;display:flex;justify-content:space-between}
+.casillas{display:flex;gap:4px}
+.casillas button{flex:0 0 auto;width:15px;height:15px;padding:0;border:0;cursor:pointer;background:#cfccc4;box-shadow:inset 0 1px 2px rgba(0,0,0,.28)}
+.casillas button[aria-pressed="true"]{background:var(--tinta);box-shadow:none}
+.casillas button:hover{background:#b9b6ad}
+/* la pletina se adapta a su propio ancho (clases que pone un ResizeObserver): media → casillas y huecos más pequeños; estrecha → sin vúmetro */
+.pletina.p-m{gap:18px;padding:0 20px}
+.pletina.p-m .casillas{gap:3px}.pletina.p-m .casillas button{width:12px;height:12px}
+.pletina.p-m .transporte{gap:6px}.pletina.p-m .transporte .tecla{width:46px}
+.pletina.p-s{grid-template-columns:minmax(0,1fr) auto auto}
+.pletina.p-s .vu{display:none}
+.pletina.p-s .ahora .t{font-size:14px}.pletina.p-s .ahora .s{font-size:10px}
+.pletina.p-s .transporte .tecla{width:42px;height:40px}
+.pletina.p-s::after{content:"AU-00 · PLETINA"}
+.casillas button:focus-visible{outline:2px solid var(--azul);outline-offset:1px}
+
+
+/* ---------- panel de sección (catálogo, ficha) ---------- */
+.panel{position:fixed;z-index:7;left:calc(var(--faja-w) + var(--hueco));right:28px;top:20px;bottom:132px;display:flex;flex-direction:column;
+  background:linear-gradient(180deg,#ecebe6,#e2e0d9);clip-path:var(--chaflan);box-shadow:inset 0 1px 0 #fff;animation:entra .5s cubic-bezier(.3,.7,.2,1)}
+@keyframes entra{from{transform:translateY(16px)}to{transform:none}}
+.panel-cab{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:12px 20px;padding:22px 26px 16px;border-bottom:1px solid #c9c6be}
+.panel-cab h2{margin:0;font:400 22px/1 var(--f-display);letter-spacing:.08em}
+.panel-cab .sub{font:500 11px/1.4 var(--f-mono);letter-spacing:.08em;color:#4a5060;text-transform:uppercase;margin-top:8px}
+.panel-cuerpo{flex:1;min-height:0;overflow:auto;padding:18px 26px 26px;overscroll-behavior:contain;container-type:inline-size}
+@container (max-width:660px){.panel-cuerpo .fl{grid-template-columns:minmax(0,1fr);gap:18px}.panel-cuerpo .fl>:first-child{max-width:320px}}
+.vista{display:flex;gap:6px}
+.faders{display:grid;gap:12px;padding:16px 18px;margin-bottom:20px;position:relative;isolation:isolate}
+.faders::before{content:"";position:absolute;inset:0;z-index:-1;background:#d9d6ce;box-shadow:inset 0 1px 3px rgba(0,0,0,.14);clip-path:var(--chaflan)}
+.selector{position:relative;min-width:0}
+.visor{width:100%;display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:12px;padding:11px 14px;border:0;cursor:pointer;color:var(--letra-relieve);
+  background:linear-gradient(180deg,#59627a,#3f4659);clip-path:var(--chaflan);text-align:left}
+.visor:focus-visible{outline:2px solid var(--azul);outline-offset:2px}
+.visor .v{font:800 13px/1 var(--f-mono);letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.visor .nn{font:500 10px/1 var(--f-mono);letter-spacing:.1em;opacity:.75;text-transform:uppercase;white-space:nowrap}
+.visor .tri{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid currentColor;transition:transform .25s}
+.visor[aria-expanded="true"] .tri{transform:rotate(180deg)}
+.desp{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:5;background:#f3f2ee;box-shadow:0 12px 28px rgba(30,40,60,.28);padding:10px}
+.desp input{width:100%;box-sizing:border-box;border:0;padding:11px 12px;font:500 13px/1 var(--f-mono);background:#dcd9d1;box-shadow:inset 0 1px 3px rgba(0,0,0,.18);color:var(--tinta)}
+.desp input:focus-visible{outline:2px solid var(--azul);outline-offset:0}
+.desp ul{list-style:none;margin:8px 0 0;padding:0;max-height:248px;overflow:auto;overscroll-behavior:contain}
+.desp li{display:flex;justify-content:space-between;gap:12px;padding:10px;font:700 12px/1.2 var(--f-mono);letter-spacing:.02em;cursor:pointer;border-bottom:1px solid #dedbd3}
+.desp li span:last-child{color:#6a6f7b;font-weight:500}
+.desp li.act,.desp li:hover{background:#e3e1da}
+.desp li[aria-selected="true"]{background:var(--tinta);color:#fff}
+.desp li[aria-selected="true"] span:last-child{color:#c9ccd4}
+.desp li.cero{opacity:.45}
+.desp li.nada{cursor:default;color:#6a6f7b;font-weight:500}
+.fader{display:grid;grid-template-columns:76px 1fr;align-items:center;gap:14px}
+.fader .lbl{font:700 10px/1 var(--f-mono);letter-spacing:.16em;color:#3b4150}
+.riel{position:relative;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;padding-top:18px}
+.riel::before{content:"";position:absolute;left:4%;right:4%;top:5px;height:6px;border-radius:3px;background:#2a2d33;box-shadow:inset 0 1px 2px rgba(0,0,0,.6)}
+.riel button{appearance:none;border:0;background:none;cursor:pointer;font:500 10px/1.2 var(--f-mono);letter-spacing:.06em;color:#4a5060;padding:6px 2px 2px;text-transform:uppercase;position:relative}
+.riel button::before{content:"";position:absolute;left:50%;top:-4px;width:1px;height:5px;background:#6f6d68}
+.riel .s{display:none}
+.riel button[aria-pressed="true"]{color:var(--tinta);font-weight:800}
+.riel button:focus-visible{outline:2px solid var(--azul);outline-offset:1px}
+.riel .cursor{position:absolute;top:-1px;width:26px;height:18px;margin-left:-13px;border-radius:3px;background:linear-gradient(180deg,#f6f5f1,#d8d6ce);
+  box-shadow:0 1px 0 #fff inset,0 -2px 0 rgba(0,0,0,.14) inset,0 2px 4px var(--sombra);transition:left .35s cubic-bezier(.3,.7,.2,1);pointer-events:none}
+.riel .cursor::after{content:"";position:absolute;left:50%;top:3px;bottom:3px;width:2px;margin-left:-1px;background:var(--tinta)}
+.conteo{display:flex;justify-content:space-between;align-items:center;font:500 11px/1 var(--f-mono);letter-spacing:.08em;color:#4a5060;margin:0 0 12px;text-transform:uppercase}
+.rejilla{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:16px}
+.ref{display:grid;gap:10px;text-decoration:none;color:inherit;padding:10px 10px 12px;background:#f1f0eb;clip-path:var(--chaflan);transition:transform .2s,background .2s}
+.ref:hover{transform:translateY(-3px);background:#fbfaf6}
+.ref:focus-visible{outline:2px solid var(--azul);outline-offset:-2px}
+.portada{aspect-ratio:1;width:100%;max-width:100%;display:block;object-fit:cover;background:#cfd4dc}
+.sinp{aspect-ratio:1;width:100%;display:grid;place-items:center;align-content:center;gap:6px;color:#eef1f6;
+  background:radial-gradient(circle,rgba(23,24,27,.5) 0 22%,transparent 24%) 0 0/12px 12px,linear-gradient(160deg,#7d8aa0,#56607a)}
+.sinp b{font:800 clamp(16px,2.2vw,26px)/1 var(--f-mono);background:#3f4659;padding:6px 8px;letter-spacing:.02em}
+.sinp span{font:700 9px/1 var(--f-mono);letter-spacing:.18em;background:#3f4659;padding:4px 6px}
+.ref .c{font:500 10px/1.2 var(--f-mono);letter-spacing:.08em;color:#4a5060}
+.ref .a{font:800 13.5px/1.15 var(--f-mono);letter-spacing:.01em}
+.ref .t{font:500 12px/1.3 var(--f-texto);color:#2c3240;text-wrap:balance}
+.lista{display:grid;border-top:1px solid #c9c6be}
+.fila{display:grid;grid-template-columns:76px minmax(0,1.3fr) minmax(0,1.6fr) 84px 96px 48px 18px;gap:14px;align-items:center;padding:12px 6px;
+  border-bottom:1px solid #c9c6be;text-decoration:none;color:inherit;font:500 12px/1.3 var(--f-mono)}
+.fila:hover{background:#f6f5f0}
+.fila:focus-visible{outline:2px solid var(--azul);outline-offset:-2px}
+.fila .a{font-weight:800}.fila .t{font-family:var(--f-texto);font-size:13px}
+.fila .x{color:#4a5060}
+.fila span{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lista .cab span{font:inherit}
+.lista .cab{font:700 9.5px/1 var(--f-mono);letter-spacing:.16em;color:#6a6f7b;padding:10px 6px;border-bottom:1px solid #c9c6be}
+.lista .cab:hover{background:none}
+.vacio{padding:40px 10px;text-align:center;display:grid;gap:14px;justify-items:center;font:500 12px/1.5 var(--f-mono);color:#3b4150}
+.sinf{aspect-ratio:1;width:100%;display:grid;place-items:center;align-content:center;gap:8px;color:#eef1f6;
+  background:radial-gradient(circle,rgba(0,0,0,.55) 0 24%,transparent 26%) 0 0/10px 10px,radial-gradient(circle at 50% 38%,#6b7080,#2c3038 72%)}
+.sinf b{font:800 clamp(26px,3.4vw,44px)/1 var(--f-mono);letter-spacing:.04em;text-shadow:0 2px 0 rgba(0,0,0,.35)}
+.sinf span{font:700 9px/1 var(--f-mono);letter-spacing:.18em;background:#1c1f26;padding:4px 6px}
+img.retrato{aspect-ratio:1;width:100%;object-fit:cover;filter:grayscale(1) contrast(1.08)}
+.modulos{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:16px}
+.modulo{display:grid;gap:10px;align-content:start;text-decoration:none;color:inherit;padding:10px 10px 14px;background:#f1f0eb;clip-path:var(--chaflan);transition:transform .2s,background .2s}
+.modulo:hover{transform:translateY(-3px);background:#fbfaf6}
+.modulo:focus-visible{outline:2px solid var(--azul);outline-offset:-2px}
+.modulo .rol{font:500 10px/1.3 var(--f-mono);letter-spacing:.08em;color:#4a5060}
+.modulo .nom{font:800 15px/1.15 var(--f-mono);letter-spacing:.01em}
+.modulo .st{font:500 11px/1.4 var(--f-mono);color:#3b4150}
+.cifras{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.cifras div{background:#d9d6ce;box-shadow:inset 0 1px 3px rgba(0,0,0,.14);padding:10px 12px;display:grid;gap:6px;min-width:0}
+.cifras b{font:800 18px/1 var(--f-mono);font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.cifras b.lst{font-size:12px;line-height:1.35;white-space:normal}
+.cifras span{font:700 9px/1 var(--f-mono);letter-spacing:.16em;color:#6a6f7b}
+.bio{margin:0;font:400 14px/1.55 var(--f-texto);max-width:62ch}
+.bio.pend{color:#8a8d95;font-family:var(--f-mono);font-size:12px}
+.sub2{font:700 9.5px/1 var(--f-mono);letter-spacing:.16em;color:#6a6f7b;margin:22px 0 4px}
+.meses{display:grid;gap:10px;padding:16px 18px;margin-bottom:22px;position:relative;isolation:isolate}
+.meses::before{content:"";position:absolute;inset:0;z-index:-1;background:#d9d6ce;box-shadow:inset 0 1px 3px rgba(0,0,0,.14);clip-path:var(--chaflan)}
+.meses .k{display:flex;justify-content:space-between;align-items:center;gap:12px;font:700 10px/1 var(--f-mono);letter-spacing:.16em;color:#3b4150}
+.meses .anio{display:flex;align-items:center;gap:8px}
+.meses .anio button{width:30px;height:28px;padding:0;justify-content:center}
+.cas12{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:6px}
+.cas12 button{appearance:none;border:0;padding:0;display:grid;gap:6px;justify-items:center;background:none;cursor:pointer;font:500 10px/1 var(--f-mono);color:#4a5060}
+.cas12 button i{display:block;width:100%;max-width:30px;aspect-ratio:1;background:#cfccc4;box-shadow:inset 0 1px 2px rgba(0,0,0,.28)}
+.cas12 button.hay i{background:#8f96a6;box-shadow:inset 0 1px 2px rgba(0,0,0,.2)}
+.cas12 button[aria-pressed="true"] i{background:var(--tinta);box-shadow:none}
+.cas12 button[aria-pressed="true"]{color:var(--tinta);font-weight:800}
+.cas12 button:disabled{cursor:default;opacity:.55}
+.cas12 button:focus-visible{outline:2px solid var(--azul);outline-offset:2px}
+.antena{display:flex;align-items:center;gap:8px;font:700 10px/1.3 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:#4a5060}
+.antena i{width:10px;height:10px;border-radius:50%;background:#9aa0ab;box-shadow:inset 0 1px 2px rgba(0,0,0,.35);flex:none}
+.antena.on{color:var(--tinta)}.antena.on i{background:radial-gradient(circle at 40% 35%,#6a74e8,var(--azul) 70%);box-shadow:0 0 6px rgba(70,82,220,.55)}
+.destacados{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 24px;border-top:2px solid var(--tinta)}
+.destacados div{display:grid;grid-template-columns:28px minmax(0,1fr);gap:10px;padding:10px 0;border-bottom:1px solid #c9c6be;align-items:baseline}
+.destacados .n{font:500 11px/1 var(--f-mono);color:#8a8d95}
+.destacados .a{font:800 13px/1.2 var(--f-mono)}
+.destacados .t{display:block;font:500 11.5px/1.35 var(--f-mono);color:#4a5060;margin-top:3px}
+.mani{max-width:68ch;display:grid;gap:18px;padding:6px 0 10px}
+.mani h3{margin:0 0 6px;font:400 clamp(20px,2.6vw,34px)/1.2 var(--f-display);letter-spacing:.04em;text-wrap:balance}
+.mani p{margin:0;font:400 16px/1.65 var(--f-texto);color:#1f242e}
+.mani p.corto{font:800 clamp(16px,1.6vw,20px)/1.35 var(--f-mono);letter-spacing:.01em;color:var(--tinta);padding:14px 0;border-top:2px solid var(--tinta);border-bottom:1px solid #c9c6be}
+.mani q{font:800 1em/1 var(--f-mono);quotes:"«" "»";background:#d9d6ce;padding:1px 6px}
+.mani .cierre{font:400 clamp(14px,1.4vw,17px)/1.4 var(--f-display);letter-spacing:.06em;margin-top:10px}
+.firma{display:flex;align-items:center;gap:10px;font:500 11px/1 var(--f-mono);letter-spacing:.12em;color:#4a5060;text-transform:uppercase}
+.firma i{width:10px;height:10px;border-radius:50%;background:var(--azul)}.firma s{display:block;width:10px;height:10px;background:var(--rojo);text-decoration:none}
+.form{display:grid;gap:16px;max-width:640px}
+.campo{display:grid;gap:7px}
+.campo label,.campo .lbl{font:700 10px/1 var(--f-mono);letter-spacing:.16em;color:#3b4150;text-transform:uppercase}
+.campo input,.campo textarea{width:100%;box-sizing:border-box;border:0;padding:12px 13px;font:500 14px/1.4 var(--f-mono);background:#dcd9d1;box-shadow:inset 0 1px 3px rgba(0,0,0,.18);color:var(--tinta)}
+.campo textarea{min-height:120px;resize:vertical}
+.campo input:focus-visible,.campo textarea:focus-visible{outline:2px solid var(--azul);outline-offset:0}
+.campo .err{font:500 11px/1.3 var(--f-mono);color:var(--rojo)}
+.tipos{display:flex;flex-wrap:wrap;gap:6px}
+.dos{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.listo{display:grid;gap:12px;padding:18px;background:#d9d6ce;box-shadow:inset 0 1px 3px rgba(0,0,0,.14);max-width:640px}
+.listo pre{margin:0;white-space:pre-wrap;font:500 12px/1.5 var(--f-mono);background:#f3f2ee;padding:12px;max-height:200px;overflow:auto}
+.dato{font:800 15px/1.2 var(--f-mono);user-select:all}
+iframe.sc{width:100%;height:166px;border:0;display:block;background:#d9d6ce}
+.trampa{position:absolute;left:-9999px;width:1px;height:1px;overflow:hidden}
+/* ficha */
+.fl{display:grid;grid-template-columns:minmax(220px,340px) minmax(0,1fr);gap:28px;align-items:start}
+.fl .datos{display:grid;gap:14px;min-width:0}
+.fl .cod{font:500 11px/1.4 var(--f-mono);letter-spacing:.1em;color:#4a5060;text-transform:uppercase}
+.fl h3{margin:0;font:800 clamp(20px,2.4vw,30px)/1.05 var(--f-mono);letter-spacing:.01em;text-wrap:balance}
+.fl .tit{margin:0;font:400 clamp(13px,1.3vw,16px)/1.35 var(--f-display);letter-spacing:.06em;text-wrap:balance}
+.enlaces{display:flex;flex-wrap:wrap;gap:8px}
+.tecla[aria-disabled="true"]{opacity:.45;pointer-events:none}
+.creditos{width:100%;border-collapse:collapse;font:500 12px/1.3 var(--f-mono)}
+.creditos th{text-align:left;font:700 9.5px/1 var(--f-mono);letter-spacing:.16em;color:#6a6f7b;padding:9px 12px 9px 0;width:110px;border-bottom:1px solid #c9c6be;font-weight:700}
+.creditos td{padding:9px 0;border-bottom:1px solid #c9c6be}
+.creditos td.pend{color:#8a8d95}
+.escala{display:grid;gap:0;border-top:2px solid var(--tinta)}
+.escala .k{font:700 9.5px/1 var(--f-mono);letter-spacing:.16em;color:#6a6f7b;padding:10px 0}
+.escala p{margin:0;font:500 12px/1.5 var(--f-mono);color:#4a5060;padding:4px 0 2px}
+.pasos{display:flex;justify-content:space-between;gap:10px;margin-top:22px;padding-top:16px;border-top:1px solid #c9c6be}
+/* ---------- carga: autotest de arranque ---------- */
+.carga{position:fixed;inset:0;z-index:60;display:grid;place-items:center;background:linear-gradient(180deg,var(--cielo-1) 0%,var(--cielo-2) 72%);transition:opacity .9s,visibility .9s}
+.carga.fuera{opacity:0;visibility:hidden}
+.carga-in{display:grid;justify-items:center;gap:16px;width:min(340px,calc(100vw - 32px))}
+.carga canvas{width:min(250px,60vw);height:auto;aspect-ratio:520/560}
+.carga-let{height:26px;width:auto;margin-top:-4px}
+.carga-pct{display:flex;justify-content:space-between;align-items:baseline;width:100%;border-bottom:2px solid var(--tinta);padding-bottom:6px;margin-top:8px}
+.carga-pct b{font:800 34px/1 var(--f-mono);font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.carga-pct span{font:500 10px/1 var(--f-mono);letter-spacing:.18em;color:#3b4150}
+.carga-log{list-style:none;margin:0;padding:0;width:100%;display:grid;gap:6px}
+.carga-log li{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:baseline;font:500 11px/1.2 var(--f-mono);letter-spacing:.06em;color:#3b4150}
+.carga-log li i{border-bottom:1px dotted #8a90a0;transform:translateY(-3px)}
+.carga-log li b{font-weight:800;color:#7a8090}
+.carga-log li.ok b{color:var(--tinta)}
+.carga-pie{font:500 9.5px/1 var(--f-mono);letter-spacing:.2em;color:#4a5060;display:flex;gap:10px;align-items:center}
+.carga-pie em{width:8px;height:8px;border-radius:50%;background:var(--azul)}.carga-pie u{width:8px;height:8px;background:var(--rojo);text-decoration:none}
+@media (prefers-reduced-motion:reduce){.carga{transition:none}}
+/* ---------- encendido ---------- */
+.encendido{position:fixed;inset:0;left:var(--faja-w);z-index:8;display:grid;place-items:center;transition:opacity 1.2s;background:radial-gradient(ellipse at 45% 45%,rgba(22,28,42,.18),rgba(22,28,42,.5))}
+.encendido.fuera{opacity:0;pointer-events:none}
+.mando{box-sizing:border-box;display:grid;justify-items:center;gap:16px;text-align:center;background:linear-gradient(180deg,#eceae4,#dcdad3);clip-path:var(--chaflan);padding:34px 44px 28px;box-shadow:inset 0 1px 0 #fff;max-width:min(440px,calc(100vw - 32px))}
+.mando .ref{font:500 9.5px/1 var(--f-mono);letter-spacing:.2em;color:var(--grabado);text-transform:uppercase}
+.interruptor{width:132px;height:76px;margin-bottom:4px;border:0;cursor:pointer;border-radius:6px;position:relative;
+  background:linear-gradient(180deg,#f4f3ef,#d9d7cf);box-shadow:0 1px 0 #fff inset,0 -4px 0 rgba(0,0,0,.14) inset,0 10px 26px rgba(40,52,74,.35);
+  font:800 22px/1 var(--f-mono);letter-spacing:.3em;color:var(--tinta);transition:transform .15s}
+.interruptor:hover{transform:translateY(-1px)}
+.interruptor:active{transform:translateY(3px)}
+.interruptor:focus-visible{outline:3px solid var(--azul);outline-offset:4px}
+.interruptor span{position:absolute;inset:auto 0 12px;font:500 9px/1 var(--f-mono);letter-spacing:.22em;color:var(--grabado)}
+.mando h1{font:400 clamp(18px,2.1vw,30px)/1.1 var(--f-display);letter-spacing:.12em;margin:0;color:var(--tinta)}
+.mando p{font:500 12px/1.5 var(--f-mono);letter-spacing:.04em;color:#2f3646;margin:0;max-width:44ch}
+.mando .mudo{background:none;border:0;cursor:pointer;font:500 11px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:#3a4152;text-decoration:underline;text-underline-offset:4px}
+
+/* ---------- etiqueta flotante de los mandos 3D ---------- */
+.rotulo{position:fixed;z-index:9;pointer-events:none;font:700 10px/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;
+  background:var(--tinta);color:#fff;padding:7px 9px;transform:translate(14px,14px);opacity:0;transition:opacity .15s;white-space:nowrap}
+.rotulo.on{opacity:1}
+.aviso{position:fixed;left:50%;bottom:128px;transform:translateX(-50%);z-index:9;background:var(--tinta);color:#fff;font:500 11px/1 var(--f-mono);letter-spacing:.08em;padding:10px 14px;opacity:0;transition:opacity .3s;pointer-events:none}
+.aviso.on{opacity:1}
+.barra,.velo{display:none}
+/* ---------- móvil: barra de cromo arriba, faja como cajón, escena viva de fondo ---------- */
+@media (max-width:820px){
+  html,body{height:100%}
+  body{overflow:hidden}
+  .estado{display:none}
+  .barra{display:block;position:fixed;left:0;right:0;top:0;z-index:11;padding-top:env(safe-area-inset-top,0px);background:#bfc8d4}
+  .barra-in{position:relative;height:70px;background:url(img/barra_movil.png) left top/auto 70px no-repeat,linear-gradient(180deg,#dfe5ee,#aab6c6 60%,#d5dce6)}
+  .barra .inicio{position:absolute;left:6px;top:6px;width:150px;height:52px}
+  .barra .tm{position:absolute;top:25px;width:14px;height:14px;transition:background .6s,box-shadow .6s}
+  .barra .tm.azul{left:175.5px;border-radius:50%;background:#20263a}
+  .barra .tm.rojo{left:195.5px;background:#2a2228}
+  .barra .tm.azul.on{background:radial-gradient(circle at 40% 35%,#6a74e8,var(--azul) 70%);box-shadow:0 0 5px rgba(70,82,220,.6)}
+  .barra .tm.rojo.on{background:radial-gradient(circle at 40% 35%,#ff7a6a,var(--rojo) 70%)}
+  .menu{position:absolute;right:max(12px,env(safe-area-inset-right,0px));top:9px;height:44px;min-width:128px;border:0;cursor:pointer;
+    display:grid;grid-template-columns:auto auto;align-items:center;gap:2px 10px;padding:0 14px;color:var(--letra-relieve);text-align:left;
+    background:linear-gradient(180deg,#59627a,#3f4659);clip-path:var(--chaflan);box-shadow:inset 0 1px 0 rgba(255,255,255,.2)}
+  .menu .n{font:500 9px/1 var(--f-mono);letter-spacing:.14em;opacity:.7}
+  .menu .t{font:400 12px/1 var(--f-display);letter-spacing:.06em;grid-column:1}
+  .menu .tri{grid-row:1/3;grid-column:2;width:0;height:0;border-left:6px solid transparent;border-right:6px solid transparent;border-top:9px solid var(--letra-relieve);transition:transform .3s}
+  .menu[aria-expanded="true"] .tri{transform:rotate(180deg)}
+  .menu:focus-visible{outline:2px solid var(--azul);outline-offset:2px}
+  .faja{top:env(safe-area-inset-top,0px);height:calc(100dvh - env(safe-area-inset-top,0px));transform:translateX(-112%);transition:transform .45s cubic-bezier(.3,.7,.2,1);z-index:13}
+  .faja.abierta{transform:none}
+  .velo{display:block;position:fixed;inset:0;z-index:12;background:rgba(18,24,36,.42);opacity:0;pointer-events:none;transition:opacity .35s}
+  .velo.on{opacity:1;pointer-events:auto}
+  .lateral{left:0;right:0;width:auto;bottom:calc(150px + env(safe-area-inset-bottom,0px));flex-direction:row;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;
+    padding-inline:max(12px,env(safe-area-inset-left,0px)) max(12px,env(safe-area-inset-right,0px));scrollbar-width:none;scroll-padding-inline:12px}
+  .lateral::-webkit-scrollbar{display:none}
+  .lateral>*{flex:0 0 min(86%,340px);scroll-snap-align:start}
+  .ficha{padding:14px 16px 16px;gap:10px}
+  .ficha .cuerpo{grid-template-columns:72px 1fr;gap:12px}
+  .ficha img{width:72px;height:72px}
+  .ficha .art{font-size:15px;margin-top:4px}
+  .ficha .tit{font-size:12px}
+  .ficha .tecla{padding:10px 12px 9px}
+  .senal{align-content:center}
+  .pletina{left:max(10px,env(safe-area-inset-left,0px));right:max(10px,env(safe-area-inset-right,0px));bottom:calc(10px + env(safe-area-inset-bottom,0px));height:auto;
+    grid-template-columns:minmax(0,1fr) auto;grid-template-areas:"vu vu" "ahora tr" "can can";gap:10px 12px;padding:12px 14px 14px}
+  .pletina::after{display:none}
+  .vu{grid-area:vu;height:5px;gap:2px}.vu i{max-width:none}
+  .ahora{grid-area:ahora}.ahora .k{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ahora .t{font-size:14px}.ahora .s{font-size:10px}
+  .transporte{grid-area:tr;gap:6px}.transporte .tecla{width:44px;height:44px}
+  .canales{grid-area:can;grid-template-columns:auto 1fr;align-items:center;gap:10px}
+  .canales .k{gap:6px}.canales .k span:first-child{display:none}
+  .casillas{gap:3px}.casillas button{flex:1;width:auto;height:20px}
+  .encendido{left:0;top:calc(70px + env(safe-area-inset-top,0px))}
+  .menu .t{white-space:nowrap}
+  .mando{padding:28px 24px 22px}
+  .panel{left:max(8px,env(safe-area-inset-left,0px));right:max(8px,env(safe-area-inset-right,0px));top:calc(78px + env(safe-area-inset-top,0px));bottom:calc(138px + env(safe-area-inset-bottom,0px))}
+  .panel-cab{padding:16px 16px 12px}.panel-cab h2{font-size:17px}
+  .panel-cuerpo{padding:14px 14px 20px}
+  .fader{grid-template-columns:1fr;gap:6px}
+  .riel button{font-size:9px;letter-spacing:0}
+  .riel .l{display:none}.riel .s{display:inline}
+  .conteo span:last-child{display:none}
+  .rejilla{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .fila{grid-template-columns:62px minmax(0,1fr) 18px;gap:10px}
+  .fila .t,.fila .f,.fila .g,.fila .y{display:none}
+  .fila .a{white-space:normal}
+  .lista .cab{display:none}
+  .fl{grid-template-columns:1fr;gap:18px}
+  .modulos{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+  .destacados{grid-template-columns:1fr}
+  .dos{grid-template-columns:1fr}
+  .mani p{font-size:15px}
+  .cas12{gap:3px}.cas12 button{font-size:8.5px}
+  .cifras b{font-size:15px}
+  .aviso{bottom:calc(330px + env(safe-area-inset-bottom,0px));max-width:calc(100vw - 32px);white-space:normal;text-align:center;line-height:1.4}
+}
+@media (prefers-reduced-motion:reduce){.grano{animation:none}.punta{transition:none}}
+</style>
+
+<canvas id="escena" aria-hidden="true"></canvas>
+<div class="grano" aria-hidden="true"></div>
+
+<div class="carga" id="carga" role="status" aria-live="polite">
+  <div class="carga-in">
+    <canvas id="cargaCv" width="520" height="560" aria-hidden="true"></canvas>
+    <img src="img/lettering.png" alt="aurality" class="carga-let">
+    <div class="carga-pct"><b id="cargaPct">000</b><span>AU-00 · ARRANQUE</span></div>
+    <ol class="carga-log" id="cargaLog"></ol>
+    <div class="carga-pie" aria-hidden="true"><em></em><u></u><span>BROADCASTED FROM ELDA</span></div>
+  </div>
+</div>
+<script>
+// arranque: el símbolo se forma agujero a agujero (397, barrido de dial) mientras se carga de verdad cada parte
+(function () {
+  const G = %%GEO_CARGA%%, cv = document.getElementById('cargaCv'), cx = cv.getContext('2d');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches, t0 = performance.now(), DUR = reduce ? 0 : 4200;   // duración mínima del barrido
+  const PASOS = [['fuentes', 'TIPOGRAFÍAS'], ['motor', 'MOTOR 3D'], ['datos', 'CATÁLOGO'], ['piezas', 'PIEZAS AU-01 · AU-05'], ['escena', 'ESCENA']];
+  const log = document.getElementById('cargaLog'), hecho = {};
+  PASOS.forEach(([k, t]) => { const li = document.createElement('li'); li.id = 'cl-' + k; li.innerHTML = `<span>${t}</span><i></i><b>···</b>`; log.appendChild(li); });
+  const W = 520, H = 560, k = 2.25, ox = W / 2, oy = H / 2;
+  const P = ([x, y]) => [ox + x * k, oy - y * k];
+  const orden = G.h.map(p => ({ p: P(p), a: (Math.atan2(p[0], p[1]) + 2 * Math.PI) % (2 * Math.PI) })).sort((a, b) => a.a - b.a);
+  let vis = 0, fin = false, tPrev = t0;
+  function pinta(f) {
+    cx.clearRect(0, 0, W, H);
+    cx.lineWidth = 2; cx.strokeStyle = 'rgba(40,52,74,.28)';
+    G.a.forEach(poly => { cx.beginPath(); poly.forEach((q, i) => { const [x, y] = P(q); i ? cx.lineTo(x, y) : cx.moveTo(x, y); }); cx.closePath(); cx.stroke(); });
+    const n = Math.round(f * orden.length);
+    orden.forEach((o, i) => { cx.beginPath(); cx.arc(o.p[0], o.p[1], 3.4, 0, 7);
+      if (i < n) { cx.fillStyle = '#17181b'; cx.fill(); } else { cx.strokeStyle = 'rgba(40,52,74,.22)'; cx.lineWidth = 1.2; cx.stroke(); } });
+    cx.beginPath(); G.t.forEach((q, i) => { const [x, y] = P(q); i ? cx.lineTo(x, y) : cx.moveTo(x, y); }); cx.closePath();
+    if (f >= 1) { cx.fillStyle = '#0e0f12'; cx.fill(); } else { cx.strokeStyle = 'rgba(40,52,74,.35)'; cx.lineWidth = 2; cx.stroke(); }
+    // aguja del dial
+    if (f < 1) { const a = f * 2 * Math.PI; cx.strokeStyle = 'rgba(14,15,18,.55)'; cx.lineWidth = 2; cx.beginPath(); cx.moveTo(ox, oy); cx.lineTo(ox + Math.sin(a) * 250, oy - Math.cos(a) * 250); cx.stroke(); }
+    document.getElementById('cargaPct').textContent = String(Math.round(f * 100)).padStart(3, '0');
+  }
+  function objetivo() { const n = PASOS.filter(([k]) => hecho[k]).length; return n / PASOS.length; }
+  function bucle(now) {
+    if (fin === 'hecho') return;
+    const dt = Math.min(0.25, Math.max(0, (now - tPrev) / 1000)); tPrev = now;                       // todo por tiempo, no por fotogramas
+    let tgt = objetivo();
+    if (tgt < 1) tgt = Math.min(tgt + 0.12, tgt + (now - t0) / 40000);                 // avanza despacio entre pasos, sin pasarse
+    tgt = Math.min(tgt, DUR ? (now - t0) / DUR : 1);                                   // el barrido nunca va más rápido que DUR
+    vis = reduce ? tgt : vis + (tgt - vis) * Math.min(1, dt * 5);
+    if (fin && tgt >= 1 && vis > 0.985) vis = 1;
+    pinta(Math.min(1, vis));
+    if (fin && vis >= 0.999) { fin = 'hecho'; pinta(1); setTimeout(() => { const c = document.getElementById('carga'); c.classList.add('fuera'); setTimeout(() => c.remove(), 1000); }, reduce ? 0 : 700); return; }
+    requestAnimationFrame(bucle);
+  }
+  window.__carga = {
+    mark(k, txt) { if (hecho[k]) return; hecho[k] = 1; const li = document.getElementById('cl-' + k); if (li) { li.classList.add('ok'); li.querySelector('b').textContent = txt || 'OK'; }
+      if (objetivo() >= 1) setTimeout(() => { fin = true; }, Math.max(0, DUR - (performance.now() - t0))); },
+  };
+  (document.fonts ? document.fonts.ready : Promise.resolve()).then(() => window.__carga.mark('fuentes'));
+  setTimeout(() => PASOS.forEach(([k]) => window.__carga.mark(k, hecho[k] ? undefined : '—')), 12000);   // nunca se queda colgada
+  requestAnimationFrame(bucle);
+})();
+</script>
+
+<header class="barra"><div class="barra-in">
+  <a class="inicio" href="#escucha" aria-label="aurality, inicio"></a>
+  <span class="tm azul" id="tAzulM" aria-hidden="true"></span><span class="tm rojo on" aria-hidden="true"></span>
+  <button class="menu" id="bMenu" aria-expanded="false" aria-controls="faja"><span class="n" id="menuN">01 · SECCIÓN</span><span class="t" id="menuT">ESCUCHA</span><span class="tri" aria-hidden="true"></span></button>
+</div></header>
+<div class="velo" id="velo"></div>
+
+<nav class="faja" id="faja" aria-label="Secciones">
+  <a class="home" href="#escucha" aria-label="aurality, inicio"></a>
+  <div class="punta" id="punta" aria-hidden="true"></div>
+  <a class="placa" href="#escucha" data-s="escucha" style="top:22.5%" aria-current="page"><span class="n">01 · AU-00</span><span class="t">Escucha</span><span class="d">Radio · último lanzamiento</span></a>
+  <a class="placa" href="#catalogo" data-s="catalogo" style="top:31.914%"><span class="n">02</span><span class="t">Catálogo</span><span class="d" id="nRefs">13 referencias</span></a>
+  <a class="placa" href="#roster" data-s="roster" style="top:41.327%"><span class="n">03</span><span class="t">Roster</span><span class="d" id="nArt">4 artistas</span></a>
+  <a class="placa" href="#senal" data-s="senal" style="top:50.741%"><span class="n">04</span><span class="t">Señal</span><span class="d">Playlist mensual</span></a>
+  <a class="placa" href="#manifiesto" data-s="manifiesto" style="top:60.154%"><span class="n">05</span><span class="t">Manifiesto</span><span class="d">Qué es aurality</span></a>
+  <a class="placa" href="#contacto" data-s="contacto" style="top:69.568%"><span class="n">06</span><span class="t">Contacto</span><span class="d">Demos · prensa</span></a>
+  <span class="testigo azul" id="tAzul" title="Testigo azul: radio en directo"></span>
+  <span class="testigo rojo on" id="tRojo" title="Testigo rojo: lanzamiento destacado"></span>
+  <div class="codigo-mes"><span>SEÑAL 10_26</span><small>MES 10/12</small></div>
+</nav>
+
+<div class="estado" aria-live="polite">
+  <span>AU-00 · Receptor<br><b id="estadoTxt">En espera</b></span>
+  <span>Elda · 38.48°N 0.79°O<br><b id="hora">--:--</b></span>
+</div>
+
+<aside class="lateral">
+  <article class="ficha" aria-label="Último lanzamiento">
+    <div class="eti"><span>Último lanzamiento</span><span>● Destacado</span></div>
+    <div class="cuerpo">
+      <img src="covers/AU0212.jpg" alt="Portada de ESTIU 2026: EDICIÓ SAINT-TROPEZ">
+      <div>
+        <div class="cod">AU0212 · REMIXES · 2026</div>
+        <div class="art">PARANOID REALM</div>
+        <div class="tit">ESTIU 2026: EDICIÓ SAINT-TROPEZ</div>
+      </div>
+    </div>
+    <div class="acciones">
+      <a class="tecla" href="https://soundcloud.com/paranoidrealm/sets/estiu-2026-edicio-saint-tropez" target="_blank" rel="noopener">Escuchar en SoundCloud ↗</a>
+      <a class="tecla oscura" href="#AU0212">Ficha</a>
+    </div>
+  </article>
+  <article class="senal" aria-label="Señal mensual">
+    <span class="eti">Playlist mensual</span>
+    <span class="nom">SEÑAL MENSUAL<b>10_26</b></span>
+    <span class="des">Lanzamientos, hallazgos y obsesiones del mes.</span>
+    <a class="tecla" href="#senal">Abrir</a>
+  </article>
+</aside>
+
+<section class="pletina" aria-label="Radio">
+  <div class="ahora">
+    <span class="led" id="led"></span>
+    <span class="k">Radio ambient · en directo</span>
+    <span class="t" id="canalNom">CANAL 03 · HORIZONTE</span>
+    <span class="s" id="canalSub">Do lidio · generado en directo, nunca se repite</span>
+  </div>
+  <div class="transporte">
+    <button class="tecla" id="bPrev" aria-label="Canal anterior"><svg viewBox="0 0 16 16"><path d="M3 2h2v12H3zM14 2v12L6 8z"/></svg></button>
+    <button class="tecla" id="bPlay" aria-label="Reproducir" aria-pressed="false"><svg viewBox="0 0 16 16" id="icoPlay"><path d="M3 1.5v13L14.5 8z"/></svg></button>
+    <button class="tecla" id="bNext" aria-label="Canal siguiente"><svg viewBox="0 0 16 16"><path d="M11 2h2v12h-2zM2 2v12l8-6z"/></svg></button>
+  </div>
+  <div class="vu" id="vu" aria-hidden="true"></div>
+  <div class="canales">
+    <div class="k"><span>CANAL</span><span id="canalNum">03 / 12</span></div>
+    <div class="casillas" id="casillas" role="group" aria-label="Elegir canal"></div>
+  </div>
+</section>
+
+<div class="encendido" id="encendido">
+  <div class="mando">
+    <button class="interruptor" id="bOn" aria-label="Encender el receptor y la radio">I / O<span>AU-00</span></button>
+    <h1>ENCENDER</h1>
+    <p>Enciende el receptor: empieza a sonar la radio ambient de aurality, generada en directo.</p>
+    <span class="ref">AURALITY  AU-00 · RECEPTOR · ELDA</span>
+    <button class="mudo" id="bMudo">Entrar sin sonido</button>
+  </div>
+</div>
+
+<section class="panel" id="panel" hidden aria-live="polite"></section>
+<div class="rotulo" id="rotulo"></div>
+<div class="aviso" id="aviso" role="status"></div>
+
+<script type="importmap">%%IMPORTMAP%%</script>
+<script type="module">
+import * as THREE from 'three';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { toCreasedNormals } from 'three/addons/utils/BufferGeometryUtils.js';
+window.__carga?.mark('motor', 'THREE.JS');
+
+// ======================= piezas AU (parts.js) =======================
+%%PARTS%%
+
+// ======================= radio ambient: generador en directo =======================
+// 12 canales, 5 estilos. Cada canal es una tonalidad + un estilo. Al cambiar de canal, el anterior se funde y su reverb se apaga sola.
+const NOTAS = ['DO', 'DO♯', 'RE', 'MI♭', 'MI', 'FA', 'FA♯', 'SOL', 'LA♭', 'LA', 'SI♭', 'SI'];
+const MODOS = { lidio: [0, 2, 4, 6, 7, 9, 11], dorico: [0, 2, 3, 5, 7, 9, 10], eolico: [0, 2, 3, 5, 7, 8, 10], penta: [0, 2, 4, 7, 9], jonico: [0, 2, 4, 5, 7, 9, 11] };
+const NOMMODO = { lidio: 'lidio', dorico: 'dórico', eolico: 'eólico', penta: 'pentatónico', jonico: 'jónico' };
+const ESTILOS = { aeropuerto: 'bucles de aeropuerto', dron: 'dron', kankyo: 'kankyō ongaku', analogico: 'ambient analógico', dub: 'dub técnico' };
+const CANALES = [
+  ['PANEL', 53, 'jonico', 'aeropuerto'], ['NIEBLA', 45, 'eolico', 'dron'], ['HORIZONTE', 48, 'lidio', 'kankyo'], ['REJILLA', 43, 'dorico', 'analogico'],
+  ['CROMO', 52, 'eolico', 'dub'], ['SINTONÍA', 49, 'jonico', 'aeropuerto'], ['ESCALA', 53, 'penta', 'kankyo'], ['TESTIGO', 46, 'eolico', 'analogico'],
+  ['PLETINA', 49, 'eolico', 'dub'], ['RANURA', 44, 'dorico', 'dron'], ['ALTAVOZ', 51, 'penta', 'kankyo'], ['SEÑAL', 42, 'dorico', 'analogico']];
+const hz = m => 440 * Math.pow(2, (m - 69) / 12);
+const azar = (a, b) => a + Math.random() * (b - a), elige = a => a[Math.floor(Math.random() * a.length)];
+
+// envíos de cada estilo: seco, sala grande, sala corta, eco · tono (filtro general) · eco en negras
+const MEZCLA = {
+  aeropuerto: { seco: 0.35, sala: 0.95, cuarto: 0.0, eco: 0.08, tono: 6000, nivel: 1.15 },
+  dron:       { seco: 0.45, sala: 0.85, cuarto: 0.0, eco: 0.0,  tono: 2600, nivel: 0.6 },
+  kankyo:     { seco: 0.70, sala: 0.25, cuarto: 0.45, eco: 0.30, tono: 9000, nivel: 0.95 },
+  analogico:  { seco: 0.72, sala: 0.22, cuarto: 0.38, eco: 0.14, tono: 7500, nivel: 0.42 },
+  dub:        { seco: 0.75, sala: 0.20, cuarto: 0.25, eco: 0.60, tono: 2800, nivel: 0.5 },
+};
+
+class Ambient {
+  constructor() { this.canal = 2; this.on = false; this.ctx = null; this.gen = null; }
+  init() {
+    const AC = window.AudioContext || window.webkitAudioContext; const c = this.ctx = new AC();
+    this.master = c.createGain(); this.master.gain.value = 0;
+    this.comp = c.createDynamicsCompressor(); this.comp.threshold.value = -18; this.comp.ratio.value = 3; this.comp.attack.value = 0.02; this.comp.release.value = 0.4;
+    this.analyser = c.createAnalyser(); this.analyser.fftSize = 1024; this.buf = new Float32Array(this.analyser.fftSize);
+    this.subida = c.createGain(); this.subida.gain.value = 3.6;                    // ganancia de salida (≈ +11 dB) y limitador final
+    this.limite = c.createDynamicsCompressor(); this.limite.threshold.value = -4; this.limite.knee.value = 0; this.limite.ratio.value = 20; this.limite.attack.value = 0.002; this.limite.release.value = 0.15;
+    this.master.connect(this.comp); this.comp.connect(this.subida); this.subida.connect(this.limite); this.limite.connect(this.analyser); this.analyser.connect(c.destination);
+    const ir = (seg, caida) => { const len = c.sampleRate * seg, b = c.createBuffer(2, len, c.sampleRate);
+      for (let ch = 0; ch < 2; ch++) { const d = b.getChannelData(ch); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, caida); } return b; };
+    this.sala = c.createConvolver(); this.sala.buffer = ir(7, 2.6); this.sala.connect(this.master);
+    this.cuarto = c.createConvolver(); this.cuarto.buffer = ir(1.6, 3.2); this.cuarto.connect(this.master);
+    this.eco = c.createDelay(3); this.eco.delayTime.value = 0.42; const fb = c.createGain(); fb.gain.value = 0.42;
+    const ecoLp = c.createBiquadFilter(); ecoLp.type = 'lowpass'; ecoLp.frequency.value = 2600;
+    this.eco.connect(ecoLp); ecoLp.connect(fb); fb.connect(this.eco); ecoLp.connect(this.master); ecoLp.connect(this.sala);
+    const nb = c.createBuffer(1, c.sampleRate * 3, c.sampleRate), nd = nb.getChannelData(0); for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
+    this.ruido = nb;
+  }
+  // ---------- generación: un bus propio por canal, para fundir al cambiar ----------
+  nuevaGen(estilo) {
+    const c = this.ctx, m = MEZCLA[estilo], t = c.currentTime;
+    const g = { estilo, vivo: true, timers: [], inter: null, nodos: [] };
+    g.fader = c.createGain(); g.fader.gain.setValueAtTime(0, t); g.fader.gain.linearRampToValueAtTime(m.nivel, t + 3.5);
+    g.tono = c.createBiquadFilter(); g.tono.type = 'lowpass'; g.tono.frequency.value = m.tono; g.tono.Q.value = 0.2;
+    if (estilo === 'analogico') { const sat = c.createWaveShaper(), cu = new Float32Array(1024); for (let i = 0; i < 1024; i++) { const x = i / 511.5 - 1; cu[i] = Math.tanh(1.8 * x) / Math.tanh(1.8); }
+      sat.curve = cu; sat.oversample = '2x'; g.fader.connect(sat); sat.connect(g.tono); g.nodos.push(sat); }
+    else g.fader.connect(g.tono);
+    [['seco', this.master], ['sala', this.sala], ['cuarto', this.cuarto], ['eco', this.eco]].forEach(([k, dst]) => { if (!m[k]) return; const s = c.createGain(); s.gain.value = m[k]; g.tono.connect(s); s.connect(dst); g.nodos.push(s); });
+    g.nodos.push(g.fader, g.tono);
+    return g;
+  }
+  matarGen(g, fundido = 2.5) {
+    if (!g) return; g.vivo = false; g.timers.forEach(clearTimeout); clearInterval(g.inter);
+    const t = this.ctx.currentTime; g.fader.gain.cancelScheduledValues(t); g.fader.gain.setValueAtTime(g.fader.gain.value, t); g.fader.gain.linearRampToValueAtTime(0, t + fundido);
+    setTimeout(() => g.nodos.forEach(n => { try { n.disconnect(); } catch (e) {} }), (fundido + 10) * 1000);
+  }
+  luego(g, s, fn) { g.timers.push(setTimeout(() => g.vivo && this.on && fn(), s * 1000)); }
+  secuenciador(g, bpm, paso) {                     // planifica semicorcheas con margen, como un secuenciador de verdad
+    const c = this.ctx, dur = 60 / bpm / 4; let n = 0, prox = c.currentTime + 0.15;
+    g.inter = setInterval(() => { if (!g.vivo) return; while (prox < c.currentTime + 0.3) { paso(n, prox, dur); n++; prox += dur; } }, 40);
+  }
+  nota(grado, oct = 0) { const [, root, modo] = CANALES[this.canal], sc = MODOS[modo], n = sc.length; const o = Math.floor(grado / n); return root + sc[((grado % n) + n) % n] + 12 * (o + oct); }
+  // ---------- instrumentos ----------
+  env(gn, t, a, peak, d, fin) { gn.gain.setValueAtTime(0, t); gn.gain.linearRampToValueAtTime(peak, t + a); if (d) gn.gain.setValueAtTime(peak, t + a + d); gn.gain.linearRampToValueAtTime(0.0001, fin); }
+  pad(g, notas, t, dur, o = {}) {
+    const c = this.ctx, att = o.att ?? 4, rel = o.rel ?? 6, gain = o.gain ?? 0.04;
+    const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 0.5;
+    lp.frequency.setValueAtTime((o.corte ?? 1200) * 0.4, t); lp.frequency.linearRampToValueAtTime(o.corte ?? 1200, t + att + 1);
+    const vca = c.createGain(); this.env(vca, t, att, gain, Math.max(0, dur - att - rel), t + dur + rel);
+    lp.connect(vca); vca.connect(g.fader);
+    notas.forEach(m => [-7, 7].forEach(det => { const os = c.createOscillator(); os.type = o.onda || 'sawtooth'; os.frequency.value = hz(m); os.detune.value = det + azar(-3, 3);
+      if (g.vaiven) g.vaiven.connect(os.detune); os.connect(lp); os.start(t); os.stop(t + dur + rel + 0.1); }));
+  }
+  fm(g, m, t, o = {}) {                              // campana, marimba o piano eléctrico según la relación y el índice
+    const c = this.ctx, f = hz(m), dec = o.dec ?? 1.6, gain = o.gain ?? 0.05;
+    const car = c.createOscillator(), mod = c.createOscillator(), mg = c.createGain(), vca = c.createGain();
+    car.frequency.value = f; mod.frequency.value = f * (o.ratio ?? 2);
+    mg.gain.setValueAtTime(f * (o.indice ?? 1.5), t); mg.gain.exponentialRampToValueAtTime(f * 0.01 + 0.01, t + dec * 0.5);
+    vca.gain.setValueAtTime(0, t); vca.gain.linearRampToValueAtTime(gain, t + (o.att ?? 0.004)); vca.gain.exponentialRampToValueAtTime(0.0001, t + dec);
+    mod.connect(mg); mg.connect(car.frequency); car.connect(vca); vca.connect(g.fader);
+    if (o.eco) { const s = c.createGain(); s.gain.value = o.eco; vca.connect(s); s.connect(this.eco); }
+    car.start(t); mod.start(t); car.stop(t + dec + 0.1); mod.stop(t + dec + 0.1);
+  }
+  piano(g, m, t, o = {}) {                           // piano suave: fundamental + armónicos que se apagan antes
+    const c = this.ctx, dec = o.dec ?? 7, gain = o.gain ?? 0.06;
+    [[1, 1], [2, 0.22], [3, 0.06]].forEach(([h, a]) => { const os = c.createOscillator(), v = c.createGain(); os.type = 'sine'; os.frequency.value = hz(m) * h * (h > 1 ? 1.0015 : 1);
+      v.gain.setValueAtTime(0, t); v.gain.linearRampToValueAtTime(gain * a, t + 0.03); v.gain.exponentialRampToValueAtTime(0.0001, t + dec / h);
+      os.connect(v); v.connect(g.fader); os.start(t); os.stop(t + dec + 0.1); });
+  }
+  voz(g, m, t, dur, gain = 0.02) {                   // coro "aah": sierra por dos formantes
+    const c = this.ctx, os = c.createOscillator(), vca = c.createGain(); os.type = 'sawtooth'; os.frequency.value = hz(m);
+    this.env(vca, t, dur * 0.4, gain, dur * 0.2, t + dur);
+    [[750, 6], [1150, 8]].forEach(([fr, q]) => { const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = fr; bp.Q.value = q; os.connect(bp); bp.connect(vca); });
+    vca.connect(g.fader); os.start(t); os.stop(t + dur + 0.1);
+  }
+  bombo(g, t, gain = 0.5) {
+    const c = this.ctx, os = c.createOscillator(), v = c.createGain(); os.frequency.setValueAtTime(110, t); os.frequency.exponentialRampToValueAtTime(42, t + 0.12);
+    v.gain.setValueAtTime(gain, t); v.gain.exponentialRampToValueAtTime(0.0001, t + 0.45); os.connect(v); v.connect(g.fader); os.start(t); os.stop(t + 0.5);
+  }
+  ruidoCorto(g, t, dur, gain, tipo, fr, q = 0.8) {
+    const c = this.ctx, s = c.createBufferSource(), f = c.createBiquadFilter(), v = c.createGain(); s.buffer = this.ruido;
+    f.type = tipo; f.frequency.value = fr; f.Q.value = q; v.gain.setValueAtTime(gain, t); v.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    s.connect(f); f.connect(v); v.connect(g.fader); s.start(t, Math.random() * 2); s.stop(t + dur + 0.05);
+  }
+  fondo(g, gain, tipo, fr, q, lfo = 0) {             // ruido continuo filtrado (cinta, aire, vinilo)
+    const c = this.ctx, s = c.createBufferSource(), f = c.createBiquadFilter(), v = c.createGain(); s.buffer = this.ruido; s.loop = true;
+    f.type = tipo; f.frequency.value = fr; f.Q.value = q; v.gain.value = gain; s.connect(f); f.connect(v); v.connect(g.fader); s.start();
+    if (lfo) { const o = c.createOscillator(), og = c.createGain(); o.frequency.value = lfo; og.gain.value = fr * 0.7; o.connect(og); og.connect(f.frequency); o.start(); g.nodos.push(o); }
+    g.nodos.push(s, f, v);
+  }
+  // ---------- estilos ----------
+  aeropuerto(g) {                                    // bucles de longitudes distintas que se desfasan: nunca suenan igual dos veces
+    const notas = [[0, 0], [2, 0], [4, 0], [6, 0], [1, 1], [4, 1], [2, -1]];
+    notas.forEach(([gr, oc], i) => { const L = 13 + i * 2.9 + azar(0, 2.5);
+      const toca = () => { this.piano(g, this.nota(gr, oc), this.ctx.currentTime + 0.05, { dec: 8, gain: 0.055 }); this.luego(g, L, toca); };
+      this.luego(g, azar(0.5, L), toca); });
+    [[0, -1], [4, -1]].forEach(([gr, oc], i) => { const L = 23 + i * 8.3;
+      const canta = () => { this.voz(g, this.nota(gr, oc), this.ctx.currentTime + 0.05, 9, 0.018); this.luego(g, L, canta); };
+      this.luego(g, 4 + i * 6, canta); });
+    this.fondo(g, 0.006, 'bandpass', 500, 0.5);
+  }
+  dron(g) {
+    const capas = [[0, -1], [4, -1], [0, 0], [8, 0], [2, 1]];
+    const capa = (i) => { const [gr, oc] = capas[i % capas.length], dur = azar(26, 40);
+      this.pad(g, [this.nota(gr, oc)], this.ctx.currentTime + 0.05, dur, { att: 12, rel: 14, gain: 0.05, corte: 700 + i * 120, onda: i % 2 ? 'triangle' : 'sawtooth' });
+      this.luego(g, dur * 0.55, () => capa(i + 1 + Math.floor(Math.random() * 2))); };
+    capa(0); this.luego(g, 9, () => capa(2));
+    const sub = this.ctx.createOscillator(), sv = this.ctx.createGain(); sub.frequency.value = hz(this.nota(0, -2)); sv.gain.value = 0.05; sub.connect(sv); sv.connect(g.fader); sub.start(); g.nodos.push(sub, sv);
+    this.fondo(g, 0.03, 'bandpass', 600, 1.2, 0.02);
+  }
+  kankyo(g) {                                        // frases cortas con aire; la frase muta despacio
+    let frase = []; const nueva = () => { frase = [0, 6, 10, 16, 22, 26].filter(() => Math.random() < 0.8).map(p => [p, elige([0, 1, 2, 3, 4, 5, 7])]); };
+    nueva(); let compas = 0, calla = false, timbre = 0;
+    this.secuenciador(g, 72, (n, t) => {
+      const p = n % 32;
+      if (p === 0) { compas++; if (compas % 4 === 0) { const k = Math.floor(Math.random() * frase.length); if (frase[k]) frase[k][1] = elige([0, 1, 2, 3, 4, 5, 7]); }
+        if (compas % 8 === 0) { calla = Math.random() < 0.3; timbre = 1 - timbre; } if (compas % 16 === 0) nueva();
+        if (compas % 4 === 1) this.pad(g, [this.nota(0, -1), this.nota(4, -1)], t, 13, { onda: 'sine', att: 3, rel: 5, gain: 0.03, corte: 2400 }); }
+      if (calla) return;
+      frase.forEach(([pos, gr]) => { if (pos === p) timbre ? this.fm(g, this.nota(gr, 1), t, { ratio: 1, indice: 2.4, dec: 2.4, gain: 0.05, eco: 0.25 })
+                                                         : this.fm(g, this.nota(gr, 1), t, { ratio: 4, indice: 1.6, dec: 0.7, gain: 0.06, eco: 0.25 }); });
+    });
+    const gota = () => { const c = this.ctx, t = c.currentTime + 0.05, o = c.createOscillator(), v = c.createGain(), f = hz(this.nota(elige([0, 2, 4]), 3));
+      o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * 1.6, t + 0.06); v.gain.setValueAtTime(0.025, t); v.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+      o.connect(v); v.connect(g.fader); o.start(t); o.stop(t + 0.2); this.luego(g, azar(3, 9), gota); };
+    this.luego(g, 5, gota);
+    this.ctx && (this.eco.delayTime.setTargetAtTime(60 / 72 / 4 * 3, this.ctx.currentTime, 0.2));
+  }
+  analogico(g) {
+    // IDM melódico e hipnótico, cálido y lo-fi: caja de ritmos tipo R-8 con sonidos 808, stabs huecos de menor séptima con grano de sampler de 12 bits,
+    // bajo grueso y nasal algo desafinado, cuerdas FM apagadas que entran más tarde, delays a tiempo, reverb digital y textura de cinta.
+    const c = this.ctx, bpm = 122, sw = 0.06, tPaso = 60 / bpm / 4;
+    this.eco.delayTime.setTargetAtTime(60 / bpm * 0.75, c.currentTime, 0.2);
+    // cinta: lloro lento + trémolo rápido sobre la afinación de todo lo melódico
+    g.vaiven = c.createGain(); const wow = c.createOscillator(), wg = c.createGain(), flu = c.createOscillator(), fg = c.createGain();
+    wow.frequency.value = 0.55; wg.gain.value = 5; flu.frequency.value = 6.3; fg.gain.value = 1.6;
+    wow.connect(wg); wg.connect(g.vaiven); flu.connect(fg); fg.connect(g.vaiven); wow.start(); flu.start(); g.nodos.push(wow, wg, flu, fg, g.vaiven);
+    this.fondo(g, 0.007, 'highpass', 4500, 0.4);                                         // siseo de cinta
+    // bus de los stabs: grano de sampler (cuantización) + paso bajo + paneo que se mueve
+    const crush = c.createWaveShaper(), cc = new Float32Array(4096); for (let i = 0; i < 4096; i++) { const x = i / 2047.5 - 1; cc[i] = Math.round(x * 96) / 96; } crush.curve = cc;
+    const sLp = c.createBiquadFilter(); sLp.type = 'lowpass'; sLp.frequency.value = 4200; sLp.Q.value = 0.6;
+    const pan = c.createStereoPanner(), pLfo = c.createOscillator(), pG = c.createGain(); pLfo.frequency.value = 0.07; pG.gain.value = 0.55; pLfo.connect(pG); pG.connect(pan.pan); pLfo.start();
+    const sEco = c.createGain(); sEco.gain.value = 0.32; crush.connect(sLp); sLp.connect(pan); pan.connect(g.fader); sLp.connect(sEco); sEco.connect(this.eco);
+    g.nodos.push(crush, sLp, pan, pLfo, pG, sEco);
+    const stab = (raiz, t) => {                                                          // menor séptima, hueco (cuadrada), redondo (filtro) y elástico (afinación que cae)
+      const vca = c.createGain(), lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 4;
+      lp.frequency.setValueAtTime(2800, t); lp.frequency.exponentialRampToValueAtTime(520, t + 0.2);
+      vca.gain.setValueAtTime(0, t); vca.gain.linearRampToValueAtTime(0.05, t + 0.003); vca.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+      lp.connect(vca); vca.connect(crush);
+      [0, 3, 7, 10].forEach(iv => { const o = c.createOscillator(); o.type = 'square'; o.frequency.value = hz(raiz + iv);
+        o.detune.setValueAtTime(38, t); o.detune.exponentialRampToValueAtTime(1, t + 0.07); g.vaiven.connect(o.detune); o.connect(lp); o.start(t); o.stop(t + 0.32); });
+    };
+    // bus del bajo: limpia el subgrave que no se oye y deja sitio a los stabs (que viven en medios)
+    const bHp = c.createBiquadFilter(), bLim = c.createBiquadFilter(); bHp.type = 'highpass'; bHp.frequency.value = 38; bHp.Q.value = 0.7;
+    bLim.type = 'peaking'; bLim.frequency.value = 420; bLim.Q.value = 1.2; bLim.gain.value = -4; bHp.connect(bLim); bLim.connect(g.fader); g.nodos.push(bHp, bLim);
+    const bajo = (m, t, dur) => {                                                        // dos sierras desafinadas + seno de cuerpo, con un pico nasal discreto
+      const pk = c.createBiquadFilter(), lp = c.createBiquadFilter(), v = c.createGain(), nv = 0.026;
+      pk.type = 'peaking'; pk.frequency.value = 700; pk.Q.value = 3; pk.gain.value = 4;
+      lp.type = 'lowpass'; lp.Q.value = 2.5; lp.frequency.setValueAtTime(1000, t); lp.frequency.exponentialRampToValueAtTime(220, t + dur * 0.8);
+      v.gain.setValueAtTime(0, t); v.gain.linearRampToValueAtTime(nv, t + 0.008); v.gain.setValueAtTime(nv, t + dur * 0.55); v.gain.exponentialRampToValueAtTime(0.0001, t + dur + 0.04);
+      pk.connect(lp); lp.connect(v); v.connect(bHp);
+      [[-13, 'sawtooth', 0.32], [11, 'sawtooth', 0.32], [0, 'sine', 0.55]].forEach(([det, tipo, ga]) => { const o = c.createOscillator(), og = c.createGain(); o.type = tipo; o.frequency.value = hz(m); o.detune.value = det;
+        og.gain.value = ga; g.vaiven.connect(o.detune); o.connect(og); og.connect(pk); o.start(t); o.stop(t + dur + 0.1); });
+    };
+    const cuerdas = (m, t, dur, gain = 0.028) => {                                     // cuerdas FM tipo DX con los agudos apagados
+      const lp = c.createBiquadFilter(), v = c.createGain(); lp.type = 'lowpass'; lp.frequency.value = 1500; lp.Q.value = 0.4;
+      v.gain.setValueAtTime(0, t); v.gain.linearRampToValueAtTime(gain, t + 0.35); v.gain.setValueAtTime(gain, t + dur); v.gain.linearRampToValueAtTime(0.0001, t + dur + 1.2);
+      lp.connect(v); v.connect(g.fader); const se = c.createGain(); se.gain.value = 0.25; v.connect(se); se.connect(this.eco);
+      [[1, 1.0, -6], [1.002, 2.0, 6]].forEach(([r, ratio, det]) => { const car = c.createOscillator(), mod = c.createOscillator(), mg = c.createGain();
+        car.frequency.value = hz(m) * r; mod.frequency.value = hz(m) * ratio; mg.gain.setValueAtTime(hz(m) * 0.2, t); mg.gain.linearRampToValueAtTime(hz(m) * 0.9, t + 0.5);
+        car.detune.value = det; g.vaiven.connect(car.detune); mod.connect(mg); mg.connect(car.frequency); car.connect(lp); car.start(t); mod.start(t); car.stop(t + dur + 1.3); mod.stop(t + dur + 1.3); });
+    };
+    // 808: platillos metálicos de seis cuadradas, bombo seco, rimshot y conga
+    const METAL = [205.3, 304.4, 369.6, 522.7, 540, 800];
+    const hat = (t, dec, gain) => { const bp = c.createBiquadFilter(), hp = c.createBiquadFilter(), v = c.createGain(); bp.type = 'bandpass'; bp.frequency.value = 10000; bp.Q.value = 1; hp.type = 'highpass'; hp.frequency.value = 7000;
+      v.gain.setValueAtTime(gain, t); v.gain.exponentialRampToValueAtTime(0.0001, t + dec); bp.connect(hp); hp.connect(v); v.connect(g.fader);
+      METAL.forEach(f => { const o = c.createOscillator(); o.type = 'square'; o.frequency.value = f * 1.7; o.connect(bp); o.start(t); o.stop(t + dec + 0.02); }); };
+    const bombo = (t) => { const o = c.createOscillator(), v = c.createGain(); o.frequency.setValueAtTime(96, t); o.frequency.exponentialRampToValueAtTime(47, t + 0.09);
+      v.gain.setValueAtTime(0.62, t); v.gain.exponentialRampToValueAtTime(0.0001, t + 0.34); o.connect(v); v.connect(g.fader); o.start(t); o.stop(t + 0.36);
+      this.ruidoCorto(g, t, 0.006, 0.05, 'highpass', 2000); };
+    const tono = (t, f, dec, gain, tipo = 'sine') => { const o = c.createOscillator(), v = c.createGain(); o.type = tipo; o.frequency.setValueAtTime(f * 1.08, t); o.frequency.exponentialRampToValueAtTime(f, t + 0.02);
+      v.gain.setValueAtTime(gain, t); v.gain.exponentialRampToValueAtTime(0.0001, t + dec); o.connect(v); v.connect(g.fader); o.start(t); o.stop(t + dec + 0.02); };
+    // patrones
+    const STAB = [0, 3, 6, 10, 12], BAJO_P = [[0, 0], [3, 0], [6, 12], [8, 0], [11, 7], [14, 10]];
+    let compas = 0, raiz = 0, stabP = STAB.slice(), frase = [], contra = [];
+    const nuevaFrase = () => { frase = [0, 4, 8, 12].map(() => elige([0, 2, 4, 6, 7, 9])); contra = Array.from({ length: 8 }, () => Math.random() < 0.55 ? elige([4, 6, 7, 9, 11]) : null); };
+    nuevaFrase();
+    this.secuenciador(g, bpm, (n, t) => {
+      const p = n % 16, tt = t + (p % 2 ? tPaso * sw : 0);
+      if (p === 0) { compas++;
+        raiz = this.nota(compas % 8 >= 6 ? 3 : 0, -1);                                  // Im7 seis compases, IVm7 dos: repetición hipnótica
+        if (compas % 4 === 0) { stabP = STAB.slice(); if (Math.random() < 0.5) { const k = 1 + Math.floor(Math.random() * 4); stabP[k] = (stabP[k] + elige([-1, 1, 2]) + 16) % 16; } }
+        if (compas % 16 === 1) nuevaFrase(); }
+      const ciclo = (compas - 1) % 48, sinBombo = ciclo >= 32 && ciclo < 36, conBajo = compas > 4, conCuerdas = compas > 16 && !(ciclo >= 32 && ciclo < 34), conContra = compas > 24;
+      // batería
+      if (!sinBombo && p % 4 === 0) bombo(t);
+      if (p % 4 === 2) hat(tt, 0.26, 0.05); else if (p % 2 === 0 || Math.random() < 0.35) hat(tt, 0.04, p % 4 === 0 ? 0.03 : 0.022);
+      if ((p === 3 || p === 10) && compas > 2) tono(tt, 1700, 0.03, 0.035, 'triangle');   // rimshot
+      if ((p === 6 || p === 13 || (p === 15 && Math.random() < 0.4)) && compas > 8) tono(tt, p === 13 ? 220 : 330, 0.22, 0.07);   // congas
+      if (p === 12 && compas > 8 && !sinBombo) { this.ruidoCorto(g, t, 0.12, 0.045, 'bandpass', 1300, 1.4); this.ruidoCorto(g, t + 0.012, 0.1, 0.035, 'bandpass', 1300, 1.4); }
+      // stabs, bajo, melodías
+      if (stabP.includes(p)) stab(raiz + 12, tt);
+      if (conBajo) BAJO_P.forEach(([pos, iv]) => { if (pos === p) bajo(raiz + iv, tt, tPaso * 1.8); });
+      if (conCuerdas && p % 4 === 0) { const k = (p / 4) | 0, gr = frase[k]; if (k % 2 === 0 || Math.random() < 0.5) cuerdas(this.nota(gr, 1), t, tPaso * (k % 2 ? 3.5 : 7.5)); }
+      if (conContra && p % 2 === 1) { const gr = contra[(p - 1) / 2]; if (gr != null) this.fm(g, this.nota(gr, 1), tt, { ratio: 3.5, indice: 0.7, dec: 0.45, gain: 0.018, eco: 0.35 }); }
+    });
+  }
+  dub(g) {                                           // bombo amortiguado, acorde en contratiempo con eco largo, vinilo
+    const c = this.ctx, bpm = 116; this.eco.delayTime.setTargetAtTime(60 / bpm * 0.75, c.currentTime, 0.2);
+    const corte = c.createBiquadFilter(); corte.type = 'lowpass'; corte.frequency.value = 1200; corte.Q.value = 2; corte.connect(g.fader);
+    const lfo = c.createOscillator(), lg = c.createGain(); lfo.frequency.value = 0.035; lg.gain.value = 900; lfo.connect(lg); lg.connect(corte.frequency); lfo.start(); g.nodos.push(lfo, lg, corte);
+    const ecoS = c.createGain(); ecoS.gain.value = 0.5; corte.connect(ecoS); ecoS.connect(this.eco); g.nodos.push(ecoS);
+    this.fondo(g, 0.012, 'bandpass', 3200, 0.7);
+    let compas = 0, grado = 0;
+    this.secuenciador(g, bpm, (n, t) => {
+      const p = n % 16;
+      if (p === 0) { compas++; if (compas % 8 === 1) grado = elige([0, 0, 3, 5]); if (compas % 2 === 1) this.fm(g, this.nota(grado, -2), t, { ratio: 1, indice: 0.2, dec: 2.2, gain: 0.12 }); }
+      if (p % 4 === 0) this.bombo(g, t, 0.5);
+      if (p % 4 === 2) this.ruidoCorto(g, t, 0.03, 0.02, 'highpass', 8000);
+      if ((p === 2 || p === 10) && Math.random() < 0.8) {
+        const vca = c.createGain(); vca.gain.setValueAtTime(0, t); vca.gain.linearRampToValueAtTime(0.045, t + 0.005); vca.gain.exponentialRampToValueAtTime(0.0001, t + 0.2); vca.connect(corte);
+        [0, 2, 4, 6, 8].forEach(k => { const o = c.createOscillator(); o.type = 'sawtooth'; o.frequency.value = hz(this.nota(grado + k, 0)); o.connect(vca); o.start(t); o.stop(t + 0.22); });
+      }
+      if (Math.random() < 0.12) this.ruidoCorto(g, t + Math.random() * 0.1, 0.004, azar(0.02, 0.06), 'highpass', 2500);
+    });
+  }
+  arrancar() { const est = CANALES[this.canal][3], g = this.nuevaGen(est); this.gen = g; this[est](g); }
+  // ---------- control ----------
+  // iPhone: con el interruptor de silencio puesto, Safari calla el Web Audio salvo que la página reproduzca "medios".
+  // Se declara la sesión como reproducción y se mantiene un audio mudo en bucle mientras suena la radio.
+  desbloquear() {
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
+    if (!this.mudo) { const a = this.mudo = new Audio('data:audio/wav;base64,UklGRvQHAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YdAHAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgA=='); a.loop = true; a.setAttribute('playsinline', ''); a.preload = 'auto'; }
+    const pr = this.mudo.play(); if (pr) pr.catch(() => {});
+  }
+  async encender() {
+    this.desbloquear();                                                                   // dentro del gesto: antes de cualquier await
+    if (!this.ctx) this.init(); const r = this.ctx.resume(); if (this.on) { await r; return; } this.on = true; this.arrancar(); await r;
+    const m = this.master.gain, t = this.ctx.currentTime; m.cancelScheduledValues(t); m.setValueAtTime(m.value, t); m.linearRampToValueAtTime(0.9, t + 4);
+  }
+  apagar() {
+    if (!this.ctx) return; this.on = false; this.matarGen(this.gen, 1.2); this.gen = null; if (this.mudo) setTimeout(() => { if (!this.on) this.mudo.pause(); }, 1500);
+    const m = this.master.gain, t = this.ctx.currentTime; m.cancelScheduledValues(t); m.setValueAtTime(m.value, t); m.linearRampToValueAtTime(0, t + 1.4);
+  }
+  sintonizar(i) { this.canal = (i + 12) % 12; if (!this.on) return; this.matarGen(this.gen, 2.5); this.arrancar(); }
+  nivel() { if (!this.ctx || !this.on) return 0; this.analyser.getFloatTimeDomainData(this.buf); let s = 0; for (const v of this.buf) s += v * v; return Math.sqrt(s / this.buf.length); }
+}
+const radio = new Ambient();
+window.__radio = radio;
+// si el sistema suspende el audio (llamada, cambio de app, bloqueo), se reanuda con el siguiente toque o al volver a la web
+const reanudar = () => { if (radio.on && radio.ctx && radio.ctx.state !== 'running') { radio.desbloquear(); radio.ctx.resume().catch(() => {}); } };
+addEventListener('pointerdown', reanudar, true); addEventListener('touchend', reanudar, true);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) reanudar(); });
+
+// ======================= interfaz =======================
+const $ = id => document.getElementById(id);
+const vu = $('vu'); for (let i = 0; i < 24; i++) vu.appendChild(document.createElement('i'));
+const cas = $('casillas');
+{ // pletina de escritorio: ajusta su distribución a su ancho real (en móvil manda su propio CSS)
+  const pl = document.querySelector('.pletina'), movil = matchMedia('(max-width:820px)');
+  const ajusta = () => { const w = pl.getBoundingClientRect().width, m = movil.matches;
+    pl.classList.toggle('p-m', !m && w < 1000); pl.classList.toggle('p-s', !m && w < 760); };
+  new ResizeObserver(ajusta).observe(pl); movil.addEventListener('change', ajusta); ajusta(); }
+CANALES.forEach(([nom, , , est], i) => { const b = document.createElement('button'); b.id = 'canal' + (i + 1); b.title = nom + ' · ' + ESTILOS[est]; b.setAttribute('aria-label', 'Canal ' + String(i + 1).padStart(2, '0') + ', ' + nom + ', ' + ESTILOS[est]); b.onclick = () => tune(i); cas.appendChild(b); });
+function pintaCanal() {
+  const [nom, root, modo, est] = CANALES[radio.canal], n = String(radio.canal + 1).padStart(2, '0');
+  $('canalNom').textContent = 'CANAL ' + n + ' · ' + nom; $('canalNum').textContent = n + ' / 12';
+  $('canalSub').textContent = ESTILOS[est].charAt(0).toUpperCase() + ESTILOS[est].slice(1) + ' · ' + NOTAS[root % 12].charAt(0) + NOTAS[root % 12].slice(1).toLowerCase() + ' ' + NOMMODO[modo] + ' · en directo';
+  [...cas.children].forEach((b, i) => b.setAttribute('aria-pressed', i === radio.canal ? 'true' : 'false'));
+}
+function pintaPlay() {
+  const on = radio.on; $('bPlay').setAttribute('aria-pressed', on); $('bPlay').setAttribute('aria-label', on ? 'Pausar' : 'Reproducir');
+  $('icoPlay').innerHTML = on ? '<path d="M3 2h3.5v12H3zM9.5 2H13v12H9.5z"/>' : '<path d="M3 1.5v13L14.5 8z"/>';
+  $('led').classList.toggle('on', on); $('tAzul').classList.toggle('on', on); $('tAzulM').classList.toggle('on', on); $('estadoTxt').textContent = on ? 'En directo' : (encendido ? 'En pausa' : 'En espera');
+}
+let encendido = false, tunePulse = 0;
+async function togglePlay() { if (radio.on) radio.apagar(); else await radio.encender(); pintaPlay(); }
+function tune(i) { radio.sintonizar(i); pintaCanal(); tunePulse = 1; knobTarget = -(radio.canal + 1) * Math.PI / 6; }
+$('bPlay').onclick = togglePlay; $('bPrev').onclick = () => tune(radio.canal - 1); $('bNext').onclick = () => tune(radio.canal + 1);
+async function encender(conSonido) {
+  encendido = true; $('encendido').classList.add('fuera'); powerT0 = performance.now();
+  if (conSonido) await radio.encender(); pintaPlay();
+}
+$('bOn').onclick = () => encender(true); $('bMudo').onclick = () => encender(false);
+pintaCanal(); pintaPlay();
+const reloj = () => { $('hora').textContent = new Intl.DateTimeFormat('es-ES', { hour: '2-digit', minute: '2-digit', timeZone: 'Europe/Madrid' }).format(new Date()) + ' CET'; };
+reloj(); setInterval(reloj, 15000);
+// navegación: punta y secciones
+const avisar = txt => { const a = $('aviso'); a.textContent = txt; a.classList.add('on'); clearTimeout(avisar.t); avisar.t = setTimeout(() => a.classList.remove('on'), 2600); };
+function punta() { const act = document.querySelector('.placa[aria-current="page"]'); if (!act) return; const p = $('punta'); p.style.top = `calc(${parseFloat(act.style.top) + 8.673 / 2}% - ${p.offsetHeight / 2}px)`; }
+document.querySelectorAll('[data-s]').forEach(a => a.addEventListener('click', e => {
+  const s = a.dataset.s; if (['escucha', 'catalogo', 'roster', 'senal', 'manifiesto', 'contacto'].includes(s)) return; e.preventDefault();
+  avisar('La sección ' + ({roster:'ROSTER',senal:'SEÑAL',manifiesto:'MANIFIESTO',contacto:'CONTACTO'})[s] + ' llega en la siguiente fase');
+}));
+
+// ======================= catálogo y fichas =======================
+// el contenido vive en contenido/*.json (lo edita el panel privado /admin); lo que no se pueda leer sale de la copia interna
+const DATA = await (async () => {
+  const COPIA = %%DATA%%;
+  const lee = async f => { try { const r = await fetch('contenido/' + f, { cache: 'no-store' }); if (r.ok) return await r.json(); } catch (e) {} return null; };
+  const partes = await Promise.all(['lanzamientos.json', 'artistas.json', 'senal.json', 'textos.json'].map(lee));
+  const D = Object.assign({}, COPIA, ...partes.filter(Boolean));
+  // el panel guarda listas de objetos; la web trabaja con el formato compacto (y acepta ambos)
+  if (Array.isArray(D.artists)) D.artists = Object.fromEntries(D.artists.filter(a => a && a.name).map(({ name, ...r }) => [name.trim().toUpperCase(), r]));
+  D.releases = (D.releases || []).filter(r => r && r.code && r.artist).map(r => ({ ...r, artist: r.artist.trim().toUpperCase(), title: r.title || '[ S/T ]', format: (r.format || 'SINGLE').toUpperCase(), genre: (r.genre || '—').toUpperCase().trim(), cover: r.cover || '', soundcloud: r.soundcloud || '', spotify: r.spotify || '', bandcamp: r.bandcamp || '', year: +r.year || r.year || '',
+    credits: (r.credits || []).map(c => Array.isArray(c) ? c : [c.rol || '', c.nombre || '']).filter(([k]) => k),
+    tracks: (r.tracks || []).map(t => typeof t === 'string' ? t : (t && t.titulo) || '').filter(Boolean) }))
+    .sort((a, b) => b.code.localeCompare(a.code, 'es', { numeric: true }));
+  D.senal = (D.senal || []).filter(x => x && x.mes && x.anio).map(x => ({ ...x, mes: +x.mes, anio: +x.anio, temas: +x.temas || null,
+    code: x.code || String(x.mes).padStart(2, '0') + '_' + String(x.anio).slice(-2),
+    destacados: (x.destacados || []).map(d => Array.isArray(d) ? d : [d.artista || '', d.tema || '', d.prod || '']).filter(([a]) => a) }));
+  return D;
+})();
+const DESPLEGADO = window.AU_DEPLOY === true;
+const REL = DATA.releases;
+const ORDEN_F = ['SINGLE', 'EP', 'REMIXES', 'ÁLBUM', 'EDIT'];
+const uniq = a => [...new Set(a)];
+const artistas = r => r.artist.split(/\s+[×x]\s+/i).map(a => a.trim());          // una colaboración son varios artistas, no uno nuevo
+const ARTISTAS = uniq([...Object.keys(DATA.artists || {}), ...REL.flatMap(artistas)]).filter(a => REL.some(r => artistas(r).includes(a)));
+const FILTROS = [
+  { k: 'artist', lbl: 'ARTISTA', ops: ['TODOS', ...ARTISTAS], match: (r, v) => artistas(r).includes(v) },
+  { k: 'format', lbl: 'FORMATO', ops: ['TODOS', ...ORDEN_F.filter(f => REL.some(r => r.format === f))] },
+  { k: 'year', lbl: 'AÑO', ops: ['TODOS', ...uniq(REL.map(r => r.year)).sort((x, y) => y - x).map(String)] },
+  { k: 'genre', lbl: 'GÉNERO', ops: ['TODOS', ...uniq(REL.map(r => r.genre)).sort()] },
+];
+const sel = FILTROS.map(() => 0); let vista = 'rejilla';
+try { vista = localStorage.getItem('au-vista') || 'rejilla'; } catch (e) {}
+$('nRefs').textContent = REL.length + ' referencias';
+const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+const pend = v => !v || /POR DEFINIR/i.test(v) || /S\/T/.test(v);
+const portada = (r, cls) => r.cover ? `<img class="${cls}" src="${esc(r.cover)}" alt="Portada de ${esc(r.title)}" loading="lazy">`
+  : `<div class="${cls} sinp" role="img" aria-label="Sin portada todavía"><b>${r.code}</b><span>SIN PORTADA</span></div>`;
+const titulo = r => /S\/T/.test(r.title) ? 'Sin título' : r.title;
+function filtrados() { return REL.filter(r => FILTROS.every((f, i) => sel[i] === 0 || (f.match ? f.match(r, f.ops[sel[i]]) : String(r[f.k]) === f.ops[sel[i]]))); }
+let corredor = () => {};                                     // la escena la sustituye para mover los cursores 3D
+function pintaFaders() {
+  document.querySelectorAll('.selector').forEach(pintaSelector);
+  document.querySelectorAll('.riel').forEach(riel => {
+    const i = +riel.dataset.i, bs = riel.querySelectorAll('button'); bs.forEach((b, j) => b.setAttribute('aria-pressed', j === sel[i]));
+    const b = bs[sel[i]]; riel.querySelector('.cursor').style.left = (b.offsetLeft + b.offsetWidth / 2) + 'px';
+  });
+  corredor(['format', 'year', 'genre'].map(k => { const i = FILTROS.findIndex(f => f.k === k); return FILTROS[i].ops.length > 1 ? sel[i] / (FILTROS[i].ops.length - 1) : 0; }));
+}
+function pintaResultados() {
+  const r = filtrados(), cont = $('resultados'); $('conteo').textContent = `Mostrando ${r.length} de ${REL.length}`;
+  if (!r.length) { cont.innerHTML = `<div class="vacio">Ninguna referencia con estos filtros.<button class="tecla" id="bLimpiar">Quitar filtros</button></div>`; $('bLimpiar').onclick = () => { sel.fill(0); pintaFaders(); pintaResultados(); }; return; }
+  if (vista === 'rejilla') cont.innerHTML = `<div class="rejilla">${r.map(x => `<a class="ref" href="#${x.code}">${portada(x, 'portada')}
+      <span class="c">${x.code} · ${esc(x.format)} · ${x.year}</span><span class="a">${esc(x.artist)}</span><span class="t">${esc(titulo(x))}</span></a>`).join('')}</div>`;
+  else cont.innerHTML = `<div class="lista"><div class="fila cab" aria-hidden="true"><span>CÓDIGO</span><span>ARTISTA</span><span class="t">TÍTULO</span><span class="f">FORMATO</span><span class="g">GÉNERO</span><span class="y">AÑO</span><span></span></div>
+      ${r.map(x => `<a class="fila" href="#${x.code}"><span class="x">${x.code}</span><span class="a">${esc(x.artist)}</span><span class="t">${esc(titulo(x))}</span><span class="f x">${esc(x.format)}</span><span class="g x">${esc(x.genre)}</span><span class="y x">${x.year}</span><span aria-hidden="true">→</span></a>`).join('')}</div>`;
+}
+// filtros con muchas opciones (más de 6): visor con buscador en lugar de fader. Escala a cualquier número de artistas o géneros.
+const MAXF = 6, esSel = f => f.ops.length - 1 > MAXF;
+const casa = (r, g, v) => v === 0 || (g.match ? g.match(r, g.ops[v]) : String(r[g.k]) === g.ops[v]);
+const cuenta = (i, j) => REL.filter(r => FILTROS.every((g, k) => casa(r, g, k === i ? j : sel[k]))).length;
+const selectorHTML = (f, i) => `<div class="fader"><span class="lbl">${f.lbl}</span><div class="selector" data-i="${i}">
+  <button class="visor" id="vis${i}" aria-haspopup="listbox" aria-expanded="false"><span class="v"></span><span class="nn"></span><span class="tri" aria-hidden="true"></span></button>
+  <div class="desp" hidden><input id="bus${i}" type="search" placeholder="Buscar ${f.lbl.toLowerCase()}…" autocomplete="off" aria-label="Buscar ${f.lbl.toLowerCase()}"><ul role="listbox" aria-label="${f.lbl}"></ul></div></div></div>`;
+function pintaSelector(el) {
+  const i = +el.dataset.i, f = FILTROS[i];
+  el.querySelector('.v').textContent = f.ops[sel[i]];
+  el.querySelector('.nn').textContent = sel[i] ? cuenta(i, sel[i]) + ' ref.' : (f.ops.length - 1) + ' en total';
+}
+function montaSelector(el) {
+  const i = +el.dataset.i, f = FILTROS[i], vis = el.querySelector('.visor'), desp = el.querySelector('.desp'), inp = el.querySelector('input'), ul = el.querySelector('ul');
+  let act = 0, items = [];
+  const lista = () => {
+    const q = inp.value.trim().toLowerCase();
+    items = f.ops.map((o, j) => ({ o, j })).filter(({ o, j }) => j === 0 ? !q : o.toLowerCase().includes(q));
+    act = Math.min(act, Math.max(0, items.length - 1));
+    ul.innerHTML = items.length ? items.map(({ o, j }, n) => { const c = cuenta(i, j); return `<li role="option" data-j="${j}" aria-selected="${j === sel[i]}" class="${c ? '' : 'cero'}${n === act ? ' act' : ''}"><span>${esc(o)}</span><span>${c}</span></li>`; }).join('')
+      : '<li class="nada">Sin resultados</li>';
+    ul.querySelector('.act')?.scrollIntoView({ block: 'nearest' });
+  };
+  const abrir = v => { desp.hidden = !v; vis.setAttribute('aria-expanded', v); if (v) { inp.value = ''; act = 0; lista(); inp.focus(); } };
+  const elegir = j => { sel[i] = j; abrir(false); vis.focus(); pintaFaders(); pintaResultados(); };
+  vis.onclick = () => abrir(desp.hidden);
+  inp.oninput = () => { act = 0; lista(); };
+  inp.onkeydown = e => {
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); act = Math.max(0, Math.min(items.length - 1, act + (e.key === 'ArrowDown' ? 1 : -1))); lista(); }
+    else if (e.key === 'Enter') { e.preventDefault(); if (items[act]) elegir(items[act].j); }
+    else if (e.key === 'Escape') { abrir(false); vis.focus(); }
+  };
+  ul.onclick = e => { const li = e.target.closest('li[data-j]'); if (li) elegir(+li.dataset.j); };
+  document.addEventListener('pointerdown', e => { if (!desp.hidden && !el.contains(e.target)) abrir(false); });
+}
+const corto = (o, m) => o.length <= m ? o : (o.split(' ')[0].length <= m ? o.split(' ')[0] : o.slice(0, m - 1) + '.');
+function vistaCatalogo() {
+  const P = $('panel');
+  P.innerHTML = `<header class="panel-cab"><div><h2>CATÁLOGO</h2><div class="sub">${REL.length} referencias · ${REL[REL.length - 1].code}–${REL[0].code} · Broadcasted from Elda</div></div>
+    <div class="vista" role="group" aria-label="Vista"><button class="tecla" id="vRej" aria-pressed="${vista === 'rejilla'}">Rejilla</button><button class="tecla" id="vLis" aria-pressed="${vista === 'lista'}">Lista</button></div></header>
+    <div class="panel-cuerpo"><div class="faders" aria-label="Filtros · corredor AU-04">${FILTROS.map((f, i) => esSel(f) ? selectorHTML(f, i) : `<div class="fader"><span class="lbl">${f.lbl}</span>
+      <div class="riel" data-i="${i}" role="group" aria-label="${f.lbl}">${f.ops.map((o, j) => `<button id="f${i}_${j}" aria-pressed="false" aria-label="${o}"><span class="l">${o}</span><span class="s" aria-hidden="true">${corto(o, Math.max(5, Math.floor(60 / f.ops.length)))}</span></button>`).join('')}<span class="cursor" aria-hidden="true"></span></div></div>`).join('')}</div>
+      <p class="conteo"><span id="conteo"></span><span>Formato · año · género en el corredor AU-04</span></p><div id="resultados"></div></div>`;
+  P.querySelectorAll('.selector').forEach(montaSelector);
+  P.querySelectorAll('.riel').forEach(riel => {
+    const i = +riel.dataset.i;
+    riel.querySelectorAll('button').forEach((b, j) => b.onclick = () => { sel[i] = j; pintaFaders(); pintaResultados(); });
+    riel.addEventListener('keydown', e => { const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0; if (!d) return; e.preventDefault(); sel[i] = Math.max(0, Math.min(FILTROS[i].ops.length - 1, sel[i] + d)); pintaFaders(); pintaResultados(); riel.querySelectorAll('button')[sel[i]].focus(); });
+  });
+  const setV = v => { vista = v; try { localStorage.setItem('au-vista', v); } catch (e) {} $('vRej').setAttribute('aria-pressed', v === 'rejilla'); $('vLis').setAttribute('aria-pressed', v === 'lista'); pintaResultados(); };
+  $('vRej').onclick = () => setV('rejilla'); $('vLis').onclick = () => setV('lista');
+  pintaResultados(); requestAnimationFrame(pintaFaders);
+}
+let scApi = null, radioPorSC = false;
+function cargaSC() { return scApi || (scApi = new Promise((ok, ko) => { const t = document.createElement('script'); t.src = 'https://w.soundcloud.com/player/api.js'; t.onload = () => ok(window.SC); t.onerror = ko; document.head.appendChild(t); })); }
+function montaSC(P) {
+  const f = P.querySelector('iframe.sc'); if (!f) return;
+  cargaSC().then(SC => { const w = SC.Widget(f);
+    w.bind(SC.Widget.Events.PLAY, () => { if (radio.on) { radio.apagar(); radioPorSC = true; pintaPlay(); } });
+    const vuelve = () => { if (radioPorSC) { radioPorSC = false; radio.encender().then(pintaPlay); } };
+    w.bind(SC.Widget.Events.PAUSE, vuelve); w.bind(SC.Widget.Events.FINISH, vuelve);
+  }).catch(() => {});
+}
+function vistaFicha(r) {
+  const i = REL.indexOf(r), ant = REL[i + 1], sig = REL[i - 1], P = $('panel');
+  const enl = [['SoundCloud', r.soundcloud], ['Spotify', r.spotify], ['Bandcamp', r.bandcamp]];
+  setTimeout(() => P.querySelectorAll('[data-art]').forEach(a => a.addEventListener('click', () => { const i = FILTROS.findIndex(f => f.k === 'artist'); FILTROS.forEach((_, j) => sel[j] = 0); sel[i] = FILTROS[i].ops.indexOf(a.dataset.art); })));
+  P.innerHTML = `<header class="panel-cab"><div><h2>${r.code}</h2><div class="sub">Ficha de lanzamiento · ${esc(r.format)} · ${esc(r.genre)} · ${r.year}</div></div>
+    <a class="tecla" href="#catalogo">← Catálogo</a></header>
+    <div class="panel-cuerpo"><div class="fl">${portada(r, 'portada')}
+      <div class="datos"><div class="cod">${r.code} · ${esc(r.format)} · ${r.year} · ${esc(r.genre)}</div><h3>${esc(r.artist)}</h3><p class="tit">${esc(titulo(r))}</p>
+        <div class="enlaces mas">${artistas(r).map(a => `<a class="tecla oscura" href="#a-${slug(a)}">${esc(a)} · perfil</a>`).join('')}</div>
+        <div class="enlaces">${enl.map(([n, u]) => u ? `<a class="tecla" href="${esc(u)}" target="_blank" rel="noopener">${n} ↗</a>` : `<span class="tecla" aria-disabled="true">${n} · sin enlace</span>`).join('')}</div>
+        ${DESPLEGADO && r.soundcloud ? `<iframe class="sc" title="Reproductor de SoundCloud: ${esc(r.title)}" allow="autoplay" loading="lazy"
+          src="https://w.soundcloud.com/player/?url=${encodeURIComponent(r.soundcloud)}&color=%230e0f12&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=false"></iframe>` : ''}
+        <table class="creditos"><tbody>${r.credits.map(([k, v]) => `<tr><th scope="row">${esc(k)}</th>${pend(v) ? '<td class="pend">Por definir</td>' : `<td>${esc(v)}</td>`}</tr>`).join('')}</tbody></table>
+        <div class="escala"><span class="k">TRACKLIST</span>${r.tracks && r.tracks.length ? r.tracks.map((t, n) => `<p>${String(n + 1).padStart(2, '0')} · ${esc(t)}</p>`).join('') : '<p>Pendiente: se mostrará al añadir los temas en data.json.</p>'}</div>
+      </div></div>
+      <nav class="pasos" aria-label="Otras referencias">${ant ? `<a class="tecla" href="#${ant.code}">← ${ant.code}</a>` : '<span></span>'}${sig ? `<a class="tecla" href="#${sig.code}">${sig.code} →</a>` : '<span></span>'}</nav></div>`;
+}
+// ---------- roster ----------
+const slug = a => a.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+const ART = ARTISTAS.map(n => {
+  const rs = REL.filter(r => artistas(r).includes(n)), y = rs.map(r => r.year), info = (DATA.artists || {})[n] || {};
+  return { n, s: slug(n), rs, info, colab: uniq(rs.flatMap(artistas)).filter(x => x !== n), y0: Math.min(...y), y1: Math.max(...y) };
+});
+$('nArt').textContent = ART.length + ' artistas';
+const iniciales = n => n.split(/\s+/).filter(w => !/^(el|la|de|del|y)$/i.test(w)).map(w => w[0]).join('').slice(0, 3);
+const foto = a => a.info.photo ? `<img class="retrato" src="${esc(a.info.photo)}" alt="Retrato de ${esc(a.n)}" loading="lazy">`
+  : `<div class="sinf" role="img" aria-label="Sin foto todavía"><b>${esc(iniciales(a.n))}</b><span>SIN FOTO</span></div>`;
+const anios = a => a.y0 === a.y1 ? String(a.y0) : a.y0 + '–' + a.y1;
+const plural = (n, s1, s2) => n + ' ' + (n === 1 ? s1 : s2);
+function vistaRoster() {
+  $('panel').innerHTML = `<header class="panel-cab"><div><h2>ROSTER</h2><div class="sub">${plural(ART.length, 'artista', 'artistas')} · ${REL.length} referencias · Broadcasted from Elda</div></div></header>
+    <div class="panel-cuerpo"><div class="modulos">${ART.map(a => `<a class="modulo" href="#a-${a.s}">${foto(a)}
+      <span class="rol">${esc(a.info.role || 'ARTISTA')}</span><span class="nom">${esc(a.n)}</span>
+      <span class="st">${plural(a.rs.length, 'referencia', 'referencias')} · <span style="white-space:nowrap">${anios(a)}</span></span></a>`).join('')}</div></div>`;
+}
+function vistaArtista(a) {
+  const bio = a.info.bio && !/por definir/i.test(a.info.bio) ? `<p class="bio">${esc(a.info.bio)}</p>` : '<p class="bio pend">Biografía por definir.</p>';
+  const fmts = uniq(a.rs.map(r => r.format)).join(' · ');
+  const enl = [['Instagram', a.info.instagram], ['Spotify', a.info.spotify], ['SoundCloud', a.info.soundcloud]];
+  const P = $('panel');
+  P.innerHTML = `<header class="panel-cab"><div><h2>${esc(a.n)}</h2><div class="sub">${esc(a.info.role || 'Artista')} · aurality</div></div><a class="tecla" href="#roster">← Roster</a></header>
+    <div class="panel-cuerpo"><div class="fl">${foto(a)}<div class="datos">${bio}
+      <div class="cifras"><div><span>REFERENCIAS</span><b>${a.rs.length}</b></div><div><span>AÑOS</span><b>${anios(a)}</b></div><div><span>FORMATOS</span><b class="lst">${fmts}</b></div></div>
+      <div class="enlaces">${enl.map(([n, u]) => u ? `<a class="tecla" href="${esc(u)}" target="_blank" rel="noopener">${n} ↗</a>` : `<span class="tecla" aria-disabled="true">${n} · sin enlace</span>`).join('')}
+        <a class="tecla oscura" href="#catalogo" id="verCat">Ver en el catálogo</a></div>
+      ${a.colab.length ? `<div><div class="sub2">COLABORACIONES</div><div class="enlaces">${a.colab.map(c => `<a class="tecla" href="#a-${slug(c)}">× ${esc(c)}</a>`).join('')}</div></div>` : ''}
+    </div></div>
+    <div class="sub2">LANZAMIENTOS</div><div class="lista">${a.rs.map(x => `<a class="fila" href="#${x.code}"><span class="x">${x.code}</span><span class="a">${esc(x.artist)}</span><span class="t">${esc(titulo(x))}</span><span class="f x">${esc(x.format)}</span><span class="g x">${esc(x.genre)}</span><span class="y x">${x.year}</span><span aria-hidden="true">→</span></a>`).join('')}</div></div>`;
+  $('verCat').addEventListener('click', () => { const i = FILTROS.findIndex(f => f.k === 'artist'); sel.fill(0); sel[i] = FILTROS[i].ops.indexOf(a.n); });
+}
+// ---------- señal mensual: archivo por meses ----------
+const SEN = (DATA.senal || []).slice().sort((a, b) => b.anio - a.anio || b.mes - a.mes), PLAYLIST = DATA.senal_playlist || '';
+// la playlist es siempre la misma y se sobrescribe cada mes: solo la edición más reciente está en antena; las anteriores quedan como registro
+const MESES = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
+let anioSen = SEN.length ? SEN[0].anio : 2026;
+function vistaSenal(x) {
+  const P = $('panel'), anios = uniq(SEN.map(e => e.anio)).sort();
+  const de = n => SEN.find(e => e.anio === anioSen && e.mes === n);
+  const enAntena = x === SEN[0];
+  P.innerHTML = `<header class="panel-cab"><div><h2>SEÑAL MENSUAL</h2><div class="sub">Una playlist que se renueva cada mes · ${plural(SEN.length, 'edición', 'ediciones')} en el registro</div></div>
+    ${PLAYLIST ? `<a class="tecla" href="${esc(PLAYLIST)}" target="_blank" rel="noopener">${enAntena ? 'Escuchar en Spotify ↗' : 'Escuchar la edición actual ↗'}</a>` : ''}</header>
+    <div class="panel-cuerpo">
+      <div class="meses" aria-label="Registro · sintonizador AU-02"><div class="k"><span>REGISTRO · SINTONIZADOR AU-02</span>
+        <span class="anio"><button class="tecla" id="aAnt" aria-label="Año anterior" ${anios[0] < anioSen ? '' : 'disabled'}>‹</button><b>${anioSen}</b><button class="tecla" id="aSig" aria-label="Año siguiente" ${anios[anios.length - 1] > anioSen ? '' : 'disabled'}>›</button></span></div>
+        <div class="cas12">${MESES.map((m, k) => { const e = de(k + 1); return `<button ${e ? `class="hay" data-c="${e.code}"` : 'disabled'} aria-pressed="${e === x}" aria-label="${m} ${anioSen}${e ? '' : ', sin edición'}"><i></i>${String(k + 1).padStart(2, '0')}</button>`; }).join('')}</div></div>
+      <div class="fl"><img class="portada" src="${esc(x.cover)}" alt="Portada de SEÑAL MENSUAL ${x.code}">
+        <div class="datos"><div class="cod">SEÑAL MENSUAL · ${x.code} · AU-SEÑAL-${x.code.replace('_', '')}</div>
+          <div class="antena ${enAntena ? 'on' : ''}"><i></i>${enAntena ? 'En antena · es lo que suena ahora en la playlist' : 'Archivada · la playlist ya suena con una edición posterior'}</div>
+          <h3>${MESES[x.mes - 1]} ${x.anio}</h3>
+          <p class="bio">${esc(x.descripcion || '')}</p>
+          <div class="cifras"><div><span>TEMAS</span><b>${x.temas || '—'}</b></div><div><span>DURACIÓN</span><b>${esc(x.duracion || '—')}</b></div><div><span>DESTACADOS</span><b>${(x.destacados || []).length}</b></div></div>
+          ${x.temas ? '' : '<p class="bio pend">Número de temas por confirmar.</p>'}
+        </div></div>
+      <div class="sub2">${enAntena ? 'SUENAN ESTE MES' : 'SONARON ESE MES'}</div>
+      <div class="destacados">${(x.destacados || []).map(([a, t, prod], n) => `<div><span class="n">${String(n + 1).padStart(2, '0')}</span><span><span class="a">${esc(a)}</span>
+        <span class="t">${t ? `«${esc(t)}»${prod ? ' · prod. ' + esc(prod) : ''}` : 'Tema por confirmar'}</span></span></div>`).join('')}</div>
+    </div>`;
+  P.querySelectorAll('.cas12 button.hay').forEach(b => b.onclick = () => { location.hash = 's-' + b.dataset.c; });
+  const cambia = d => { anioSen += d; const e = SEN.find(v => v.anio === anioSen); if (e) location.hash = 's-' + e.code; else vistaSenal(x); };
+  $('aAnt').onclick = () => cambia(-1); $('aSig').onclick = () => cambia(1);
+}
+// ---------- manifiesto ----------
+function vistaManifiesto() {
+  const M = DATA.manifiesto || {}, ps = M.parrafos || [];
+  const fmt = t => esc(t).replace(/«([^»]+)»/g, '<q>$1</q>');
+  $('panel').innerHTML = `<header class="panel-cab"><div><h2>MANIFIESTO</h2><div class="sub">aura-of-reality · Broadcasted from Elda</div></div></header>
+    <div class="panel-cuerpo"><article class="mani"><h3>${esc(M.titular || '')}</h3>
+      ${ps.map(t => `<p class="${t.length < 90 ? 'corto' : ''}">${fmt(t)}</p>`).join('')}
+      <p class="cierre">${esc(M.cierre || '')}</p><div class="firma"><i></i><s></s><span>aurality · Elda</span></div></article></div>`;
+}
+// ---------- contacto: enviar señal ----------
+const TIPOS = ['Demo', 'Prensa', 'Colaboración', 'Otro'];
+let tipoC = 0;
+function vistaContacto() {
+  const C = DATA.contacto || {};
+  $('panel').innerHTML = `<header class="panel-cab"><div><h2>CONTACTO</h2><div class="sub">Enviar señal · demos, prensa y colaboraciones</div></div></header>
+    <div class="panel-cuerpo"><form class="form" id="formC" novalidate>
+      <div class="campo"><span class="lbl" id="lTipo">Tipo de señal</span><div class="tipos" role="group" aria-labelledby="lTipo">${TIPOS.map((t, i) => `<button type="button" class="tecla" id="tipo${i}" aria-pressed="${i === tipoC}">${t}</button>`).join('')}</div></div>
+      <div class="dos"><div class="campo"><label for="cNom">Nombre o proyecto</label><input id="cNom" autocomplete="name" required></div>
+        <div class="campo"><label for="cMail">Email</label><input id="cMail" type="email" autocomplete="email" required></div></div>
+      <div class="campo"><label for="cLink">Enlace (SoundCloud, Drive, Dropbox…)</label><input id="cLink" type="url" inputmode="url" placeholder="https://"></div>
+      <div class="campo"><label for="cMsg">Mensaje</label><textarea id="cMsg" required placeholder="Quién eres, qué nos mandas y por qué aurality."></textarea></div>
+      <div class="trampa" aria-hidden="true"><label for="cBot">No rellenar</label><input id="cBot" tabindex="-1" autocomplete="off"></div>
+      <div class="campo"><span class="err" id="cErr" role="alert"></span></div>
+      <div><button class="tecla oscura" type="submit">Enviar señal</button></div>
+      <p class="bio pend">${esc(C.nota || '')}</p>
+    </form><div id="cListo"></div>
+    <div class="sub2">DIRECTO</div><div class="enlaces">
+      ${C.email ? `<span class="tecla">Email · <span class="dato" id="cEmail">${esc(C.email)}</span></span><button class="tecla oscura" type="button" id="cCopEmail">Copiar email</button>` : '<span class="tecla" aria-disabled="true">Email · por definir</span>'}
+      ${C.instagram ? `<a class="tecla" href="${esc(C.instagram)}" target="_blank" rel="noopener">Instagram · @${esc(C.instagram.replace(/\/$/, '').split('/').pop())} ↗</a>` : '<span class="tecla" aria-disabled="true">Instagram · por definir</span>'}</div></div>`;
+  const copiaEmail = $('cCopEmail'); if (copiaEmail) copiaEmail.onclick = () => navigator.clipboard.writeText(C.email).then(() => { copiaEmail.textContent = 'Copiado'; }, () => { const r = document.createRange(); r.selectNodeContents($('cEmail')); const s2 = getSelection(); s2.removeAllRanges(); s2.addRange(r); copiaEmail.textContent = 'Seleccionado'; });
+  TIPOS.forEach((_, i) => $('tipo' + i).onclick = () => { tipoC = i; TIPOS.forEach((__, j) => $('tipo' + j).setAttribute('aria-pressed', j === i)); });
+  $('formC').onsubmit = e => {
+    e.preventDefault();
+    const nom = $('cNom').value.trim(), mail = $('cMail').value.trim(), link = $('cLink').value.trim(), msg = $('cMsg').value.trim();
+    const falta = !nom ? 'Falta el nombre o proyecto.' : !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail) ? 'El email no parece válido.' : link && !/^https?:\/\//.test(link) ? 'El enlace tiene que empezar por https://' : !msg ? 'Falta el mensaje.' : '';
+    $('cErr').textContent = falta; if (falta) return;
+    const texto = `[${TIPOS[tipoC].toUpperCase()}] ${nom}\n${mail}${link ? '\n' + link : ''}\n\n${msg}`;
+    const boton = $('formC').querySelector('button[type=submit]');
+    const copia = (titulo, txt) => {
+    $('cListo').innerHTML = `<div class="listo" role="status"><b class="dato">${titulo}</b>
+      <span class="bio">${txt}</span>
+      <pre id="cTexto">${esc(texto)}</pre><div><button class="tecla" id="cCopiar" type="button">Copiar mensaje</button></div></div>`;
+    $('cCopiar').onclick = () => navigator.clipboard.writeText(texto).then(() => { $('cCopiar').textContent = 'Copiado'; }, () => { const r = document.createRange(); r.selectNodeContents($('cTexto')); const s2 = getSelection(); s2.removeAllRanges(); s2.addRange(r); $('cCopiar').textContent = 'Selecciónalo y copia'; });
+    $('cListo').scrollIntoView({ block: 'nearest' });
+    };
+    const aMano = C.email ? `Cópiala y envíala a <span class="dato">${esc(C.email)}</span>.` : 'Copia el mensaje y envíalo por Instagram.';
+    if (!DESPLEGADO) { copia('Señal preparada', aMano); return; }
+    boton.disabled = true; boton.textContent = 'Enviando…';
+    fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ 'form-name': 'senal', tipo: TIPOS[tipoC], nombre: nom, email: mail, enlace: link, mensaje: msg, 'bot-field': $('cBot').value }).toString() })
+      .then(res => { if (!res.ok) throw new Error(res.status);
+        $('formC').reset(); $('cListo').innerHTML = '<div class="listo" role="status"><b class="dato">Señal enviada</b><span class="bio">Ha llegado a aurality. Gracias por escribir.</span></div>'; $('cListo').scrollIntoView({ block: 'nearest' }); })
+      .catch(() => copia('No se ha podido enviar', 'Ha fallado la conexión. ' + aMano))
+      .finally(() => { boton.disabled = false; boton.textContent = 'Enviar señal'; });
+  };
+}
+let seccion = 'escucha', foco = null, mesSenal = 0;
+const NOMBRE = { escucha: ['01 · SECCIÓN', 'ESCUCHA'], catalogo: ['02 · SECCIÓN', 'CATÁLOGO'], roster: ['03 · SECCIÓN', 'ROSTER'], senal: ['04 · SECCIÓN', 'SEÑAL'], manifiesto: ['05 · SECCIÓN', 'MANIFIESTO'], contacto: ['06 · SECCIÓN', 'CONTACTO'] };
+function ruta() {
+  const h = decodeURIComponent(location.hash.slice(1)), r = REL.find(x => x.code === h.toUpperCase());
+  const art = h.startsWith('a-') && ART.find(a => a.s === h.slice(2));
+  const sen = h === 'senal' ? SEN[0] : h.startsWith('s-') ? SEN.find(e => e.code === h.slice(2)) : null;
+  seccion = ['catalogo', 'roster', 'manifiesto', 'contacto'].includes(h) ? h : sen ? 'senal' : r ? 'ficha' : art ? 'artista' : 'escucha';
+  const navS = seccion === 'ficha' ? 'catalogo' : seccion === 'artista' ? 'roster' : seccion;
+  document.querySelectorAll('.placa').forEach(p => p.setAttribute('aria-current', p.dataset.s === navS ? 'page' : 'false')); punta();
+  $('menuN').textContent = NOMBRE[navS][0]; $('menuT').textContent = NOMBRE[navS][1];
+  document.querySelector('.lateral').hidden = seccion !== 'escucha';
+  document.querySelector('.estado').hidden = seccion !== 'escucha';
+  const P = $('panel'); P.hidden = seccion === 'escucha';
+  if (radioPorSC) { radioPorSC = false; radio.encender().then(pintaPlay); }
+  if (seccion === 'catalogo') vistaCatalogo(); if (seccion === 'ficha') { vistaFicha(r); montaSC($('panel')); } if (seccion === 'roster') vistaRoster(); if (seccion === 'artista') vistaArtista(art); if (seccion === 'senal') { anioSen = sen.anio; vistaSenal(sen); } if (seccion === 'manifiesto') vistaManifiesto(); if (seccion === 'contacto') vistaContacto();
+  if (seccion !== 'escucha') { P.style.animation = 'none'; void P.offsetWidth; P.style.animation = ''; P.querySelector('.panel-cuerpo').scrollTop = 0; }
+  foco = ({ catalogo: 'p4', ficha: 'hero', roster: 'p3', artista: 'p3', senal: 'p2', manifiesto: 'hero', contacto: 'p5' })[seccion] || null;
+  mesSenal = seccion === 'senal' ? sen.mes : 0; tunePulse = 0.6;
+}
+addEventListener('hashchange', ruta);
+ruta();
+window.__carga?.mark('datos', REL.length + ' REF. · SEÑAL ' + (SEN[0] ? SEN[0].code : '—'));
+addEventListener('resize', punta); requestAnimationFrame(punta);
+const abrir = v => { $('faja').classList.toggle('abierta', v); $('velo').classList.toggle('on', v); $('bMenu').setAttribute('aria-expanded', v); if (v) punta(); };
+$('bMenu').onclick = () => abrir(!$('faja').classList.contains('abierta')); $('velo').onclick = () => abrir(false);
+document.querySelectorAll('.faja a').forEach(a => a.addEventListener('click', () => setTimeout(() => abrir(false), 250)));
+
+// ======================= escena 3D en vivo =======================
+const tactil = matchMedia('(pointer: coarse)').matches || innerWidth < 821;
+let knobTarget = -3 * Math.PI / 6, powerT0 = 0;
+{
+  const cv = $('escena');
+  const renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: true });
+  let dprMax = Math.min(devicePixelRatio, tactil ? 2 : 1.75); renderer.setPixelRatio(dprMax); renderer.setClearColor(0x000000, 0);
+  renderer.toneMapping = THREE.NeutralToneMapping; renderer.toneMappingExposure = 0.45;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;
+  const scene = new THREE.Scene();
+  scene.environment = new THREE.PMREMGenerator(renderer).fromScene(new RoomEnvironment(), 0.04).texture; scene.environmentIntensity = 0.5;
+  scene.fog = new THREE.Fog(0xd3d9e0, 900, 5600);
+  const bc = document.createElement('canvas'); bc.width = 4; bc.height = 512; const bx = bc.getContext('2d');
+  const gr = bx.createLinearGradient(0, 0, 0, 512); gr.addColorStop(0, '#9dafc5'); gr.addColorStop(0.7, '#d3d9e0'); gr.addColorStop(1, '#d3d9e0'); bx.fillStyle = gr; bx.fillRect(0, 0, 4, 512);
+  const bt = new THREE.CanvasTexture(bc); bt.colorSpace = THREE.SRGBColorSpace; scene.background = bt;
+  // suelo perforado
+  const CELL = 170, N = 16, TPX = 2048, px = TPX / (CELL * N);
+  const fc = document.createElement('canvas'); fc.width = fc.height = TPX; const fx = fc.getContext('2d');
+  fx.fillStyle = '#93a3b8'; fx.fillRect(0, 0, TPX, TPX);
+  let seed = 26; const rnd = () => (seed = (seed * 16807) % 2147483647) / 2147483647;
+  for (let i = 0; i < N; i++) for (let j = 0; j < N; j++) {
+    const x = (i + 0.5) * CELL * px, y = (j + 0.5) * CELL * px, r = 27 * px;
+    if (rnd() < 0.2) { fx.fillStyle = 'rgba(40,58,88,0.35)'; fx.beginPath(); fx.arc(x + 3 * px, y + 5 * px, r * 1.06, 0, 7); fx.fill(); fx.fillStyle = '#f6f6f3'; fx.beginPath(); fx.arc(x, y, r, 0, 7); fx.fill(); }
+    else { fx.strokeStyle = 'rgba(40,58,88,0.16)'; fx.lineWidth = 2.2 * px; fx.beginPath(); fx.arc(x, y, r, 0, 7); fx.stroke(); }
+  }
+  const ft = new THREE.CanvasTexture(fc); ft.colorSpace = THREE.SRGBColorSpace; ft.wrapS = ft.wrapT = THREE.RepeatWrapping; ft.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  const FS = 60000; ft.repeat.set(FS / (CELL * N), FS / (CELL * N));
+  const floor = new THREE.Mesh(new THREE.PlaneGeometry(FS, FS), new THREE.MeshStandardMaterial({ map: ft, roughness: 0.85 }));
+  floor.rotation.x = -Math.PI / 2; floor.position.y = -400; floor.receiveShadow = true; scene.add(floor);
+
+  await loadFont();
+  const geo = %%GEO%%;
+  const rad = THREE.MathUtils.degToRad;
+  const parts = {
+    hero: [AU01(geo), [-150, -40, 0], [-16, 28, 0], 1.45],
+    p2: [AU02(10), [-560, 250, -520], [22, 18, -6], 1.05],
+    p3: [AU03(), [230, 230, -620], [20, -14, 10], 1.05],
+    p4: [AU04(), [150, -250, -760], [-8, 16, 96], 1.1],
+    p5: [AU05(geo), [-560, -235, -260], [6, -14, -5], 0.9],
+  };
+  // encuadres: horizontal (escritorio) y vertical (móvil). pos · escala · cámara
+  const ENCUADRE = {
+    ancho: { fov: 42, cam: [-120, -150, 1150], look: [-120, -90, 0], p: { hero: [[-150, -40, 0], 1.45], p2: [[-560, 250, -520], 1.05], p3: [[230, 230, -620], 1.05], p4: [[150, -250, -760], 1.1], p5: [[-560, -235, -260], 0.9] } },
+    alto: %%ALTO%%,
+  };
+  for (const [, [obj, pos, rot, sc]] of Object.entries(parts)) { obj.position.set(...pos); obj.rotation.set(rad(rot[0]), rad(rot[1]), rad(rot[2])); obj.scale.setScalar(sc); scene.add(obj); }
+  window.__carga?.mark('piezas', '5 · OK');
+  const knob = parts.p2[0].children.find(c => c.isGroup); if (knob) knob.rotation.z = knobTarget;
+  // corredor AU-04: sus cursores siguen a los filtros del catálogo
+  const CU = parts.p4[0].userData; let curT = [4, 9, 7].map(v => v / 12);
+  corredor = lv => { curT = lv; };
+  // foco por sección (solo en horizontal): la pieza protagonista se acerca, el resto se aleja entre la niebla
+  const FOCO = { p4: { p: new THREE.Vector3(-520, -40, 140), q: new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.06, 0.32, 0)), s: 1.4 },
+                 hero: { p: new THREE.Vector3(-470, 10, 40), q: null, s: 0.82 },
+                 p5: { p: new THREE.Vector3(-500, -10, 200), q: new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.1, 0.34, 0.02)), s: 1.15 },
+                 p2: { p: new THREE.Vector3(-500, 0, 160), q: new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.05, 0.36, 0)), s: 1.15 },
+                 p3: { p: new THREE.Vector3(-505, -10, 140), q: new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.08, 0.34, 0.04)), s: 1.25 } };
+  // la pieza en foco se centra en el hueco real entre faja y panel y, si no cabe, se reduce (pantallas estrechas o con zoom)
+  for (const F of Object.values(FOCO)) { F.p0 = F.p.clone(); F.s0 = F.s; }
+  const _v = new THREE.Vector3(), _bx = new THREE.Box3(), _sz = new THREE.Vector3(), dims = {};
+  function encajaFoco(w, h) {
+    const fajaW = h * 400 / 2160, hueco = Math.min(460, Math.max(240, w * 0.26)), sx = fajaW + hueco / 2;
+    cam.position.copy(CAM); cam.lookAt(LOOK); cam.updateMatrixWorld();
+    const tg = Math.tan(THREE.MathUtils.degToRad(cam.fov / 2));
+    for (const [n, F] of Object.entries(FOCO)) {
+      const o = parts[n][0];
+      if (!dims[n]) { o.updateMatrixWorld(true); _bx.setFromObject(o).getSize(_sz); dims[n] = [_sz.x / o.scale.x, _sz.y / o.scale.x]; }
+      _v.copy(F.p0).project(cam); _v.x = sx / w * 2 - 1; _v.unproject(cam); F.p.copy(_v);
+      const ppu = (h / 2) / ((cam.position.z - F.p.z) * tg);
+      F.s = Math.min(F.s0, hueco * 0.86 / (dims[n][0] * ppu), (h - 170) * 0.72 / (dims[n][1] * ppu));
+    }
+  }
+  const fb = { hero: 0, p2: 0, p3: 0, p4: 0, p5: 0 }; let rf = 0, modo = 'ancho';
+  const keyL = new THREE.DirectionalLight(0xffffff, 1.7); keyL.position.set(-500, 1300, 700); keyL.target.position.set(0, -400, -300); scene.add(keyL.target);
+  keyL.castShadow = true; keyL.shadow.mapSize.set(2048, 2048); keyL.shadow.radius = 6; keyL.shadow.bias = -0.0004; keyL.shadow.normalBias = 0.8;
+  Object.assign(keyL.shadow.camera, { left: -1400, right: 1400, top: 1400, bottom: -1400, near: 100, far: 4500 }); scene.add(keyL);
+  const fill = new THREE.DirectionalLight(0xdfe8f5, 0.5); fill.position.set(300, -120, 260); scene.add(fill);
+  const cam = new THREE.PerspectiveCamera(42, 1, 5, 40000);
+  const CAM = new THREE.Vector3(), LOOK = new THREE.Vector3(); let base = {};
+  function size() {
+    const w = innerWidth, h = innerHeight; modo = w / h < 0.85 ? 'alto' : 'ancho'; const E = ENCUADRE[modo];
+    renderer.setSize(w, h, false); cam.aspect = w / h; cam.fov = E.fov; cam.updateProjectionMatrix(); CAM.set(...E.cam); LOOK.set(...E.look);
+    for (const [n, [o]] of Object.entries(parts)) { const [pp, sc] = E.p[n]; o.position.set(...pp); o.scale.setScalar(sc); base[n] = { q: base[n]?.q || o.quaternion.clone(), p: o.position.clone(), s: sc }; }
+    if (modo === 'ancho') encajaFoco(w, h);
+  }
+  size(); addEventListener('resize', size);
+
+  const MOTION = {
+    hero: { axis: [0, 0, 1], dir: -1, warp: 0.00, ph: 0.00, bob: 9, bk: 1, bp: 0.0, sway: [0, 0, 1], sa: 1.5 },
+    p2: { axis: [0, 1, 0], dir: -1, warp: 0.55, ph: 0.18, bob: 16, bk: 2, bp: 1.3, sway: [1, 0, 0], sa: 3.0 },
+    p3: { axis: [1, 0, 0], dir: -1, warp: 0.50, ph: 0.62, bob: 14, bk: 1, bp: 2.6, sway: [0, 0, 1], sa: 3.0 },
+    p4: { axis: [0, 1, 0], dir: 1, warp: 0.60, ph: 0.40, bob: 12, bk: 3, bp: 4.1, sway: [0, 0, 1], sa: 2.5 },
+    p5: { axis: [0, 1, 0], dir: 1, warp: 0.45, ph: 0.85, bob: 15, bk: 2, bp: 5.2, sway: [1, 0, 0], sa: 3.0 },
+  };
+  const TAU = Math.PI * 2, qa = new THREE.Quaternion(), qs = new THREE.Quaternion(), qm = new THREE.Quaternion(), eul = new THREE.Euler();
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // ratón: paralaje y mandos
+  const mouse = new THREE.Vector2(0, 0), ndc = new THREE.Vector2(), ray = new THREE.Raycaster(); let sm = { x: 0, y: 0 };
+  const MANDOS = { p5: 'AU-05 · Pulsador · reproducir / pausar', p2: 'AU-02 · Sintonizador · cambiar de canal', hero: 'AU-01 · aurality', p3: 'AU-03 · Altavoz · late con la radio', p4: 'AU-04 · Corredor · filtros del catálogo (fase 2)' };
+  const rot = $('rotulo'); let hover = null;
+  function pick(e) {
+    ndc.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1); ray.setFromCamera(ndc, cam);
+    for (const [n, [o]] of Object.entries(parts)) if (ray.intersectObject(o, true).length) return n; return null;
+  }
+  addEventListener('pointermove', e => {
+    mouse.set(e.clientX / innerWidth * 2 - 1, e.clientY / innerHeight * 2 - 1);
+    if (!encendido || e.target !== document.body && e.target !== cv && !e.target.classList.contains('grano')) { hover = null; rot.classList.remove('on'); cv.style.cursor = ''; return; }
+    hover = pick(e); cv.style.cursor = hover === 'p5' || hover === 'p2' ? 'pointer' : '';
+    if (hover) { rot.textContent = MANDOS[hover]; rot.style.left = e.clientX + 'px'; rot.style.top = e.clientY + 'px'; rot.classList.add('on'); } else rot.classList.remove('on');
+  });
+  cv.style.pointerEvents = 'auto';
+  addEventListener('click', e => { if (!encendido || (e.target !== cv && e.target !== document.body)) return; const n = pick(e); if (n === 'p5') { togglePlay(); press = 1; } if (n === 'p2') tune(radio.canal + 1);
+    if (tactil && n) { rot.textContent = MANDOS[n]; rot.style.left = Math.min(e.clientX, innerWidth - 260) + 'px'; rot.style.top = e.clientY + 'px'; rot.classList.add('on'); clearTimeout(rot.t); rot.t = setTimeout(() => rot.classList.remove('on'), 1800); } });
+  // rendimiento: si el aparato no llega a ~24 fps, se baja la resolución
+  let fpsN = 0, fpsT = 0, rebajado = false;
+  let press = 0, t0 = performance.now(), last = t0, lvl = 0, knobRot = knobTarget, expo = 0.45;
+  function frame(now) {
+    const dt0 = Math.max(0, (now - last) / 1000), dt = Math.min(0.05, dt0); last = now;   // nunca negativo: la marca de rAF puede ir por detrás de performance.now()
+    // se mide pasados 3 s del encendido (la entrada carga más) y se baja la resolución por escalones, solo lo necesario
+    if (!rebajado && encendido && now - powerT0 > 3000 && dt0 < 0.5) { fpsN++; fpsT += dt0; if (fpsN === 120) { if (fpsT / fpsN > 1 / 28) { dprMax = Math.max(1, dprMax * 0.8); renderer.setPixelRatio(dprMax); rebajado = dprMax <= 1; } else rebajado = true; fpsN = 0; fpsT = 0; } }
+    const on = encendido, tt = reduce ? 0 : (now - t0) / 1000, u = (tt / 30) % 1;
+    expo += ((on ? 1.0 : 0.45) - expo) * Math.min(1, dt * 1.6); renderer.toneMappingExposure = expo;
+    lvl += (radio.nivel() - lvl) * Math.min(1, dt * 12); tunePulse = Math.max(0, tunePulse - dt * 0.9); press = Math.max(0, press - dt * 4);
+    sm.x += (mouse.x - sm.x) * Math.min(1, dt * 2.5); sm.y += (mouse.y - sm.y) * Math.min(1, dt * 2.5);
+    const mov = on ? 1 : 0.12;
+    for (const [n, [o]] of Object.entries(parts)) {
+      const m = MOTION[n], b = base[n], uu = u * mov;
+      const f = uu - m.warp * (Math.sin(TAU * (uu - m.ph)) + Math.sin(TAU * m.ph)) / TAU;
+      qa.setFromAxisAngle(new THREE.Vector3(...m.axis), m.dir * TAU * f);
+      qs.setFromAxisAngle(new THREE.Vector3(...m.sway), rad(m.sa) * Math.sin(TAU * (m.bk * uu) + m.bp));
+      o.quaternion.copy(b.q).multiply(qs).multiply(qa);
+      if (n === 'hero') { eul.set(sm.y * 0.12, sm.x * 0.22, 0); qm.setFromEuler(eul); o.quaternion.premultiply(qm); }
+      const tun = n === 'p2' || n === 'hero' ? Math.sin(tunePulse * Math.PI) * (n === 'hero' ? 0.35 : 0.6) : 0;
+      if (tun) { qm.setFromAxisAngle(new THREE.Vector3(0, 1, 0), tun); o.quaternion.multiply(qm); }
+      o.position.set(b.p.x, b.p.y + m.bob * (Math.sin(TAU * m.bk * uu + m.bp) - Math.sin(m.bp)) - (n === 'p5' ? press * 10 : 0), b.p.z);
+      if (n === 'p3') o.scale.setScalar(b.s * (1 + Math.min(0.06, lvl * 0.5)));
+      const F = FOCO[n], conFoco = foco && modo === 'ancho';
+      fb[n] = THREE.MathUtils.clamp(fb[n] + ((conFoco && foco === n ? 1 : 0) - fb[n]) * Math.min(1, dt * 2.2), 0, 1);
+      if (fb[n] > 0.001 && F) { o.position.lerp(F.p, fb[n]); if (F.q) o.quaternion.slerp(F.q, fb[n]); o.scale.setScalar(THREE.MathUtils.lerp(b.s, F.s, fb[n])); }
+      else if (conFoco && foco !== n) o.position.z -= 1300 * rf;
+    }
+    rf = THREE.MathUtils.clamp(rf + ((foco && modo === 'ancho' ? 1 : 0) - rf) * Math.min(1, dt * 1.8), 0, 1);
+    if (CU.cursores) CU.cursores.forEach(([cap, ix], k) => { const y = CU.TR0 + Math.round(curT[k] * 12) * CU.STEP; cap.position.y += (y - cap.position.y) * Math.min(1, dt * 6); ix.position.y = cap.position.y; });
+    const kT = mesSenal ? -mesSenal * Math.PI / 6 : knobTarget; knobRot += (kT - knobRot) * Math.min(1, dt * 3); if (knob) knob.rotation.z = knobRot;
+    cam.position.set(CAM.x + sm.x * 40, CAM.y - sm.y * 22, CAM.z); cam.lookAt(LOOK);
+    renderer.render(scene, cam);
+    if (!frame.uno) { frame.uno = true; window.__carga?.mark('escena', 'EN DIRECTO'); }
+    if (!document.hidden) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) { last = performance.now(); requestAnimationFrame(frame); } });
+  window.__listo = true;
+}
+
+// vúmetro (también en móvil)
+(function vuLoop() {
+  const n = radio.nivel(), k = Math.min(24, Math.round(Math.pow(Math.min(1, n * 3.2), 0.85) * 24)), segs = vu.children;
+  for (let i = 0; i < 24; i++) { segs[i].classList.toggle('on', i < k); segs[i].classList.toggle('pico', i >= 21); }
+  requestAnimationFrame(vuLoop);
+})();
+</script>
