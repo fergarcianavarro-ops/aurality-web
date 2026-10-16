@@ -39,12 +39,12 @@
     {
       "genre": "RAP",
       "soundcloud": "",
-      "artist": "TRANKILOTE EL KILATE",
+      "artist": "TRANKILOTE EL KILATE x PARANOID REALM",
       "tracks": [],
       "code": "AU0211",
       "bandcamp": "",
-      "cover": "",
-      "format": "EP",
+      "cover": "covers/vayviene-portada.jpg",
+      "format": "SINGLE",
       "title": "VAYVIENE",
       "credits": [
         {
@@ -53,29 +53,36 @@
         },
         {
           "rol": "MEZCLA",
-          "nombre": ""
+          "nombre": "PARANOID REALM"
         },
         {
           "rol": "MÁSTER",
-          "nombre": ""
+          "nombre": "PARANOID REALM"
         },
         {
           "rol": "ARTE",
-          "nombre": ""
+          "nombre": "FER GARCÍA"
         }
       ],
-      "spotify": "",
+      "spotify": "https://open.spotify.com/intl-es/track/0GEkQXoWJTEJToBNLqSdHN?si=54344f43d01241a0",
       "year": 2026
     },
     {
-      "genre": "CLUB",
+      "genre": "JERK",
       "soundcloud": "",
       "artist": "PARANOID REALM",
-      "tracks": [],
+      "tracks": [
+        "PARANOID REALM, UNOMAEL - TENGO TODO",
+        "PARANOID REALM, UFISI - TELAS DE DISEÑADOR",
+        "PARANOID REALM, TRANKILOTE EL KILATE - PICK UP THE PHONE",
+        "PARANOID REALM, SHAY B - HYPERACID",
+        "PARANOID REALM, UFISI - DEO JUVANTE",
+        "PARANOID REALM, SHAY B - BBQ"
+      ],
       "code": "AU0210",
       "bandcamp": "",
-      "cover": "",
-      "format": "SINGLE",
+      "cover": "covers/newjerk-portada.jpg",
+      "format": "EP",
       "title": "NEW JERK",
       "credits": [
         {
@@ -88,15 +95,15 @@
         },
         {
           "rol": "MÁSTER",
-          "nombre": ""
+          "nombre": "PARANOID REALM"
         },
         {
           "rol": "ARTE",
-          "nombre": ""
+          "nombre": "FER GARCÍA"
         }
       ],
-      "spotify": "",
-      "year": 2026
+      "spotify": "https://open.spotify.com/intl-es/album/1PeJBkR4vvxYp1i0GM8RB6?si=UwCN7MlaRq6_rAnpQMlSyw",
+      "year": 2025
     },
     {
       "genre": "DRILL",
@@ -223,35 +230,40 @@
       "year": 2025
     },
     {
-      "genre": "INDUSTRIAL",
+      "genre": "DUBSTEP",
       "soundcloud": "",
       "artist": "ANY1N3 × PARANOID REALM",
-      "tracks": [],
+      "tracks": [
+        "ANY1N3, PARANOID REALM - ANY",
+        "ANY1N3, PARANOID REALM - DURANKI",
+        "ANY1N3, PARANOID REALM - EOLIC DUB",
+        "ANY1N3, PARANOID REALM - GLITCH IN THE NACELLE"
+      ],
       "code": "AU0205",
       "bandcamp": "",
-      "cover": "",
-      "format": "REMIXES",
+      "cover": "covers/rbr-portada.png",
+      "format": "EP",
       "title": "ROTOR BRAKE RELEASE",
       "credits": [
         {
           "rol": "PRODUCCIÓN",
-          "nombre": "ANY1N3 · PARANOID REALM"
+          "nombre": "PARANOID REALM"
         },
         {
           "rol": "MEZCLA",
-          "nombre": ""
+          "nombre": "PARANOID REALM"
         },
         {
           "rol": "MÁSTER",
-          "nombre": ""
+          "nombre": "PARANOID REALM"
         },
         {
           "rol": "ARTE",
           "nombre": ""
         }
       ],
-      "spotify": "",
-      "year": 2025
+      "spotify": "https://open.spotify.com/intl-es/album/12asQkQ16JdNEZzbEXS5iq?si=ZxGrrLFpSTy0f4NcakFcMA",
+      "year": 2026
     },
     {
       "genre": "DRILL",
