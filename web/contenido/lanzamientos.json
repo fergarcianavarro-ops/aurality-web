@@ -361,33 +361,39 @@
     {
       "genre": "RAP",
       "soundcloud": "",
-      "artist": "TRANKILOTE EL KILATE",
-      "tracks": [],
+      "artist": "TRANKILOTE EL KILATE x PARANOID REALM",
+      "tracks": [
+        "PARANOID REALM, ALBA CALVA - ADOLIN",
+        "TRANKILOTE EL KILATE, PARANOID REALM - KRAINT SAINT",
+        "TRANKILOTE EL KILATE, PARANOID REALM - BENDICE MI NOMBRE",
+        "TRANKILOTE EL KILATE, PARANOID REALM - LAYLA Y MAJNÚN",
+        "PARANOID REALM, WAX - DONDE MUERE LA LUZ"
+      ],
       "code": "AU0201",
       "bandcamp": "",
-      "cover": "",
+      "cover": "covers/palaciomemoria2.png",
       "format": "ÁLBUM",
       "title": "EL PALACIO DE LA MEMORIA",
       "credits": [
         {
           "rol": "PRODUCCIÓN",
-          "nombre": "PARANOID REALM"
+          "nombre": "PARANOID REALM · WAX"
         },
         {
           "rol": "MEZCLA",
-          "nombre": ""
+          "nombre": "PARANOID REALM"
         },
         {
           "rol": "MÁSTER",
-          "nombre": ""
+          "nombre": "PARANOID REALM"
         },
         {
           "rol": "ARTE",
-          "nombre": ""
+          "nombre": "FER GARCÍA"
         }
       ],
-      "spotify": "",
-      "year": 2024
+      "spotify": "https://open.spotify.com/intl-es/album/4kQ2nMyoE94xDQdr5OiEYn?si=Fq36lBzjSN69oypH__Bxlg",
+      "year": 2026
     },
     {
       "genre": "EDIT",
