@@ -1,78 +1,82 @@
 {
   "releases": [
     {
-      "code": "AU0212",
-      "artist": "PARANOID REALM",
-      "title": "ESTIU 2026: EDICIÓ SAINT-TROPEZ",
-      "format": "REMIXES",
       "genre": "CLUB",
-      "year": 2026,
-      "cover": "covers/AU0212.jpg",
       "soundcloud": "https://soundcloud.com/paranoidrealm/sets/estiu-2026-edicio-saint-tropez",
-      "spotify": "",
-      "bandcamp": "",
-      "credits": [
-        {
-          "rol": "PRODUCCIÓN",
-          "nombre": "PARANOID REALM"
-        },
-        {
-          "rol": "MEZCLA",
-          "nombre": ""
-        },
-        {
-          "rol": "MÁSTER",
-          "nombre": ""
-        },
-        {
-          "rol": "ARTE",
-          "nombre": ""
-        }
-      ],
-      "tracks": []
-    },
-    {
-      "code": "AU0211",
-      "artist": "TRANKILOTE EL KILATE",
-      "title": "VAYVIENE",
-      "format": "EP",
-      "genre": "RAP",
-      "year": 2026,
-      "cover": "",
-      "soundcloud": "",
-      "spotify": "",
-      "bandcamp": "",
-      "credits": [
-        {
-          "rol": "PRODUCCIÓN",
-          "nombre": "PARANOID REALM"
-        },
-        {
-          "rol": "MEZCLA",
-          "nombre": ""
-        },
-        {
-          "rol": "MÁSTER",
-          "nombre": ""
-        },
-        {
-          "rol": "ARTE",
-          "nombre": ""
-        }
-      ],
-      "tracks": []
-    },
-    {
-      "code": "AU0210",
       "artist": "PARANOID REALM",
-      "title": "NEW JERK",
-      "format": "SINGLE",
-      "genre": "CLUB",
-      "year": 2026,
-      "cover": "",
-      "soundcloud": "",
-      "spotify": "",
+      "tracks": [
+        "Nico Miseria, alba calva - EL CORAZÓN MANDA (Paranoid Realm Remix)",
+        "Guxo - CEO (Paranoid Realm Remix)",
+        "caos! - kim k (Paranoid Realm Remix)",
+        "Ralphie Choo, Barry B, DRUMMIE - ROOKIES (Paranoid Realm Remix)"
+      ],
+      "code": "AU0212",
       "bandcamp": "",
+      "cover": "covers/AU0212.jpg",
+      "format": "REMIXES",
+      "title": "ESTIU 2026: EDICIÓ SAINT-TROPEZ",
+      "credits": [
+        {
+          "rol": "PRODUCCIÓN",
+          "nombre": "PARANOID REALM"
+        },
+        {
+          "rol": "MEZCLA",
+          "nombre": "PARANOID REALM"
+        },
+        {
+          "rol": "MÁSTER",
+          "nombre": "PARANOID REALM"
+        },
+        {
+          "rol": "ARTE",
+          "nombre": "FER GARCÍA"
+        }
+      ],
+      "spotify": "",
+      "year": 2026
+    },
+    {
+      "genre": "RAP",
+      "soundcloud": "",
+      "artist": "TRANKILOTE EL KILATE",
+      "tracks": [],
+      "code": "AU0211",
+      "bandcamp": "",
+      "cover": "",
+      "format": "EP",
+      "title": "VAYVIENE",
+      "credits": [
+        {
+          "rol": "PRODUCCIÓN",
+          "nombre": "PARANOID REALM"
+        },
+        {
+          "rol": "MEZCLA",
+          "nombre": ""
+        },
+        {
+          "rol": "MÁSTER",
+          "nombre": ""
+        },
+        {
+          "rol": "ARTE",
+          "nombre": ""
+        }
+      ],
+      "spotify": "",
+      "year": 2026
+    },
+    {
+      "genre": "CLUB",
+      "soundcloud": "",
+      "artist": "PARANOID REALM",
+      "tracks": [],
+      "code": "AU0210",
+      "bandcamp": "",
+      "cover": "",
+      "format": "SINGLE",
+      "title": "NEW JERK",
       "credits": [
         {
           "rol": "PRODUCCIÓN",
@@ -91,19 +95,19 @@
           "nombre": ""
         }
       ],
-      "tracks": []
+      "spotify": "",
+      "year": 2026
     },
     {
-      "code": "AU0209",
-      "artist": "UFISI",
-      "title": "[ S/T ]",
-      "format": "EP",
       "genre": "DRILL",
-      "year": 2026,
-      "cover": "",
       "soundcloud": "",
-      "spotify": "",
+      "artist": "UFISI",
+      "tracks": [],
+      "code": "AU0209",
       "bandcamp": "",
+      "cover": "",
+      "format": "EP",
+      "title": "[ S/T ]",
       "credits": [
         {
           "rol": "PRODUCCIÓN",
@@ -122,19 +126,19 @@
           "nombre": ""
         }
       ],
-      "tracks": []
+      "spotify": "",
+      "year": 2026
     },
     {
-      "code": "AU0208",
-      "artist": "ANY1N3",
-      "title": "[ S/T ]",
-      "format": "SINGLE",
       "genre": "DUBSTEP",
-      "year": 2025,
-      "cover": "",
       "soundcloud": "",
-      "spotify": "",
+      "artist": "ANY1N3",
+      "tracks": [],
+      "code": "AU0208",
       "bandcamp": "",
+      "cover": "",
+      "format": "SINGLE",
+      "title": "[ S/T ]",
       "credits": [
         {
           "rol": "PRODUCCIÓN",
@@ -153,50 +157,19 @@
           "nombre": ""
         }
       ],
-      "tracks": []
+      "spotify": "",
+      "year": 2025
     },
     {
-      "code": "AU0207",
-      "artist": "PARANOID REALM",
-      "title": "[ S/T ]",
-      "format": "EP",
       "genre": "ELECTRÓNICA",
-      "year": 2025,
-      "cover": "",
       "soundcloud": "",
-      "spotify": "",
+      "artist": "PARANOID REALM",
+      "tracks": [],
+      "code": "AU0207",
       "bandcamp": "",
-      "credits": [
-        {
-          "rol": "PRODUCCIÓN",
-          "nombre": "PARANOID REALM"
-        },
-        {
-          "rol": "MEZCLA",
-          "nombre": ""
-        },
-        {
-          "rol": "MÁSTER",
-          "nombre": ""
-        },
-        {
-          "rol": "ARTE",
-          "nombre": ""
-        }
-      ],
-      "tracks": []
-    },
-    {
-      "code": "AU0206",
-      "artist": "TRANKILOTE EL KILATE",
+      "cover": "",
+      "format": "EP",
       "title": "[ S/T ]",
-      "format": "SINGLE",
-      "genre": "RAP",
-      "year": 2025,
-      "cover": "",
-      "soundcloud": "",
-      "spotify": "",
-      "bandcamp": "",
       "credits": [
         {
           "rol": "PRODUCCIÓN",
@@ -215,19 +188,50 @@
           "nombre": ""
         }
       ],
-      "tracks": []
+      "spotify": "",
+      "year": 2025
     },
     {
-      "code": "AU0205",
-      "artist": "ANY1N3 × PARANOID REALM",
-      "title": "ROTOR BRAKE RELEASE",
-      "format": "REMIXES",
-      "genre": "INDUSTRIAL",
-      "year": 2025,
-      "cover": "",
+      "genre": "RAP",
       "soundcloud": "",
-      "spotify": "",
+      "artist": "TRANKILOTE EL KILATE",
+      "tracks": [],
+      "code": "AU0206",
       "bandcamp": "",
+      "cover": "",
+      "format": "SINGLE",
+      "title": "[ S/T ]",
+      "credits": [
+        {
+          "rol": "PRODUCCIÓN",
+          "nombre": "PARANOID REALM"
+        },
+        {
+          "rol": "MEZCLA",
+          "nombre": ""
+        },
+        {
+          "rol": "MÁSTER",
+          "nombre": ""
+        },
+        {
+          "rol": "ARTE",
+          "nombre": ""
+        }
+      ],
+      "spotify": "",
+      "year": 2025
+    },
+    {
+      "genre": "INDUSTRIAL",
+      "soundcloud": "",
+      "artist": "ANY1N3 × PARANOID REALM",
+      "tracks": [],
+      "code": "AU0205",
+      "bandcamp": "",
+      "cover": "",
+      "format": "REMIXES",
+      "title": "ROTOR BRAKE RELEASE",
       "credits": [
         {
           "rol": "PRODUCCIÓN",
@@ -246,19 +250,19 @@
           "nombre": ""
         }
       ],
-      "tracks": []
+      "spotify": "",
+      "year": 2025
     },
     {
-      "code": "AU0204",
-      "artist": "UFISI",
-      "title": "SUPERSEXYDRILL",
-      "format": "SINGLE",
       "genre": "DRILL",
-      "year": 2025,
-      "cover": "",
       "soundcloud": "",
-      "spotify": "",
+      "artist": "UFISI",
+      "tracks": [],
+      "code": "AU0204",
       "bandcamp": "",
+      "cover": "",
+      "format": "SINGLE",
+      "title": "SUPERSEXYDRILL",
       "credits": [
         {
           "rol": "PRODUCCIÓN",
@@ -277,19 +281,19 @@
           "nombre": ""
         }
       ],
-      "tracks": []
+      "spotify": "",
+      "year": 2025
     },
     {
-      "code": "AU0203",
-      "artist": "PARANOID REALM",
-      "title": "[ S/T ]",
-      "format": "REMIXES",
       "genre": "CLUB",
-      "year": 2024,
-      "cover": "",
       "soundcloud": "",
-      "spotify": "",
+      "artist": "PARANOID REALM",
+      "tracks": [],
+      "code": "AU0203",
       "bandcamp": "",
+      "cover": "",
+      "format": "REMIXES",
+      "title": "[ S/T ]",
       "credits": [
         {
           "rol": "PRODUCCIÓN",
@@ -308,19 +312,19 @@
           "nombre": ""
         }
       ],
-      "tracks": []
+      "spotify": "",
+      "year": 2024
     },
     {
-      "code": "AU0202",
-      "artist": "ANY1N3",
-      "title": "[ S/T ]",
-      "format": "SINGLE",
       "genre": "INDUSTRIAL",
-      "year": 2024,
-      "cover": "",
       "soundcloud": "",
-      "spotify": "",
+      "artist": "ANY1N3",
+      "tracks": [],
+      "code": "AU0202",
       "bandcamp": "",
+      "cover": "",
+      "format": "SINGLE",
+      "title": "[ S/T ]",
       "credits": [
         {
           "rol": "PRODUCCIÓN",
@@ -339,19 +343,19 @@
           "nombre": ""
         }
       ],
-      "tracks": []
+      "spotify": "",
+      "year": 2024
     },
     {
-      "code": "AU0201",
-      "artist": "TRANKILOTE EL KILATE",
-      "title": "EL PALACIO DE LA MEMORIA",
-      "format": "ÁLBUM",
       "genre": "RAP",
-      "year": 2024,
-      "cover": "",
       "soundcloud": "",
-      "spotify": "",
+      "artist": "TRANKILOTE EL KILATE",
+      "tracks": [],
+      "code": "AU0201",
       "bandcamp": "",
+      "cover": "",
+      "format": "ÁLBUM",
+      "title": "EL PALACIO DE LA MEMORIA",
       "credits": [
         {
           "rol": "PRODUCCIÓN",
@@ -370,19 +374,19 @@
           "nombre": ""
         }
       ],
-      "tracks": []
+      "spotify": "",
+      "year": 2024
     },
     {
-      "code": "AU0200",
-      "artist": "UFISI",
-      "title": "[ S/T ]",
-      "format": "SINGLE",
       "genre": "EDIT",
-      "year": 2024,
-      "cover": "",
       "soundcloud": "",
-      "spotify": "",
+      "artist": "UFISI",
+      "tracks": [],
+      "code": "AU0200",
       "bandcamp": "",
+      "cover": "",
+      "format": "SINGLE",
+      "title": "[ S/T ]",
       "credits": [
         {
           "rol": "PRODUCCIÓN",
@@ -401,7 +405,8 @@
           "nombre": ""
         }
       ],
-      "tracks": []
+      "spotify": "",
+      "year": 2024
     }
   ]
 }
