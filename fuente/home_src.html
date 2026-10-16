@@ -982,7 +982,7 @@ function vistaFicha(r) {
         ${DESPLEGADO && r.soundcloud ? `<iframe class="sc" title="Reproductor de SoundCloud: ${esc(r.title)}" allow="autoplay" loading="lazy"
           src="https://w.soundcloud.com/player/?url=${encodeURIComponent(r.soundcloud)}&color=%230e0f12&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=false"></iframe>` : ''}
         <table class="creditos"><tbody>${r.credits.map(([k, v]) => `<tr><th scope="row">${esc(k)}</th>${pend(v) ? '<td class="pend">Por definir</td>' : `<td>${esc(v)}</td>`}</tr>`).join('')}</tbody></table>
-        <div class="escala"><span class="k">TRACKLIST</span>${r.tracks && r.tracks.length ? r.tracks.map((t, n) => `<p>${String(n + 1).padStart(2, '0')} · ${esc(t)}</p>`).join('') : '<p>Pendiente: se mostrará al añadir los temas en data.json.</p>'}</div>
+        <div class="escala"><span class="k">TRACKLIST</span>${r.tracks && r.tracks.length ? r.tracks.map((t, n) => `<p>${String(n + 1).padStart(2, '0')} · ${esc(t)}</p>`).join('') : '<p>Tracklist por publicar.</p>'}</div>
       </div></div>
       <nav class="pasos" aria-label="Otras referencias">${ant ? `<a class="tecla" href="#${ant.code}">← ${ant.code}</a>` : '<span></span>'}${sig ? `<a class="tecla" href="#${sig.code}">${sig.code} →</a>` : '<span></span>'}</nav></div>`;
 }
