@@ -129,7 +129,7 @@ body{background:linear-gradient(180deg,var(--cielo-1) 0%,var(--cielo-2) 72%);col
 .panel-cuerpo{flex:1;min-height:0;overflow:auto;padding:18px 26px 26px;overscroll-behavior:contain;container-type:inline-size}
 @container (max-width:660px){.panel-cuerpo .fl{grid-template-columns:minmax(0,1fr);gap:18px}.panel-cuerpo .fl>:first-child{max-width:320px}}
 .vista{display:flex;gap:6px}
-.faders{display:grid;gap:12px;padding:16px 18px;margin-bottom:20px;position:relative;isolation:isolate}
+.faders{display:grid;gap:12px;padding:16px 18px;margin-bottom:20px;position:relative;isolation:isolate;z-index:3}   /* por encima de la rejilla: el desplegable del buscador no queda tapado */
 .faders::before{content:"";position:absolute;inset:0;z-index:-1;background:#d9d6ce;box-shadow:inset 0 1px 3px rgba(0,0,0,.14);clip-path:var(--chaflan)}
 .selector{position:relative;min-width:0}
 .visor{width:100%;display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:12px;padding:11px 14px;border:0;cursor:pointer;color:var(--letra-relieve);
@@ -152,7 +152,8 @@ body{background:linear-gradient(180deg,var(--cielo-1) 0%,var(--cielo-2) 72%);col
 .desp li.nada{cursor:default;color:#6a6f7b;font-weight:500}
 .fader{display:grid;grid-template-columns:76px 1fr;align-items:center;gap:14px}
 .fader .lbl{font:700 10px/1 var(--f-mono);letter-spacing:.16em;color:#3b4150}
-.riel{position:relative;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;padding-top:18px}
+.riel{position:relative;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;padding-top:18px;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.riel.arrastra{cursor:grabbing}.riel.arrastra .cursor{transition:none;cursor:grabbing}
 .riel::before{content:"";position:absolute;left:4%;right:4%;top:5px;height:6px;border-radius:3px;background:#2a2d33;box-shadow:inset 0 1px 2px rgba(0,0,0,.6)}
 .riel button{appearance:none;border:0;background:none;cursor:pointer;font:500 10px/1.2 var(--f-mono);letter-spacing:.06em;color:#4a5060;padding:6px 2px 2px;text-transform:uppercase;position:relative}
 .riel button::before{content:"";position:absolute;left:50%;top:-4px;width:1px;height:5px;background:#6f6d68}
@@ -175,6 +176,14 @@ body{background:linear-gradient(180deg,var(--cielo-1) 0%,var(--cielo-2) 72%);col
 .ref .c{font:500 10px/1.2 var(--f-mono);letter-spacing:.08em;color:#4a5060}
 .ref .a{font:800 13.5px/1.15 var(--f-mono);letter-spacing:.01em}
 .ref .t{font:500 12px/1.3 var(--f-texto);color:#2c3240;text-wrap:balance}
+/* participación: trabajo de miembros de aurality en un lanzamiento de otro artista */
+.part{display:flex;align-items:baseline;gap:6px;font:700 9.5px/1.3 var(--f-mono);letter-spacing:.08em;color:#3b4150;text-transform:uppercase}
+.part i{flex:none;width:7px;height:7px;border-radius:50%;background:var(--azul);transform:translateY(-1px)}
+.ref .marca{position:absolute;top:16px;left:16px;font:700 8.5px/1 var(--f-mono);letter-spacing:.16em;color:#fff;background:#1c1f26;padding:4px 6px}
+.ref{position:relative}
+.fila .a small{font:500 10px/1 var(--f-mono);letter-spacing:.08em;color:#4a5060;margin-left:6px}
+.aqui{display:grid;gap:8px;padding:12px 14px;background:#e3e1da;box-shadow:inset 0 1px 2px rgba(0,0,0,.12)}
+.aqui .k{font:700 9.5px/1 var(--f-mono);letter-spacing:.16em;color:#4a5060}
 .lista{display:grid;border-top:1px solid #c9c6be}
 .fila{display:grid;grid-template-columns:76px minmax(0,1.3fr) minmax(0,1.6fr) 84px 96px 48px 18px;gap:14px;align-items:center;padding:12px 6px;
   border-bottom:1px solid #c9c6be;text-decoration:none;color:inherit;font:500 12px/1.3 var(--f-mono)}
@@ -861,7 +870,8 @@ const DATA = await (async () => {
   if (Array.isArray(D.artists)) D.artists = Object.fromEntries(D.artists.filter(a => a && a.name).map(({ name, ...r }) => [name.trim().toUpperCase(), r]));
   D.releases = (D.releases || []).filter(r => r && r.code && r.artist).map(r => ({ ...r, artist: r.artist.trim().toUpperCase(), title: r.title || '[ S/T ]', format: (r.format || 'SINGLE').toUpperCase(), genre: (r.genre || '—').toUpperCase().trim(), cover: r.cover || '', soundcloud: r.soundcloud || '', spotify: r.spotify || '', bandcamp: r.bandcamp || '', year: +r.year || r.year || '',
     credits: (r.credits || []).map(c => Array.isArray(c) ? c : [c.rol || '', c.nombre || '']).filter(([k]) => k),
-    tracks: (r.tracks || []).map(t => typeof t === 'string' ? t : (t && t.titulo) || '').filter(Boolean) }))
+    tracks: (r.tracks || []).map(t => typeof t === 'string' ? t : (t && t.titulo) || '').filter(Boolean),
+    participantes: (r.participantes || []).map(p => Array.isArray(p) ? p : [(p && p.artista) || '', (p && p.rol) || '']).map(([a, rol]) => [String(a).trim().toUpperCase(), String(rol || '').trim()]).filter(([a]) => a) }))
     .sort((a, b) => b.code.localeCompare(a.code, 'es', { numeric: true }));
   D.senal = (D.senal || []).filter(x => x && x.mes && x.anio).map(x => ({ ...x, mes: +x.mes, anio: +x.anio, temas: +x.temas || null,
     code: x.code || String(x.mes).padStart(2, '0') + '_' + String(x.anio).slice(-2),
@@ -873,9 +883,18 @@ const REL = DATA.releases;
 const ORDEN_F = ['SINGLE', 'EP', 'REMIXES', 'ÁLBUM', 'EDIT'];
 const uniq = a => [...new Set(a)];
 const artistas = r => r.artist.split(/\s+[×x]\s+/i).map(a => a.trim());          // una colaboración son varios artistas, no uno nuevo
-const ARTISTAS = uniq([...Object.keys(DATA.artists || {}), ...REL.flatMap(artistas)]).filter(a => REL.some(r => artistas(r).includes(a)));
+// miembros de aurality = los artistas del roster (artistas.json). Un artista externo (MDNA, C.EME…) sale en el lanzamiento pero nunca en el roster.
+const MIEMBROS = Object.keys(DATA.artists || {}).length ? new Set(Object.keys(DATA.artists)) : new Set(REL.flatMap(artistas));
+const esMiembro = a => MIEMBROS.has(a);
+const propios = r => artistas(r).filter(esMiembro);                                  // miembros que firman el lanzamiento
+const partic = r => (r.participantes || []).filter(([a]) => esMiembro(a));          // miembros que participan (producción, feat., mezcla…)
+const esPart = r => !propios(r).length && partic(r).length > 0;                      // lanzamiento de otro artista con trabajo de aurality
+const miembros = r => uniq([...propios(r), ...partic(r).map(([a]) => a)]);
+const ARTISTAS = [...MIEMBROS].filter(a => REL.some(r => miembros(r).includes(a)));
+const HAY_PART = REL.some(esPart);
 const FILTROS = [
-  { k: 'artist', lbl: 'ARTISTA', ops: ['TODOS', ...ARTISTAS], match: (r, v) => artistas(r).includes(v) },
+  { k: 'artist', lbl: 'ARTISTA', ops: ['TODOS', ...ARTISTAS], match: (r, v) => miembros(r).includes(v) },
+  ...(HAY_PART ? [{ k: 'tipo', lbl: 'TIPO', ops: ['TODOS', 'LANZAMIENTOS', 'PARTICIPACIONES'], match: (r, v) => (v === 'PARTICIPACIONES') === esPart(r) }] : []),
   { k: 'format', lbl: 'FORMATO', ops: ['TODOS', ...ORDEN_F.filter(f => REL.some(r => r.format === f))] },
   { k: 'year', lbl: 'AÑO', ops: ['TODOS', ...uniq(REL.map(r => r.year)).sort((x, y) => y - x).map(String)] },
   { k: 'genre', lbl: 'GÉNERO', ops: ['TODOS', ...uniq(REL.map(r => r.genre)).sort()] },
@@ -888,6 +907,7 @@ const pend = v => !v || /POR DEFINIR/i.test(v) || /S\/T/.test(v);
 const portada = (r, cls) => r.cover ? `<img class="${cls}" src="${esc(r.cover)}" alt="Portada de ${esc(r.title)}" loading="lazy">`
   : `<div class="${cls} sinp" role="img" aria-label="Sin portada todavía"><b>${r.code}</b><span>SIN PORTADA</span></div>`;
 const titulo = r => /S\/T/.test(r.title) ? 'Sin título' : r.title;
+const lineaPart = x => partic(x).map(([a, rol]) => `<span class="part"><i aria-hidden="true"></i><span>${esc(a)}${rol ? ' · ' + esc(rol) : ''}</span></span>`).join('');
 function filtrados() { return REL.filter(r => FILTROS.every((f, i) => sel[i] === 0 || (f.match ? f.match(r, f.ops[sel[i]]) : String(r[f.k]) === f.ops[sel[i]]))); }
 let corredor = () => {};                                     // la escena la sustituye para mover los cursores 3D
 function pintaFaders() {
@@ -896,15 +916,16 @@ function pintaFaders() {
     const i = +riel.dataset.i, bs = riel.querySelectorAll('button'); bs.forEach((b, j) => b.setAttribute('aria-pressed', j === sel[i]));
     const b = bs[sel[i]]; riel.querySelector('.cursor').style.left = (b.offsetLeft + b.offsetWidth / 2) + 'px';
   });
-  corredor(['format', 'year', 'genre'].map(k => { const i = FILTROS.findIndex(f => f.k === k); return FILTROS[i].ops.length > 1 ? sel[i] / (FILTROS[i].ops.length - 1) : 0; }));
+  corredorDesdeSel();
 }
+function corredorDesdeSel() { corredor(['format', 'year', 'genre'].map(k => { const i = FILTROS.findIndex(f => f.k === k); return FILTROS[i].ops.length > 1 ? sel[i] / (FILTROS[i].ops.length - 1) : 0; })); }
 function pintaResultados() {
   const r = filtrados(), cont = $('resultados'); $('conteo').textContent = `Mostrando ${r.length} de ${REL.length}`;
   if (!r.length) { cont.innerHTML = `<div class="vacio">Ninguna referencia con estos filtros.<button class="tecla" id="bLimpiar">Quitar filtros</button></div>`; $('bLimpiar').onclick = () => { sel.fill(0); pintaFaders(); pintaResultados(); }; return; }
-  if (vista === 'rejilla') cont.innerHTML = `<div class="rejilla">${r.map(x => `<a class="ref" href="#${x.code}">${portada(x, 'portada')}
-      <span class="c">${x.code} · ${esc(x.format)} · ${x.year}</span><span class="a">${esc(x.artist)}</span><span class="t">${esc(titulo(x))}</span></a>`).join('')}</div>`;
+  if (vista === 'rejilla') cont.innerHTML = `<div class="rejilla">${r.map(x => `<a class="ref" href="#${x.code}">${portada(x, 'portada')}${esPart(x) ? '<span class="marca">PARTICIPACIÓN</span>' : ''}
+      <span class="c">${x.code} · ${esc(x.format)} · ${x.year}</span><span class="a">${esc(x.artist)}</span><span class="t">${esc(titulo(x))}</span>${lineaPart(x)}</a>`).join('')}</div>`;
   else cont.innerHTML = `<div class="lista"><div class="fila cab" aria-hidden="true"><span>CÓDIGO</span><span>ARTISTA</span><span class="t">TÍTULO</span><span class="f">FORMATO</span><span class="g">GÉNERO</span><span class="y">AÑO</span><span></span></div>
-      ${r.map(x => `<a class="fila" href="#${x.code}"><span class="x">${x.code}</span><span class="a">${esc(x.artist)}</span><span class="t">${esc(titulo(x))}</span><span class="f x">${esc(x.format)}</span><span class="g x">${esc(x.genre)}</span><span class="y x">${x.year}</span><span aria-hidden="true">→</span></a>`).join('')}</div>`;
+      ${r.map(x => `<a class="fila" href="#${x.code}"><span class="x">${x.code}</span><span class="a">${esc(x.artist)}${esPart(x) ? '<small>PART.</small>' : ''}</span><span class="t">${esc(titulo(x))}</span><span class="f x">${esc(x.format)}</span><span class="g x">${esc(x.genre)}</span><span class="y x">${x.year}</span><span aria-hidden="true">→</span></a>`).join('')}</div>`;
 }
 // filtros con muchas opciones (más de 6): visor con buscador en lugar de fader. Escala a cualquier número de artistas o géneros.
 const MAXF = 6, esSel = f => f.ops.length - 1 > MAXF;
@@ -939,7 +960,9 @@ function montaSelector(el) {
     else if (e.key === 'Escape') { abrir(false); vis.focus(); }
   };
   ul.onclick = e => { const li = e.target.closest('li[data-j]'); if (li) elegir(+li.dataset.j); };
-  document.addEventListener('pointerdown', e => { if (!desp.hidden && !el.contains(e.target)) abrir(false); });
+  el._cierra && document.removeEventListener('pointerdown', el._cierra);
+  el._cierra = e => { if (!el.isConnected) return document.removeEventListener('pointerdown', el._cierra); if (!desp.hidden && !el.contains(e.target)) abrir(false); };
+  document.addEventListener('pointerdown', el._cierra);
 }
 const corto = (o, m) => o.length <= m ? o : (o.split(' ')[0].length <= m ? o.split(' ')[0] : o.slice(0, m - 1) + '.');
 function vistaCatalogo() {
@@ -952,7 +975,24 @@ function vistaCatalogo() {
   P.querySelectorAll('.selector').forEach(montaSelector);
   P.querySelectorAll('.riel').forEach(riel => {
     const i = +riel.dataset.i;
-    riel.querySelectorAll('button').forEach((b, j) => b.onclick = () => { sel[i] = j; pintaFaders(); pintaResultados(); });
+    riel.querySelectorAll('button').forEach((b, j) => b.onclick = () => { if (riel.dataset.arr) return; sel[i] = j; pintaFaders(); pintaResultados(); });
+    // el cursor se arrastra a lo largo de la ranura y encaja en la opción más cercana
+    const cur = riel.querySelector('.cursor');
+    riel.addEventListener('pointerdown', e => {
+      if (e.button !== 0) return;
+      const bs = [...riel.querySelectorAll('button')], cx = bs.map(b => b.offsetLeft + b.offsetWidth / 2), x0 = e.clientX, r0 = riel.getBoundingClientRect();
+      let mov = false;
+      const sigue = ev => {
+        if (!mov && Math.abs(ev.clientX - x0) < 4) return;
+        if (!mov) { mov = true; riel.classList.add('arrastra'); riel.setPointerCapture(e.pointerId); }
+        const x = Math.max(cx[0], Math.min(cx[cx.length - 1], ev.clientX - r0.left)); cur.style.left = x + 'px';
+        const j = cx.reduce((m, c, k) => Math.abs(c - x) < Math.abs(cx[m] - x) ? k : m, 0);
+        if (j !== sel[i]) { sel[i] = j; bs.forEach((b, k) => b.setAttribute('aria-pressed', k === j)); pintaResultados(); corredorDesdeSel(); }
+      };
+      const suelta = () => { riel.removeEventListener('pointermove', sigue); riel.removeEventListener('pointerup', suelta); riel.removeEventListener('pointercancel', suelta);
+        if (mov) { riel.classList.remove('arrastra'); riel.dataset.arr = '1'; setTimeout(() => delete riel.dataset.arr, 0); pintaFaders(); } };
+      riel.addEventListener('pointermove', sigue); riel.addEventListener('pointerup', suelta); riel.addEventListener('pointercancel', suelta);
+    });
     riel.addEventListener('keydown', e => { const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0; if (!d) return; e.preventDefault(); sel[i] = Math.max(0, Math.min(FILTROS[i].ops.length - 1, sel[i] + d)); pintaFaders(); pintaResultados(); riel.querySelectorAll('button')[sel[i]].focus(); });
   });
   const setV = v => { vista = v; try { localStorage.setItem('au-vista', v); } catch (e) {} $('vRej').setAttribute('aria-pressed', v === 'rejilla'); $('vLis').setAttribute('aria-pressed', v === 'lista'); pintaResultados(); };
@@ -973,11 +1013,12 @@ function vistaFicha(r) {
   const i = REL.indexOf(r), ant = REL[i + 1], sig = REL[i - 1], P = $('panel');
   const enl = [['SoundCloud', r.soundcloud], ['Spotify', r.spotify], ['Bandcamp', r.bandcamp]];
   setTimeout(() => P.querySelectorAll('[data-art]').forEach(a => a.addEventListener('click', () => { const i = FILTROS.findIndex(f => f.k === 'artist'); FILTROS.forEach((_, j) => sel[j] = 0); sel[i] = FILTROS[i].ops.indexOf(a.dataset.art); })));
-  P.innerHTML = `<header class="panel-cab"><div><h2>${r.code}</h2><div class="sub">Ficha de lanzamiento · ${esc(r.format)} · ${esc(r.genre)} · ${r.year}</div></div>
+  P.innerHTML = `<header class="panel-cab"><div><h2>${r.code}</h2><div class="sub">${esPart(r) ? 'Participación' : 'Ficha de lanzamiento'} · ${esc(r.format)} · ${esc(r.genre)} · ${r.year}</div></div>
     <a class="tecla" href="#catalogo">← Catálogo</a></header>
     <div class="panel-cuerpo"><div class="fl">${portada(r, 'portada')}
       <div class="datos"><div class="cod">${r.code} · ${esc(r.format)} · ${r.year} · ${esc(r.genre)}</div><h3>${esc(r.artist)}</h3><p class="tit">${esc(titulo(r))}</p>
-        <div class="enlaces mas">${artistas(r).map(a => `<a class="tecla oscura" href="#a-${slug(a)}">${esc(a)} · perfil</a>`).join('')}</div>
+        ${partic(r).length ? `<div class="aqui"><span class="k">${esPart(r) ? 'AURALITY EN ESTE LANZAMIENTO' : 'TAMBIÉN DE AURALITY'}</span>${lineaPart(r)}</div>` : ''}
+        <div class="enlaces mas">${miembros(r).map(a => `<a class="tecla oscura" href="#a-${slug(a)}">${esc(a)} · perfil</a>`).join('')}</div>
         <div class="enlaces">${enl.map(([n, u]) => u ? `<a class="tecla" href="${esc(u)}" target="_blank" rel="noopener">${n} ↗</a>` : `<span class="tecla" aria-disabled="true">${n} · sin enlace</span>`).join('')}</div>
         ${DESPLEGADO && r.soundcloud ? `<iframe class="sc" title="Reproductor de SoundCloud: ${esc(r.title)}" allow="autoplay" loading="lazy"
           src="https://w.soundcloud.com/player/?url=${encodeURIComponent(r.soundcloud)}&color=%230e0f12&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=false"></iframe>` : ''}
@@ -989,8 +1030,9 @@ function vistaFicha(r) {
 // ---------- roster ----------
 const slug = a => a.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const ART = ARTISTAS.map(n => {
-  const rs = REL.filter(r => artistas(r).includes(n)), y = rs.map(r => r.year), info = (DATA.artists || {})[n] || {};
-  return { n, s: slug(n), rs, info, colab: uniq(rs.flatMap(artistas)).filter(x => x !== n), y0: Math.min(...y), y1: Math.max(...y) };
+  const rs = REL.filter(r => propios(r).includes(n)), ps = REL.filter(r => !propios(r).includes(n) && partic(r).some(([a]) => a === n));
+  const y = [...rs, ...ps].map(r => +r.year).filter(Boolean), info = (DATA.artists || {})[n] || {};
+  return { n, s: slug(n), rs, ps, info, colab: uniq(rs.flatMap(artistas)).filter(x => x !== n), y0: Math.min(...y), y1: Math.max(...y) };
 });
 $('nArt').textContent = ART.length + ' artistas';
 const iniciales = n => n.split(/\s+/).filter(w => !/^(el|la|de|del|y)$/i.test(w)).map(w => w[0]).join('').slice(0, 3);
@@ -1002,21 +1044,23 @@ function vistaRoster() {
   $('panel').innerHTML = `<header class="panel-cab"><div><h2>ROSTER</h2><div class="sub">${plural(ART.length, 'artista', 'artistas')} · ${REL.length} referencias · Broadcasted from Elda</div></div></header>
     <div class="panel-cuerpo"><div class="modulos">${ART.map(a => `<a class="modulo" href="#a-${a.s}">${foto(a)}
       <span class="rol">${esc(a.info.role || 'ARTISTA')}</span><span class="nom">${esc(a.n)}</span>
-      <span class="st">${plural(a.rs.length, 'referencia', 'referencias')} · <span style="white-space:nowrap">${anios(a)}</span></span></a>`).join('')}</div></div>`;
+      <span class="st">${plural(a.rs.length, 'lanzamiento', 'lanzamientos')}${a.ps.length ? ' · ' + plural(a.ps.length, 'participación', 'participaciones') : ''} · <span style="white-space:nowrap">${anios(a)}</span></span></a>`).join('')}</div></div>`;
 }
 function vistaArtista(a) {
   const bio = a.info.bio && !/por definir/i.test(a.info.bio) ? `<p class="bio">${esc(a.info.bio)}</p>` : '<p class="bio pend">Biografía por definir.</p>';
-  const fmts = uniq(a.rs.map(r => r.format)).join(' · ');
+  const fmts = uniq([...a.rs, ...a.ps].map(r => r.format)).join(' · ');
+  const fila = (x, extra) => `<a class="fila" href="#${x.code}"><span class="x">${x.code}</span><span class="a">${esc(x.artist)}</span><span class="t">${esc(extra || titulo(x))}</span><span class="f x">${esc(x.format)}</span><span class="g x">${esc(x.genre)}</span><span class="y x">${x.year}</span><span aria-hidden="true">→</span></a>`;
   const enl = [['Instagram', a.info.instagram], ['Spotify', a.info.spotify], ['SoundCloud', a.info.soundcloud]];
   const P = $('panel');
   P.innerHTML = `<header class="panel-cab"><div><h2>${esc(a.n)}</h2><div class="sub">${esc(a.info.role || 'Artista')} · aurality</div></div><a class="tecla" href="#roster">← Roster</a></header>
     <div class="panel-cuerpo"><div class="fl">${foto(a)}<div class="datos">${bio}
-      <div class="cifras"><div><span>REFERENCIAS</span><b>${a.rs.length}</b></div><div><span>AÑOS</span><b>${anios(a)}</b></div><div><span>FORMATOS</span><b class="lst">${fmts}</b></div></div>
+      <div class="cifras"><div><span>${a.ps.length ? 'LANZ. · PART.' : 'REFERENCIAS'}</span><b>${a.rs.length}${a.ps.length ? ' · ' + a.ps.length : ''}</b></div><div><span>AÑOS</span><b>${anios(a)}</b></div><div><span>FORMATOS</span><b class="lst">${fmts}</b></div></div>
       <div class="enlaces">${enl.map(([n, u]) => u ? `<a class="tecla" href="${esc(u)}" target="_blank" rel="noopener">${n} ↗</a>` : `<span class="tecla" aria-disabled="true">${n} · sin enlace</span>`).join('')}
         <a class="tecla oscura" href="#catalogo" id="verCat">Ver en el catálogo</a></div>
-      ${a.colab.length ? `<div><div class="sub2">COLABORACIONES</div><div class="enlaces">${a.colab.map(c => `<a class="tecla" href="#a-${slug(c)}">× ${esc(c)}</a>`).join('')}</div></div>` : ''}
+      ${a.colab.length ? `<div><div class="sub2">COLABORACIONES</div><div class="enlaces">${a.colab.map(c => esMiembro(c) ? `<a class="tecla" href="#a-${slug(c)}">× ${esc(c)}</a>` : `<span class="tecla" aria-disabled="true">× ${esc(c)}</span>`).join('')}</div></div>` : ''}
     </div></div>
-    <div class="sub2">LANZAMIENTOS</div><div class="lista">${a.rs.map(x => `<a class="fila" href="#${x.code}"><span class="x">${x.code}</span><span class="a">${esc(x.artist)}</span><span class="t">${esc(titulo(x))}</span><span class="f x">${esc(x.format)}</span><span class="g x">${esc(x.genre)}</span><span class="y x">${x.year}</span><span aria-hidden="true">→</span></a>`).join('')}</div></div>`;
+    ${a.rs.length ? `<div class="sub2">LANZAMIENTOS</div><div class="lista">${a.rs.map(x => fila(x)).join('')}</div>` : ''}
+    ${a.ps.length ? `<div class="sub2">PARTICIPACIONES</div><div class="lista">${a.ps.map(x => fila(x, titulo(x) + ' — ' + (partic(x).filter(([n]) => n === a.n).map(([, rol]) => rol).filter(Boolean).join(', ') || 'participación'))).join('')}</div>` : ''}</div>`;
   $('verCat').addEventListener('click', () => { const i = FILTROS.findIndex(f => f.k === 'artist'); sel.fill(0); sel[i] = FILTROS[i].ops.indexOf(a.n); });
 }
 // ---------- señal mensual: archivo por meses ----------

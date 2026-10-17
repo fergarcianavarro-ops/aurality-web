@@ -175,7 +175,7 @@
     {
       "genre": "SEXY DRILL",
       "soundcloud": "",
-      "artist": "UFISI",
+      "artist": "C.EME",
       "tracks": [
         "C.EME, SHODA MONKAS - CLOSEFRIENDS☆",
         "C.EME, SARA VERA - PETER PARKER",
@@ -193,7 +193,13 @@
         }
       ],
       "spotify": "https://open.spotify.com/intl-es/album/4tJx2RpRQPpbg3bO3XkTqN?si=qHIT0-ymSDW5hZ6JIcJnnA",
-      "year": 2026
+      "year": 2026,
+      "participantes": [
+        {
+          "artista": "UFISI",
+          "rol": "PRODUCCIÓN · 3 TEMAS"
+        }
+      ]
     },
     {
       "genre": "PLUGGNB",

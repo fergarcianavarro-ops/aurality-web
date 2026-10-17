@@ -51,6 +51,7 @@ Solo entra quien tenga permiso de escritura en este repositorio. Para dar acceso
 
 - **Lanzamientos → Add lanzamiento.** Aparece arriba. Rellena código, artista, título, formato, año y portada (*Elige una imagen → Subir nuevo → Confirmar selección*). Después **Publicar → Publicar ahora**.
   - **Colaboraciones:** separa los artistas con ` × `. Cada uno cuenta para su propio filtro y perfil.
+  - **Participaciones:** si el lanzamiento es de alguien de fuera (C.EME, MDNA…) y un miembro de aurality produjo, mezcló o colaboró, pon a ese artista como *Artista principal* y añade en *Participación de aurality* quién y qué hizo (p. ej. UFISI · PRODUCCIÓN · 3 TEMAS). La web lo marca como PARTICIPACIÓN, lo enseña en el perfil del miembro y el artista de fuera no aparece en el roster.
   - **Portada:** cuadrada, JPG de unos 1200 px. Sin portada, la web muestra una placa con el código.
   - **SoundCloud:** si pones el enlace, la ficha muestra el reproductor.
 - **Artistas.** Rol, biografía, foto (sale en blanco y negro) y redes. El nombre tiene que coincidir con el de los lanzamientos.

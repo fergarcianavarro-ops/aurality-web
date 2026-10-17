@@ -40,7 +40,17 @@ collections:
             hint: "El más nuevo arriba. «Añadir lanzamiento» lo crea el primero de la lista."
             fields:
               - { name: code, label: Código, widget: string, pattern: ['^AU\d{4}$', 'Formato AU0000, por ejemplo AU0213'], hint: "Siguiente al último (mira el primero de la lista)." }
-              - { name: artist, label: Artista, widget: string, hint: "En mayúsculas. Colaboraciones separadas con ×  →  ANY1N3 × PARANOID REALM" }
+              - { name: artist, label: Artista principal, widget: string, hint: "Como sale en el lanzamiento, en mayúsculas. Colaboraciones con ×  →  ANY1N3 × PARANOID REALM. Puede ser alguien de fuera (C.EME, MDNA): solo los artistas del roster cuentan como aurality." }
+              - name: participantes
+                label: Participación de aurality
+                label_singular: participación
+                widget: list
+                required: false
+                summary: "{{fields.artista}} · {{fields.rol}}"
+                hint: "Para lanzamientos de otros artistas en los que trabajó alguien de aurality (p. ej. UFISI produjo 3 temas del EP de C.EME). Si el artista principal no es de aurality, la web lo marca como PARTICIPACIÓN."
+                fields:
+                  - { name: artista, label: Miembro de aurality, widget: relation, collection: web, file: artistas, search_fields: ["artists.*.name"], value_field: "artists.*.name", display_fields: ["artists.*.name"] }
+                  - { name: rol, label: Qué hizo, widget: string, required: false, hint: "En mayúsculas: PRODUCCIÓN · 3 TEMAS, PRODUCCIÓN · 1 TEMA, FEAT., MEZCLA…" }
               - { name: title, label: Título, widget: string, required: false, hint: "Vacío = sin título." }
               - { name: format, label: Formato, widget: select, options: [SINGLE, EP, REMIXES, ÁLBUM, EDIT], default: SINGLE }
               - { name: genre, label: Género, widget: string, required: false, hint: "CLUB, RAP, DRILL, EDIT…" }
