@@ -825,11 +825,11 @@ function AU06(variant = 'a', open = 0, acc = null, slot = 'dark') {
 const NOTAS = ['DO', 'DO♯', 'RE', 'MI♭', 'MI', 'FA', 'FA♯', 'SOL', 'LA♭', 'LA', 'SI♭', 'SI'];
 const MODOS = { lidio: [0, 2, 4, 6, 7, 9, 11], dorico: [0, 2, 3, 5, 7, 9, 10], eolico: [0, 2, 3, 5, 7, 8, 10], penta: [0, 2, 4, 7, 9], jonico: [0, 2, 4, 5, 7, 9, 11], frigio: [0, 1, 3, 5, 7, 8, 10] };
 const NOMMODO = { lidio: 'lidio', dorico: 'dórico', eolico: 'eólico', penta: 'pentatónico', jonico: 'jónico', frigio: 'frigio' };
-const ESTILOS = { aeropuerto: 'bucles de aeropuerto', dron: 'dron', kankyo: 'kankyō ongaku', analogico: 'ambient analógico', dub: 'dub técnico', garaje: 'garage nocturno', perreo: 'guayeteo inocente', trance: 'ambient trance', rave: 'garage rave' };
+const ESTILOS = { aeropuerto: 'bucles de aeropuerto', dron: 'dron', kankyo: 'kankyō ongaku', analogico: 'ambient analógico', dub: 'dub técnico', garaje: 'garage nocturno', perreo: 'guayeteo inocente', trance: 'ambient trance', rave: 'garage rave', dnb: 'drum & bass atmosférico' };
 const CANALES = [
   ['PANEL', 53, 'jonico', 'aeropuerto'], ['NIEBLA', 45, 'eolico', 'dron'], ['HORIZONTE', 48, 'lidio', 'kankyo'], ['REJILLA', 43, 'dorico', 'analogico'],
   ['CROMO', 52, 'eolico', 'dub'], ['SINTONÍA', 47, 'eolico', 'garaje'], ['ESCALA', 44, 'frigio', 'perreo'], ['TESTIGO', 45, 'eolico', 'trance'],
-  ['PLETINA', 49, 'jonico', 'rave'], ['RANURA', 44, 'dorico', 'dron'], ['ALTAVOZ', 51, 'penta', 'kankyo'], ['SEÑAL', 42, 'dorico', 'analogico']];
+  ['PLETINA', 49, 'jonico', 'rave'], ['RANURA', 44, 'dorico', 'dnb'], ['ALTAVOZ', 51, 'penta', 'kankyo'], ['SEÑAL', 42, 'dorico', 'analogico']];
 const hz = m => 440 * Math.pow(2, (m - 69) / 12);
 const azar = (a, b) => a + Math.random() * (b - a), elige = a => a[Math.floor(Math.random() * a.length)];
 
@@ -844,6 +844,7 @@ const MEZCLA = {
   perreo:     { seco: 0.75, sala: 0.14, cuarto: 0.22, eco: 0.0,  tono: 9500, nivel: 0.5 },
   trance:     { seco: 0.75, sala: 0.12, cuarto: 0.2,  eco: 0.0,  tono: 11000, nivel: 0.6 },
   rave:       { seco: 0.8,  sala: 0.08, cuarto: 0.22, eco: 0.0,  tono: 12000, nivel: 0.56 },
+  dnb:        { seco: 0.75, sala: 0.12, cuarto: 0.25, eco: 0.0,  tono: 10000, nivel: 0.5 },
 };
 
 class Ambient {
@@ -890,9 +891,10 @@ class Ambient {
     const c = this.ctx, dur = 60 / bpm / 4; let n = 0, prox = c.currentTime + 0.15;
     // si el navegador frena el temporizador (pestaña en segundo plano, móvil bloqueado), los pasos atrasados se saltan:
     // tocarlos todos de golpe al volver producía una ráfaga de ruido
+    // un retraso corto se recupera tocando los pasos al momento; uno largo salta al siguiente compás completo
     g.inter = setInterval(() => { if (!g.vivo) return;
-      if (prox < c.currentTime - 0.01) { const salto = Math.ceil((c.currentTime - prox) / dur); n += salto; prox += salto * dur; }
-      while (prox < c.currentTime + 0.3) { paso(n, prox, dur); n++; prox += dur; } }, 40);
+      if (prox < c.currentTime - 0.4) { const salto = Math.ceil((c.currentTime - prox) / dur), fin = Math.ceil((n + salto) / 16) * 16; prox += (fin - n) * dur; n = fin; }
+      while (prox < c.currentTime + 0.35) { paso(n, Math.max(prox, c.currentTime), dur); n++; prox += dur; } }, 40);
   }
   nota(grado, oct = 0) { const [, root, modo] = CANALES[this.canal], sc = MODOS[modo], n = sc.length; const o = Math.floor(grado / n); return root + sc[((grado % n) + n) % n] + 12 * (o + oct); }
   // ---------- instrumentos ----------
@@ -1484,6 +1486,86 @@ class Ambient {
         const k = cl - 12, cada = k === 0 ? 4 : 2;
         if (p % cada === 0) silaba(this.nota(4, 1), t, tP * cada * 0.7, 0.22 + (k * 16 + p) * 0.003, 'a', 'i');   // la primera sílaba, cada vez más rápido
       }
+    });
+  }
+  dnb(g) {
+    // drum & bass atmosférico (LTJ Bukem, Good Looking): breaks rápidos y suaves con ride, sub redondo a medio tiempo,
+    // pads largos de acordes jazzísticos, Rhodes que acompaña y improvisa con eco, y aire de fondo.
+    const c = this.ctx, bpm = 172, tP = 60 / bpm / 4;
+    this.eco.delayTime.setTargetAtTime(tP * 3, c.currentTime, 0.2);
+    const envio = (src, dst, v) => { const s = c.createGain(); s.gain.value = v; src.connect(s); s.connect(dst); g.salidas.push(s); g.nodos.push(s); return s; };
+    const paneo = (src, v) => { const pn = c.createStereoPanner(); pn.pan.value = v; src.connect(pn); return pn; };
+    g.vaiven = c.createGain(); const wow = c.createOscillator(), wg = c.createGain(); wow.frequency.value = 0.17; wg.gain.value = 5; wow.connect(wg); wg.connect(g.vaiven); wow.start(); g.nodos.push(wow, wg, g.vaiven);
+    this.fondo(g, 0.006, 'bandpass', 900, 0.35, 0.013);                                               // aire, como mar lejano
+    // ---- buses ----
+    const bat = c.createGain(), batLp = c.createBiquadFilter(); bat.gain.value = 1; batLp.type = 'lowpass'; batLp.frequency.value = 7500; bat.connect(batLp); batLp.connect(g.fader); envio(batLp, this.cuarto, 0.3); g.nodos.push(bat, batLp);
+    const padF = c.createBiquadFilter(); padF.type = 'lowpass'; padF.frequency.value = 1600; padF.Q.value = 0.6; padF.connect(g.fader); envio(padF, this.sala, 1.2); g.nodos.push(padF);
+    const plfo = c.createOscillator(), plg = c.createGain(); plfo.frequency.value = 0.03; plg.gain.value = 700; plfo.connect(plg); plg.connect(padF.frequency); plfo.start(); g.nodos.push(plfo, plg);
+    const rho = c.createGain(), trem = c.createStereoPanner(), tl = c.createOscillator(), tg = c.createGain(); tl.frequency.value = 3.2; tg.gain.value = 0.45; tl.connect(tg); tg.connect(trem.pan); tl.start();   // auto-pan del Rhodes
+    rho.connect(trem); trem.connect(g.fader); envio(trem, this.sala, 0.55); envio(trem, this.eco, 0.28); g.nodos.push(rho, trem, tl, tg);
+    // ---- breaks ----
+    const ruido = (t, dur, gain, tipo, fr, q, pan = 0) => { const sr = c.createBufferSource(), f = c.createBiquadFilter(), v = c.createGain(); sr.buffer = this.ruido;
+      f.type = tipo; f.frequency.value = fr; f.Q.value = q; v.gain.setValueAtTime(gain, t); v.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      sr.connect(f); f.connect(v); (pan ? paneo(v, pan) : v).connect(bat); sr.start(t, Math.random() * 2); sr.stop(t + dur + 0.05); };
+    const tono = (t, f0, f1, dec, gain, tipo) => { const o = c.createOscillator(), v = c.createGain(); o.type = tipo; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dec * 0.35);
+      v.gain.setValueAtTime(gain, t); v.gain.exponentialRampToValueAtTime(0.0001, t + dec); o.connect(v); v.connect(bat); o.start(t); o.stop(t + dec + 0.02); };
+    const hum = t => t + azar(-0.004, 0.004);
+    const bombo = (t, k = 1) => { tono(t, 120, 50, 0.2, 0.55 * k, 'sine'); ruido(t, 0.006, 0.06 * k, 'highpass', 2500, 0.6); };
+    const caja = (t, k = 1) => { tono(t, 260, 200, 0.07, 0.1 * k, 'triangle'); ruido(t, k > 0.6 ? 0.14 : 0.07, 0.17 * k, 'bandpass', 2000, 0.8); ruido(t, 0.03, 0.06 * k, 'highpass', 5500, 0.6); };
+    const hat = (t, k = 1) => ruido(t, 0.03, 0.04 * k, 'highpass', 8500, 0.7, azar(-0.3, 0.3));
+    const ride = (t, k = 1) => { const o = c.createOscillator(), mo = c.createOscillator(), mg = c.createGain(), hp = c.createBiquadFilter(), v = c.createGain(); o.type = 'square'; mo.type = 'square';
+      o.frequency.value = 520; mo.frequency.value = 1407; mg.gain.value = 2600; hp.type = 'highpass'; hp.frequency.value = 5200; v.gain.setValueAtTime(0.018 * k, t); v.gain.exponentialRampToValueAtTime(0.0001, t + 0.9);
+      mo.connect(mg); mg.connect(o.frequency); o.connect(hp); hp.connect(v); paneo(v, 0.35).connect(bat); o.start(t); mo.start(t); o.stop(t + 1); mo.stop(t + 1);
+      ruido(t, 0.4, 0.012 * k, 'bandpass', 9000, 1.2, 0.35); };
+    // breaks de dos compases (32 pasos): b = bombo, s = caja, g = caja fantasma
+    const BREAKS = [
+      { b: [0, 10, 16, 26, 27], s: [4, 12, 20, 28], g: [7, 9, 14, 23, 25, 30, 31] },
+      { b: [0, 10, 18, 26], s: [4, 12, 20, 28], g: [6, 9, 15, 22, 25, 29] },
+      { b: [0, 3, 10, 16, 19, 26], s: [4, 12, 20, 28], g: [7, 14, 15, 23, 30] },
+      { b: [0, 10, 16, 24, 26], s: [4, 13, 20, 28], g: [2, 7, 11, 18, 23, 31] } ];
+    let brk = BREAKS[0];
+    // ---- sub redondo, a medio tiempo ----
+    const subV = c.createGain(); subV.gain.value = 1; subV.connect(g.fader); g.nodos.push(subV);
+    const sub = (m, t, dur, de) => { const o = c.createOscillator(), v = c.createGain(); o.frequency.setValueAtTime(hz(de ?? m), t); if (de != null) o.frequency.exponentialRampToValueAtTime(hz(m), t + 0.12);
+      v.gain.setValueAtTime(0, t); v.gain.linearRampToValueAtTime(0.05, t + 0.03); v.gain.setValueAtTime(0.05, t + dur - 0.12); v.gain.linearRampToValueAtTime(0.0001, t + dur); o.connect(v); v.connect(subV); o.start(t); o.stop(t + dur + 0.02); };
+    // ---- armonía dórica: i9 · IV9 · ♭VII maj7 · v9, voces sin fundamental (la lleva el sub) ----
+    const PROG = [0, 3, 6, 4];
+    const voces = gr => [2, 4, 6, 8].map(k => this.nota(gr + k, 1));
+    const pad = (notas, t, dur) => notas.forEach(m => [-8, 8].forEach(det => { const o = c.createOscillator(), v = c.createGain(); o.type = 'sawtooth'; o.frequency.value = hz(m); o.detune.value = det + azar(-3, 3); g.vaiven.connect(o.detune);
+      this.env(v, t, 2.2, 0.018, Math.max(0, dur - 4.5), t + dur + 2.5); o.connect(v); paneo(v, det / 14).connect(padF); o.start(t); o.stop(t + dur + 2.6); }));
+    const rhodes = (m, t, dec = 1.6, gain = 0.03) => { const f = hz(m), car = c.createOscillator(), mod = c.createOscillator(), mg = c.createGain(), v = c.createGain();
+      car.frequency.value = f; mod.frequency.value = f; car.detune.value = azar(-4, 4); mg.gain.setValueAtTime(f * 1.4, t); mg.gain.exponentialRampToValueAtTime(f * 0.15, t + 0.35);
+      const tin = c.createOscillator(), tv = c.createGain(); tin.frequency.value = f * 14; tv.gain.setValueAtTime(gain * 0.25, t); tv.gain.exponentialRampToValueAtTime(0.0001, t + 0.05);   // el «tine»
+      v.gain.setValueAtTime(0, t); v.gain.linearRampToValueAtTime(gain, t + 0.004); v.gain.exponentialRampToValueAtTime(0.0001, t + dec);
+      mod.connect(mg); mg.connect(car.frequency); car.connect(v); tin.connect(tv); tv.connect(v); v.connect(rho);
+      [car, mod, tin].forEach(n => { n.start(t); n.stop(t + dec + 0.05); }); };
+    const COMP = [[0, 1], [6, 0.7], [10, 0.6], [16, 0.9], [22, 0.6], [27, 0.7]];                     // acompañamiento en dos compases
+    let compas = 0, gr = 0, azarC = 0, frase = [];
+    const nuevaFrase = () => { let gg = elige([4, 6, 7]); frase = [2, 5, 8, 11, 14, 18, 21, 24, 29].filter(() => Math.random() < 0.55).map(q => { gg = Math.max(2, Math.min(11, gg + elige([-2, -1, 1, 2, 0]))); return [q, gg]; }); };
+    nuevaFrase();
+    this.secuenciador(g, bpm, (n, t) => {
+      const p = n % 16, p32 = n % 32;
+      if (p === 0) { compas++; azarC = Math.random(); const ciclo = (compas - 1) % 64;
+        if ((compas - 1) % 4 === 0) { gr = PROG[((compas - 1) / 4 | 0) % 4]; pad(voces(gr), t, tP * 64); }
+        if ((compas - 1) % 2 === 0) brk = Math.random() < 0.6 ? BREAKS[0] : elige(BREAKS);
+        if (compas % 8 === 1) nuevaFrase(); }
+      const ciclo = (compas - 1) % 64, intro = ciclo < 8, respiro = ciclo >= 40 && ciclo < 48, conBat = !intro && !respiro;
+      // breaks
+      if (conBat) {
+        if (brk.b.includes(p32)) bombo(hum(t), p32 % 16 === 0 ? 1 : 0.85);
+        if (brk.s.includes(p32)) caja(hum(t) + 0.003, 1);
+        if (brk.g.includes(p32) && Math.random() < 0.8) caja(hum(t), azar(0.18, 0.32));
+        if (p % 2 === 0) ride(hum(t), p % 4 === 0 ? 1 : 0.6); else if (Math.random() < 0.5) hat(hum(t), 0.6);
+        if (ciclo % 8 === 7 && p >= 12) caja(hum(t), 0.3 + (p - 12) * 0.12);                            // redoble al final de frase
+      } else if (intro && compas > 4 && p % 4 === 0) ride(t, 0.5);
+      // sub: notas largas a medio tiempo, con algún deslizamiento
+      if (!intro && p32 === 0) sub(this.nota(gr, -1), t, tP * 14, azarC > 0.7 ? this.nota(gr + 4, -1) : null);
+      if (!intro && p32 === 16 && azarC > 0.3) sub(this.nota(gr + elige([0, 4, 6]), -1), t, tP * 12);
+      // Rhodes: acompañamiento con acordes y, por encima, frases con eco
+      const cm = COMP.find(([q]) => q === p32);
+      if (cm && Math.random() < 0.85) voces(gr).slice(0, 3).forEach((m, k) => rhodes(m - 12, t + k * 0.012, 1.4, 0.07 * cm[1]));
+      const fr = frase.find(([q]) => q === p32);
+      if (fr && (ciclo % 16 >= 8 || respiro)) rhodes(this.nota(fr[1], 1), hum(t), 2.2, 0.125);
     });
   }
   arrancar() { const est = CANALES[this.canal][3], g = this.nuevaGen(est); this.gen = g; this[est](g); }
