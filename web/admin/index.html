@@ -9,6 +9,34 @@
 </head>
 <body>
 <!-- Panel privado de aurality (Decap CMS). La configuración está en config.yml, en esta misma carpeta. -->
+<script>
+// Las imágenes se reducen en el navegador antes de subirlas a GitHub: lado mayor 1600 px, JPEG al 85 %.
+// Así una portada de 3000 px y 20 MB queda en unos 300-600 KB: la subida no falla y la web carga rápido.
+(() => {
+  const MAX = 1600, CALIDAD = 0.85, YA_LIGERA = 450 * 1024;
+  const limpia = n => (n.replace(/\.[^.]+$/, '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, '-').replace(/^-+|-+$/g, '') || 'imagen') + '.jpg';
+  async function reduce(f) {
+    if (!/^image\/(jpeg|png|webp|heic|heif)$/i.test(f.type)) return f;
+    const bmp = await createImageBitmap(f);
+    const k = Math.min(1, MAX / Math.max(bmp.width, bmp.height));
+    if (k === 1 && f.size <= YA_LIGERA && /jpe?g$/i.test(f.type)) return f;
+    const c = document.createElement('canvas'); c.width = Math.round(bmp.width * k); c.height = Math.round(bmp.height * k);
+    const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height); x.drawImage(bmp, 0, 0, c.width, c.height);
+    const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', CALIDAD));
+    return blob ? new File([blob], limpia(f.name), { type: 'image/jpeg', lastModified: Date.now() }) : f;
+  }
+  let reenviando = false;
+  document.addEventListener('change', async e => {
+    const inp = e.target;
+    if (reenviando || !(inp instanceof HTMLInputElement) || inp.type !== 'file' || !inp.files || !inp.files.length) return;
+    e.stopImmediatePropagation(); e.stopPropagation();        // el panel recibe la versión reducida, no la original
+    const dt = new DataTransfer();
+    for (const f of inp.files) { let g = f; try { g = await reduce(f); } catch (err) { console.warn('aurality: no se pudo reducir', f.name, err); } dt.items.add(g); }
+    inp.files = dt.files; reenviando = true; inp.dispatchEvent(new Event('change', { bubbles: true })); reenviando = false;
+  }, true);
+})();
+</script>
 <script src="https://unpkg.com/decap-cms@3.16.3/dist/decap-cms.js"></script>
 </body>
 </html>
