@@ -227,35 +227,35 @@
       "year": 2024
     },
     {
-      "genre": "INDUSTRIAL",
+      "genre": "PLUGGNB",
       "soundcloud": "",
       "artist": "ANY1N3",
       "tracks": [],
       "code": "AU0202",
       "bandcamp": "",
-      "cover": "",
+      "cover": "covers/otra-lagrima-definitivojpg.jpg",
       "format": "SINGLE",
-      "title": "[ S/T ]",
+      "title": "OTRA LÁGRIMA",
       "credits": [
         {
           "rol": "PRODUCCIÓN",
-          "nombre": "ANY1N3"
+          "nombre": "PARANOID REALM · SUI · YIIO · XHARLIE"
         },
         {
           "rol": "MEZCLA",
-          "nombre": ""
+          "nombre": "PARANOID REALM"
         },
         {
           "rol": "MÁSTER",
-          "nombre": ""
+          "nombre": "PARANOID REALM"
         },
         {
           "rol": "ARTE",
-          "nombre": ""
+          "nombre": "CUTEXICO"
         }
       ],
-      "spotify": "",
-      "year": 2024
+      "spotify": "https://open.spotify.com/intl-es/track/0upi8DNB3ElXbbljzPfNl9?si=81afb9f6f6e3467a",
+      "year": 2025
     },
     {
       "genre": "RAP",
