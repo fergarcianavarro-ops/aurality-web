@@ -106,15 +106,15 @@
       "year": 2025
     },
     {
-      "genre": "DRILL",
+      "genre": "LOGOBI",
       "soundcloud": "",
-      "artist": "UFISI",
+      "artist": "ANY1N3 x UFISI",
       "tracks": [],
       "code": "AU0209",
       "bandcamp": "",
-      "cover": "",
-      "format": "EP",
-      "title": "[ S/T ]",
+      "cover": "covers/portada_3000x3000.jpg.jpeg",
+      "format": "SINGLE",
+      "title": "EL CIELO QUE NOS QUEDA",
       "credits": [
         {
           "rol": "PRODUCCIÓN",
@@ -133,101 +133,8 @@
           "nombre": ""
         }
       ],
-      "spotify": "",
+      "spotify": "https://open.spotify.com/intl-es/album/3i9pZTYe7QaxsdXWBb9Yha?si=f07fd7a20cdc4eb1",
       "year": 2026
-    },
-    {
-      "genre": "DUBSTEP",
-      "soundcloud": "",
-      "artist": "ANY1N3",
-      "tracks": [],
-      "code": "AU0208",
-      "bandcamp": "",
-      "cover": "",
-      "format": "SINGLE",
-      "title": "[ S/T ]",
-      "credits": [
-        {
-          "rol": "PRODUCCIÓN",
-          "nombre": "ANY1N3"
-        },
-        {
-          "rol": "MEZCLA",
-          "nombre": ""
-        },
-        {
-          "rol": "MÁSTER",
-          "nombre": ""
-        },
-        {
-          "rol": "ARTE",
-          "nombre": ""
-        }
-      ],
-      "spotify": "",
-      "year": 2025
-    },
-    {
-      "genre": "ELECTRÓNICA",
-      "soundcloud": "",
-      "artist": "PARANOID REALM",
-      "tracks": [],
-      "code": "AU0207",
-      "bandcamp": "",
-      "cover": "",
-      "format": "EP",
-      "title": "[ S/T ]",
-      "credits": [
-        {
-          "rol": "PRODUCCIÓN",
-          "nombre": "PARANOID REALM"
-        },
-        {
-          "rol": "MEZCLA",
-          "nombre": ""
-        },
-        {
-          "rol": "MÁSTER",
-          "nombre": ""
-        },
-        {
-          "rol": "ARTE",
-          "nombre": ""
-        }
-      ],
-      "spotify": "",
-      "year": 2025
-    },
-    {
-      "genre": "RAP",
-      "soundcloud": "",
-      "artist": "TRANKILOTE EL KILATE",
-      "tracks": [],
-      "code": "AU0206",
-      "bandcamp": "",
-      "cover": "",
-      "format": "SINGLE",
-      "title": "[ S/T ]",
-      "credits": [
-        {
-          "rol": "PRODUCCIÓN",
-          "nombre": "PARANOID REALM"
-        },
-        {
-          "rol": "MEZCLA",
-          "nombre": ""
-        },
-        {
-          "rol": "MÁSTER",
-          "nombre": ""
-        },
-        {
-          "rol": "ARTE",
-          "nombre": ""
-        }
-      ],
-      "spotify": "",
-      "year": 2025
     },
     {
       "genre": "DUBSTEP",
@@ -266,35 +173,27 @@
       "year": 2026
     },
     {
-      "genre": "DRILL",
+      "genre": "SEXY DRILL",
       "soundcloud": "",
       "artist": "UFISI",
-      "tracks": [],
+      "tracks": [
+        "C.EME, SHODA MONKAS - CLOSEFRIENDS☆",
+        "C.EME, SARA VERA - PETER PARKER",
+        "C.EME - UBER"
+      ],
       "code": "AU0204",
       "bandcamp": "",
-      "cover": "",
-      "format": "SINGLE",
+      "cover": "covers/delete.jpeg",
+      "format": "EP",
       "title": "SUPERSEXYDRILL",
       "credits": [
         {
           "rol": "PRODUCCIÓN",
           "nombre": "UFISI"
-        },
-        {
-          "rol": "MEZCLA",
-          "nombre": ""
-        },
-        {
-          "rol": "MÁSTER",
-          "nombre": ""
-        },
-        {
-          "rol": "ARTE",
-          "nombre": ""
         }
       ],
-      "spotify": "",
-      "year": 2025
+      "spotify": "https://open.spotify.com/intl-es/album/4tJx2RpRQPpbg3bO3XkTqN?si=qHIT0-ymSDW5hZ6JIcJnnA",
+      "year": 2026
     },
     {
       "genre": "CLUB",
