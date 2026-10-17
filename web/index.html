@@ -842,7 +842,7 @@ const MEZCLA = {
   dub:        { seco: 0.75, sala: 0.20, cuarto: 0.25, eco: 0.60, tono: 2800, nivel: 0.5 },
   garaje:     { seco: 0.70, sala: 0.16, cuarto: 0.28, eco: 0.0,  tono: 6200, nivel: 0.37 },
   perreo:     { seco: 0.75, sala: 0.14, cuarto: 0.22, eco: 0.0,  tono: 9500, nivel: 0.5 },
-  trance:     { seco: 0.75, sala: 0.12, cuarto: 0.2,  eco: 0.0,  tono: 11000, nivel: 0.56 },
+  trance:     { seco: 0.75, sala: 0.12, cuarto: 0.2,  eco: 0.0,  tono: 11000, nivel: 0.6 },
 };
 
 class Ambient {
@@ -1291,13 +1291,13 @@ class Ambient {
     const envio = (src, dst, v) => { const s = c.createGain(); s.gain.value = v; src.connect(s); s.connect(dst); g.salidas.push(s); g.nodos.push(s); return s; };
     const paneo = (src, v) => { const pn = c.createStereoPanner(); pn.pan.value = v; src.connect(pn); return pn; };
     g.vaiven = c.createGain(); const wow = c.createOscillator(), wg = c.createGain(); wow.frequency.value = 0.21; wg.gain.value = 4; wow.connect(wg); wg.connect(g.vaiven); wow.start(); g.nodos.push(wow, wg, g.vaiven);
-    this.fondo(g, 0.003, 'highpass', 8000, 0.4);
+    this.fondo(g, 0.0012, 'highpass', 8000, 0.4);
     // ---- buses ----
-    const bat = c.createGain(); bat.gain.value = 0.68; const batLp = c.createBiquadFilter(); batLp.type = 'lowpass'; batLp.frequency.value = 6000; bat.connect(batLp); batLp.connect(g.fader); g.nodos.push(bat, batLp);
+    const bat = c.createGain(); bat.gain.value = 0.98; const batLp = c.createBiquadFilter(); batLp.type = 'lowpass'; batLp.frequency.value = 6000; bat.connect(batLp); batLp.connect(g.fader); g.nodos.push(bat, batLp);
     const padF = c.createBiquadFilter(), duck = c.createGain(); padF.type = 'lowpass'; padF.frequency.value = 900; padF.Q.value = 1.2; const padHp = c.createBiquadFilter(); padHp.type = 'highpass'; padHp.frequency.value = 160;
-    padHp.connect(padF); padF.connect(duck); duck.connect(g.fader); envio(duck, this.sala, 1.1); g.nodos.push(padF, padHp, duck);
+    padHp.connect(padF); padF.connect(duck); duck.connect(g.fader); envio(duck, this.sala, 0.75); g.nodos.push(padF, padHp, duck);
     const agacha = (t, k) => { duck.gain.cancelScheduledValues(t); duck.gain.setValueAtTime(1 - k, t + 0.004); duck.gain.setTargetAtTime(1, t + 0.04, 0.1); };
-    const gateF = c.createBiquadFilter(), gate = c.createGain(); gateF.type = 'lowpass'; gateF.frequency.value = 2600; gateF.Q.value = 2; gate.gain.value = 0; gateF.connect(gate); gate.connect(duck); envio(gate, this.eco, 0.25); g.nodos.push(gateF, gate);
+    const gateF = c.createBiquadFilter(), gate = c.createGain(); gateF.type = 'lowpass'; gateF.frequency.value = 3400; gateF.Q.value = 2; gate.gain.value = 0; gateF.connect(gate); gate.connect(g.fader); envio(gate, this.sala, 0.35); envio(gate, this.eco, 0.25); g.nodos.push(gateF, gate);
     const arpBus = c.createGain(); arpBus.connect(g.fader); envio(arpBus, this.eco, 0.55); envio(arpBus, this.sala, 0.6); g.nodos.push(arpBus);
     const vozBus = c.createBiquadFilter(); vozBus.type = 'highpass'; vozBus.frequency.value = 220; const vozLp = c.createBiquadFilter(); vozLp.type = 'lowpass'; vozLp.frequency.value = 5200;
     vozBus.connect(vozLp); vozLp.connect(g.fader); envio(vozLp, this.sala, 1.5); envio(vozLp, this.eco, 0.5); g.nodos.push(vozBus, vozLp);
@@ -1311,7 +1311,7 @@ class Ambient {
       mg.gain.setValueAtTime(f * 1.3, t); mg.gain.exponentialRampToValueAtTime(f * 0.02, t + 0.3); v.gain.setValueAtTime(0, t); v.gain.linearRampToValueAtTime(gain, t + 0.004); v.gain.exponentialRampToValueAtTime(0.0001, t + 0.7);
       mo.connect(mg); mg.connect(o.frequency); o.connect(v); paneo(v, pan).connect(arpBus); o.start(t); mo.start(t); o.stop(t + 0.75); mo.stop(t + 0.75); };
     const bajo = (m, t, dur) => { const o = c.createOscillator(), o2 = c.createOscillator(), v = c.createGain(), lp = c.createBiquadFilter(); o2.type = 'triangle'; o.frequency.value = hz(m); o2.frequency.value = hz(m);
-      lp.type = 'lowpass'; lp.frequency.value = 420; v.gain.setValueAtTime(0, t); v.gain.linearRampToValueAtTime(0.045, t + 0.012); v.gain.setValueAtTime(0.045, t + dur * 0.6); v.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      lp.type = 'lowpass'; lp.frequency.value = 420; v.gain.setValueAtTime(0, t); v.gain.linearRampToValueAtTime(0.064, t + 0.012); v.gain.setValueAtTime(0.064, t + dur * 0.6); v.gain.exponentialRampToValueAtTime(0.0001, t + dur);
       o.connect(lp); o2.connect(lp); lp.connect(v); v.connect(g.fader); o.start(t); o2.start(t); o.stop(t + dur + 0.05); o2.stop(t + dur + 0.05); };
     // ---- batería suave ----
     const ruido = (t, dur, gain, tipo, fr, q, pan = 0) => { const sr = c.createBufferSource(), f = c.createBiquadFilter(), v = c.createGain(); sr.buffer = this.ruido;
@@ -1327,7 +1327,7 @@ class Ambient {
       const o = c.createOscillator(), v = c.createGain(), mz = c.createGain(), vib = c.createOscillator(), vg = c.createGain(), vo = VOC[elige(V)];
       o.type = 'sawtooth'; o.frequency.value = hz(m); o.detune.value = azar(-8, 8); vib.frequency.value = azar(4.8, 5.6); vg.gain.value = 9; vib.connect(vg); vg.connect(o.detune); o.connect(mz);
       vo.forEach((fr, k) => { const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = fr * 1.12; bp.Q.value = [7, 9, 11][k]; const a = c.createGain(); a.gain.value = [1, 0.5, 0.3][k]; mz.connect(bp); bp.connect(a); a.connect(v); });
-      const sr = c.createBufferSource(), bf = c.createBiquadFilter(), bv = c.createGain(); sr.buffer = this.ruido; bf.type = 'bandpass'; bf.frequency.value = vo[1] * 1.6; bf.Q.value = 1.5; bv.gain.value = 0.5; sr.connect(bf); bf.connect(bv); bv.connect(v);   // aire
+      const sr = c.createBufferSource(), bf = c.createBiquadFilter(), bv = c.createGain(); sr.buffer = this.ruido; bf.type = 'bandpass'; bf.frequency.value = vo[1] * 1.6; bf.Q.value = 1.5; bv.gain.value = 0.28; sr.connect(bf); bf.connect(bv); bv.connect(v);   // aire
       v.gain.setValueAtTime(0, t); v.gain.linearRampToValueAtTime(gain, t + Math.min(0.12, dur * 0.3)); v.gain.setValueAtTime(gain, t + dur * 0.7); v.gain.exponentialRampToValueAtTime(0.0001, t + dur);
       paneo(v, pan).connect(vozBus); [o, vib].forEach(n => { n.start(t); n.stop(t + dur + 0.05); }); sr.start(t, Math.random() * 2); sr.stop(t + dur + 0.05);
     };
@@ -1341,7 +1341,7 @@ class Ambient {
       const p = n % 16;
       if (p === 0) { compas++; azarC = Math.random(); const ciclo = (compas - 1) % 64;
         if ((compas - 1) % 2 === 0) { gr = PROG[((compas - 1) / 2 | 0) % 4]; const ac = acorde(gr);
-          supersaw(ac, t, tP * 32, padHp, 3, 0.0098); supersaw([ac[2], ac[3], ac[4]], t, tP * 32, gateF, 2, 0.014, 0.02);
+          supersaw(ac, t, tP * 32, padHp, 3, 0.0062); supersaw([ac[2], ac[3], ac[4]], t, tP * 32, gateF, 2, 0.05, 0.02);
           arp = [this.nota(gr, 2), this.nota(gr + 4, 2), this.nota(gr + 1, 3), this.nota(gr + 4, 2), this.nota(gr + 2, 3), this.nota(gr + 4, 2)]; }
         // el filtro de los pads se abre y se cierra en arcos de 16 compases: transiciones sin drops
         const arco = Math.sin(Math.PI * (((compas - 1) % 16) / 16)); padF.frequency.setTargetAtTime(700 + arco * 2600, t, 2.5);
