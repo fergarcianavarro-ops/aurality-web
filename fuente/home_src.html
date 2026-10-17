@@ -545,10 +545,10 @@ window.__carga?.mark('motor', 'THREE.JS');
 const NOTAS = ['DO', 'DO♯', 'RE', 'MI♭', 'MI', 'FA', 'FA♯', 'SOL', 'LA♭', 'LA', 'SI♭', 'SI'];
 const MODOS = { lidio: [0, 2, 4, 6, 7, 9, 11], dorico: [0, 2, 3, 5, 7, 9, 10], eolico: [0, 2, 3, 5, 7, 8, 10], penta: [0, 2, 4, 7, 9], jonico: [0, 2, 4, 5, 7, 9, 11], frigio: [0, 1, 3, 5, 7, 8, 10] };
 const NOMMODO = { lidio: 'lidio', dorico: 'dórico', eolico: 'eólico', penta: 'pentatónico', jonico: 'jónico', frigio: 'frigio' };
-const ESTILOS = { aeropuerto: 'bucles de aeropuerto', dron: 'dron', kankyo: 'kankyō ongaku', analogico: 'ambient analógico', dub: 'dub técnico', garaje: 'garage nocturno', perreo: 'guayeteo inocente' };
+const ESTILOS = { aeropuerto: 'bucles de aeropuerto', dron: 'dron', kankyo: 'kankyō ongaku', analogico: 'ambient analógico', dub: 'dub técnico', garaje: 'garage nocturno', perreo: 'guayeteo inocente', trance: 'ambient trance' };
 const CANALES = [
   ['PANEL', 53, 'jonico', 'aeropuerto'], ['NIEBLA', 45, 'eolico', 'dron'], ['HORIZONTE', 48, 'lidio', 'kankyo'], ['REJILLA', 43, 'dorico', 'analogico'],
-  ['CROMO', 52, 'eolico', 'dub'], ['SINTONÍA', 47, 'eolico', 'garaje'], ['ESCALA', 44, 'frigio', 'perreo'], ['TESTIGO', 46, 'eolico', 'analogico'],
+  ['CROMO', 52, 'eolico', 'dub'], ['SINTONÍA', 47, 'eolico', 'garaje'], ['ESCALA', 44, 'frigio', 'perreo'], ['TESTIGO', 45, 'eolico', 'trance'],
   ['PLETINA', 49, 'eolico', 'dub'], ['RANURA', 44, 'dorico', 'dron'], ['ALTAVOZ', 51, 'penta', 'kankyo'], ['SEÑAL', 42, 'dorico', 'analogico']];
 const hz = m => 440 * Math.pow(2, (m - 69) / 12);
 const azar = (a, b) => a + Math.random() * (b - a), elige = a => a[Math.floor(Math.random() * a.length)];
@@ -562,6 +562,7 @@ const MEZCLA = {
   dub:        { seco: 0.75, sala: 0.20, cuarto: 0.25, eco: 0.60, tono: 2800, nivel: 0.5 },
   garaje:     { seco: 0.70, sala: 0.16, cuarto: 0.28, eco: 0.0,  tono: 6200, nivel: 0.37 },
   perreo:     { seco: 0.75, sala: 0.14, cuarto: 0.22, eco: 0.0,  tono: 9500, nivel: 0.5 },
+  trance:     { seco: 0.75, sala: 0.12, cuarto: 0.2,  eco: 0.0,  tono: 11000, nivel: 0.56 },
 };
 
 class Ambient {
@@ -1000,6 +1001,90 @@ class Ambient {
         if ((fase === 2 || fase === 6) && compas > 4) { if (azarC < 0.12) tartamudeo(frase.map(([q, gg, d]) => [q, this.nota(gg, 2), d]), t); else cantar(frase.map(([q, gg, d]) => [q, this.nota(gg, 2), d]), t); }
         if (fase === 3 && azarC < 0.5) cantar(frase.slice(0, 3).map(([q, gg, d]) => [q, this.nota(gg, 2), d]), t, true);   // la misma frase, grave y deformada
         if ((fase === 0 || respiro) && azarC > 0.55) hablar(t + tP * 2, azar(1.2, 2.2)); }
+    });
+  }
+  trance(g) {
+    // ambient trance vocal (Torus, Malibu, ESP): supersaw difuminado y pads lentos de acordes suspendidos, trance gate,
+    // arpegios cristalinos, voz femenina aireada en bucles y duplicada, graves redondos y batería que alterna break suave y pulso de club.
+    const c = this.ctx, bpm = 128, tP = 60 / bpm / 4;
+    this.eco.delayTime.setTargetAtTime(tP * 3, c.currentTime, 0.2);                          // eco en corchea con puntillo
+    const envio = (src, dst, v) => { const s = c.createGain(); s.gain.value = v; src.connect(s); s.connect(dst); g.salidas.push(s); g.nodos.push(s); return s; };
+    const paneo = (src, v) => { const pn = c.createStereoPanner(); pn.pan.value = v; src.connect(pn); return pn; };
+    g.vaiven = c.createGain(); const wow = c.createOscillator(), wg = c.createGain(); wow.frequency.value = 0.21; wg.gain.value = 4; wow.connect(wg); wg.connect(g.vaiven); wow.start(); g.nodos.push(wow, wg, g.vaiven);
+    this.fondo(g, 0.003, 'highpass', 8000, 0.4);
+    // ---- buses ----
+    const bat = c.createGain(); bat.gain.value = 0.68; const batLp = c.createBiquadFilter(); batLp.type = 'lowpass'; batLp.frequency.value = 6000; bat.connect(batLp); batLp.connect(g.fader); g.nodos.push(bat, batLp);
+    const padF = c.createBiquadFilter(), duck = c.createGain(); padF.type = 'lowpass'; padF.frequency.value = 900; padF.Q.value = 1.2; const padHp = c.createBiquadFilter(); padHp.type = 'highpass'; padHp.frequency.value = 160;
+    padHp.connect(padF); padF.connect(duck); duck.connect(g.fader); envio(duck, this.sala, 1.1); g.nodos.push(padF, padHp, duck);
+    const agacha = (t, k) => { duck.gain.cancelScheduledValues(t); duck.gain.setValueAtTime(1 - k, t + 0.004); duck.gain.setTargetAtTime(1, t + 0.04, 0.1); };
+    const gateF = c.createBiquadFilter(), gate = c.createGain(); gateF.type = 'lowpass'; gateF.frequency.value = 2600; gateF.Q.value = 2; gate.gain.value = 0; gateF.connect(gate); gate.connect(duck); envio(gate, this.eco, 0.25); g.nodos.push(gateF, gate);
+    const arpBus = c.createGain(); arpBus.connect(g.fader); envio(arpBus, this.eco, 0.55); envio(arpBus, this.sala, 0.6); g.nodos.push(arpBus);
+    const vozBus = c.createBiquadFilter(); vozBus.type = 'highpass'; vozBus.frequency.value = 220; const vozLp = c.createBiquadFilter(); vozLp.type = 'lowpass'; vozLp.frequency.value = 5200;
+    vozBus.connect(vozLp); vozLp.connect(g.fader); envio(vozLp, this.sala, 1.5); envio(vozLp, this.eco, 0.5); g.nodos.push(vozBus, vozLp);
+    // ---- sintetizadores ----
+    const supersaw = (notas, t, dur, dst, voces = 3, gain = 0.006, att = 1.4) => notas.forEach(m => { for (let k = 0; k < voces; k++) {
+      const o = c.createOscillator(), v = c.createGain(), sp = voces > 1 ? (k / (voces - 1)) * 2 - 1 : 0; o.type = 'sawtooth'; o.frequency.value = hz(m); o.detune.value = sp * 22 + azar(-3, 3); g.vaiven.connect(o.detune);
+      this.env(v, t, att, gain, Math.max(0, dur - att - 1.5), t + dur + 1.5); o.connect(v); paneo(v, sp * 0.85).connect(dst); o.start(t); o.stop(t + dur + 1.6); } });
+    const acorde = gr => [this.nota(gr, 0), this.nota(gr + 4, 0), this.nota(gr + 1, 1), this.nota(gr + 4, 1), this.nota(gr + 3, 1)];   // amplio y suspendido (2.ª y 4.ª, sin tercera abajo)
+    const GATE = [1, 0, 1, 1, 0, 1, 1, 0, 1, 0, 1, 1, 0, 1, 0, 1];                                     // trance gate
+    const campana = (m, t, gain, pan) => { const o = c.createOscillator(), mo = c.createOscillator(), mg = c.createGain(), v = c.createGain(), f = hz(m); o.type = 'triangle'; o.frequency.value = f; mo.frequency.value = f * 4;
+      mg.gain.setValueAtTime(f * 1.3, t); mg.gain.exponentialRampToValueAtTime(f * 0.02, t + 0.3); v.gain.setValueAtTime(0, t); v.gain.linearRampToValueAtTime(gain, t + 0.004); v.gain.exponentialRampToValueAtTime(0.0001, t + 0.7);
+      mo.connect(mg); mg.connect(o.frequency); o.connect(v); paneo(v, pan).connect(arpBus); o.start(t); mo.start(t); o.stop(t + 0.75); mo.stop(t + 0.75); };
+    const bajo = (m, t, dur) => { const o = c.createOscillator(), o2 = c.createOscillator(), v = c.createGain(), lp = c.createBiquadFilter(); o2.type = 'triangle'; o.frequency.value = hz(m); o2.frequency.value = hz(m);
+      lp.type = 'lowpass'; lp.frequency.value = 420; v.gain.setValueAtTime(0, t); v.gain.linearRampToValueAtTime(0.045, t + 0.012); v.gain.setValueAtTime(0.045, t + dur * 0.6); v.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      o.connect(lp); o2.connect(lp); lp.connect(v); v.connect(g.fader); o.start(t); o2.start(t); o.stop(t + dur + 0.05); o2.stop(t + dur + 0.05); };
+    // ---- batería suave ----
+    const ruido = (t, dur, gain, tipo, fr, q, pan = 0) => { const sr = c.createBufferSource(), f = c.createBiquadFilter(), v = c.createGain(); sr.buffer = this.ruido;
+      f.type = tipo; f.frequency.value = fr; f.Q.value = q; v.gain.setValueAtTime(gain, t); v.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      sr.connect(f); f.connect(v); (pan ? paneo(v, pan) : v).connect(bat); sr.start(t, Math.random() * 2); sr.stop(t + dur + 0.05); };
+    const bombo = (t, k = 1) => { agacha(t, 0.45 * k); const o = c.createOscillator(), v = c.createGain(); o.frequency.setValueAtTime(105, t); o.frequency.exponentialRampToValueAtTime(48, t + 0.08);
+      v.gain.setValueAtTime(0.45 * k, t); v.gain.exponentialRampToValueAtTime(0.0001, t + 0.32); o.connect(v); v.connect(bat); o.start(t); o.stop(t + 0.35); };
+    const caja = (t, k = 1) => { ruido(t, 0.15, 0.11 * k, 'bandpass', 1900, 0.9); ruido(t, 0.05, 0.04 * k, 'highpass', 5000, 0.5); };
+    const hat = (t, k = 1, ab = false) => ruido(t, ab ? 0.14 : 0.035, 0.035 * k, 'highpass', 8500, 0.7, azar(-0.35, 0.35));
+    // ---- voz: aireada, dulce, duplicada, en bucles cortados ----
+    const VOC = { a: [800, 1150, 2900], o: [450, 800, 2830], u: [325, 700, 2530], e: [400, 2000, 2550] }, V = Object.keys(VOC);
+    const voz = (m, t, dur, gain, pan) => {
+      const o = c.createOscillator(), v = c.createGain(), mz = c.createGain(), vib = c.createOscillator(), vg = c.createGain(), vo = VOC[elige(V)];
+      o.type = 'sawtooth'; o.frequency.value = hz(m); o.detune.value = azar(-8, 8); vib.frequency.value = azar(4.8, 5.6); vg.gain.value = 9; vib.connect(vg); vg.connect(o.detune); o.connect(mz);
+      vo.forEach((fr, k) => { const bp = c.createBiquadFilter(); bp.type = 'bandpass'; bp.frequency.value = fr * 1.12; bp.Q.value = [7, 9, 11][k]; const a = c.createGain(); a.gain.value = [1, 0.5, 0.3][k]; mz.connect(bp); bp.connect(a); a.connect(v); });
+      const sr = c.createBufferSource(), bf = c.createBiquadFilter(), bv = c.createGain(); sr.buffer = this.ruido; bf.type = 'bandpass'; bf.frequency.value = vo[1] * 1.6; bf.Q.value = 1.5; bv.gain.value = 0.5; sr.connect(bf); bf.connect(bv); bv.connect(v);   // aire
+      v.gain.setValueAtTime(0, t); v.gain.linearRampToValueAtTime(gain, t + Math.min(0.12, dur * 0.3)); v.gain.setValueAtTime(gain, t + dur * 0.7); v.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      paneo(v, pan).connect(vozBus); [o, vib].forEach(n => { n.start(t); n.stop(t + dur + 0.05); }); sr.start(t, Math.random() * 2); sr.stop(t + dur + 0.05);
+    };
+    const dobla = (m, t, dur, gain) => { voz(m, t, dur, gain, -0.35); voz(m, t + 0.012, dur, gain * 0.8, 0.35); };
+    let frase = []; const nuevaFrase = () => { let gg = elige([2, 4, 6]); frase = [0, 4, 6, 10, 14, 18, 22, 26].filter(() => Math.random() < 0.7).map(p => { gg = Math.max(0, Math.min(9, gg + elige([-2, -1, 1, 1, 2, 0]))); return [p, gg, elige([2, 3, 4])]; }); };
+    nuevaFrase();
+    // ---- estructura: 64 compases ----
+    const PROG = [0, 5, 2, 6];                                                                         // i · VI · III · VII
+    let compas = 0, gr = 0, azarC = 0, arp = [];
+    this.secuenciador(g, bpm, (n, t) => {
+      const p = n % 16;
+      if (p === 0) { compas++; azarC = Math.random(); const ciclo = (compas - 1) % 64;
+        if ((compas - 1) % 2 === 0) { gr = PROG[((compas - 1) / 2 | 0) % 4]; const ac = acorde(gr);
+          supersaw(ac, t, tP * 32, padHp, 3, 0.0098); supersaw([ac[2], ac[3], ac[4]], t, tP * 32, gateF, 2, 0.014, 0.02);
+          arp = [this.nota(gr, 2), this.nota(gr + 4, 2), this.nota(gr + 1, 3), this.nota(gr + 4, 2), this.nota(gr + 2, 3), this.nota(gr + 4, 2)]; }
+        // el filtro de los pads se abre y se cierra en arcos de 16 compases: transiciones sin drops
+        const arco = Math.sin(Math.PI * (((compas - 1) % 16) / 16)); padF.frequency.setTargetAtTime(700 + arco * 2600, t, 2.5);
+        if (compas % 4 === 1) nuevaFrase(); }
+      const ciclo = (compas - 1) % 64, intro = ciclo < 8, puente = ciclo >= 40 && ciclo < 48, pulso = (ciclo >= 24 && ciclo < 40) || ciclo >= 56;
+      const conGate = ciclo >= 16 && !puente;
+      gate.gain.setValueAtTime(conGate && GATE[p] ? 1 : 0, t); if (conGate && GATE[p]) gate.gain.setTargetAtTime(0, t + tP * 0.55, 0.012);
+      // batería: break suave o pulso de club; nada en la intro y el puente
+      if (!intro && !puente) {
+        if (pulso) { if (p % 4 === 0) bombo(t, 0.9); if (p % 4 === 2) hat(t, 1, p === 14 && azarC > 0.5); if (p === 4 || p === 12) caja(t, 0.55); }
+        else { if (p === 0 || p === 10 || (p === 7 && azarC > 0.6)) bombo(t, p === 0 ? 1 : 0.8); if (p === 4 || p === 12) caja(t); if (p === 15 && azarC > 0.7) caja(t, 0.35);
+          if (p % 2 === 0) hat(t, p % 4 === 2 ? 0.9 : 0.5); }
+        if (p % 4 === 2) bajo(this.nota(gr, -1), t, tP * 1.6);                                          // bajo redondo en contratiempo
+      } else if (p === 0) bajo(this.nota(gr, -1), t, tP * 14);
+      // arpegio cristalino en semicorcheas, abriéndose paso desde el compás 9
+      if (ciclo >= 8 && arp.length && Math.random() < (puente ? 0.9 : 0.7)) campana(arp[n % arp.length] + (azarC > 0.85 && p >= 12 ? 12 : 0), t, puente ? 0.03 : 0.022, (n % 2 ? 0.6 : -0.6));
+      // voz: frase de dos compases; a veces un fragmento se corta y se repite en bucle, o se sube una octava
+      const pos = ((compas - 1) % 2) * 16 + p, f = frase.find(([q]) => q === pos);
+      if (f && compas > 2 && ((compas - 1) % 8 < 6 || puente)) {
+        const m = this.nota(f[1], 2), dur = f[2] * tP;
+        if (azarC > 0.78 && pos >= 14) { for (let r = 0; r < 4; r++) voz(m + (r === 3 ? 12 : 0), t + r * tP, tP * 0.9, 0.065, r % 2 ? 0.4 : -0.4); }   // corte en bucle
+        else dobla(m, t, dur * 1.6, 0.07);
+      }
     });
   }
   arrancar() { const est = CANALES[this.canal][3], g = this.nuevaGen(est); this.gen = g; this[est](g); }
