@@ -545,11 +545,11 @@ window.__carga?.mark('motor', 'THREE.JS');
 const NOTAS = ['DO', 'DO♯', 'RE', 'MI♭', 'MI', 'FA', 'FA♯', 'SOL', 'LA♭', 'LA', 'SI♭', 'SI'];
 const MODOS = { lidio: [0, 2, 4, 6, 7, 9, 11], dorico: [0, 2, 3, 5, 7, 9, 10], eolico: [0, 2, 3, 5, 7, 8, 10], penta: [0, 2, 4, 7, 9], jonico: [0, 2, 4, 5, 7, 9, 11], frigio: [0, 1, 3, 5, 7, 8, 10] };
 const NOMMODO = { lidio: 'lidio', dorico: 'dórico', eolico: 'eólico', penta: 'pentatónico', jonico: 'jónico', frigio: 'frigio' };
-const ESTILOS = { aeropuerto: 'bucles de aeropuerto', dron: 'dron', kankyo: 'kankyō ongaku', analogico: 'ambient analógico', dub: 'dub técnico', garaje: 'garage nocturno', perreo: 'guayeteo inocente', trance: 'ambient trance', rave: 'garage rave', dnb: 'ltj bukem amen break', galore: 'arpegios acuáticos' };
+const ESTILOS = { aeropuerto: 'bucles de aeropuerto', dron: 'dron', kankyo: 'kankyō ongaku', analogico: 'ambient analógico', dub: 'dub técnico', garaje: 'garage nocturno', perreo: 'guayeteo inocente', trance: 'ambient trance', rave: 'garage rave', dnb: 'ltj bukem amen break', galore: 'arpegios acuáticos', triphop: 'trip-hop' };
 const CANALES = [
   ['PANEL', 53, 'jonico', 'aeropuerto'], ['NIEBLA', 45, 'eolico', 'dron'], ['HORIZONTE', 48, 'lidio', 'kankyo'], ['REJILLA', 43, 'dorico', 'analogico'],
   ['CROMO', 52, 'eolico', 'dub'], ['SINTONÍA', 47, 'eolico', 'garaje'], ['ESCALA', 44, 'frigio', 'perreo'], ['TESTIGO', 45, 'eolico', 'trance'],
-  ['PLETINA', 49, 'jonico', 'rave'], ['RANURA', 44, 'dorico', 'dnb'], ['GALORE', 51, 'jonico', 'galore'], ['SEÑAL', 42, 'dorico', 'analogico']];
+  ['PLETINA', 49, 'jonico', 'rave'], ['RANURA', 44, 'dorico', 'dnb'], ['GALORE', 51, 'jonico', 'galore'], ['SEÑAL', 42, 'eolico', 'triphop']];
 const hz = m => 440 * Math.pow(2, (m - 69) / 12);
 const azar = (a, b) => a + Math.random() * (b - a), elige = a => a[Math.floor(Math.random() * a.length)];
 
@@ -566,6 +566,7 @@ const MEZCLA = {
   rave:       { seco: 0.8,  sala: 0.08, cuarto: 0.22, eco: 0.0,  tono: 12000, nivel: 0.29 },
   dnb:        { seco: 0.75, sala: 0.12, cuarto: 0.25, eco: 0.0,  tono: 10000, nivel: 0.36 },
   galore:     { seco: 0.75, sala: 0.12, cuarto: 0.22, eco: 0.0,  tono: 11000, nivel: 0.27 },
+  triphop:    { seco: 0.75, sala: 0.14, cuarto: 0.3,  eco: 0.0,  tono: 8000, nivel: 0.33 },
 };
 
 class Ambient {
@@ -595,7 +596,7 @@ class Ambient {
     g.fader = c.createGain(); g.fader.gain.setValueAtTime(0, t); g.fader.gain.linearRampToValueAtTime(m.nivel, t + 3.5);
     g.tono = c.createBiquadFilter(); g.tono.type = 'lowpass'; g.tono.frequency.value = m.tono; g.tono.Q.value = 0.2;
     g.salidas = [];                                  // envíos propios de un estilo (también se funden al cambiar de canal)
-    if (estilo === 'analogico' || estilo === 'garaje' || estilo === 'perreo') { const sat = c.createWaveShaper(), cu = new Float32Array(1024); for (let i = 0; i < 1024; i++) { const x = i / 511.5 - 1; cu[i] = Math.tanh(1.8 * x) / Math.tanh(1.8); }
+    if (estilo === 'analogico' || estilo === 'garaje' || estilo === 'perreo' || estilo === 'triphop') { const sat = c.createWaveShaper(), cu = new Float32Array(1024); for (let i = 0; i < 1024; i++) { const x = i / 511.5 - 1; cu[i] = Math.tanh(1.8 * x) / Math.tanh(1.8); }
       sat.curve = cu; sat.oversample = '2x'; g.fader.connect(sat); sat.connect(g.tono); g.nodos.push(sat); }
     else g.fader.connect(g.tono);
     [['seco', this.master], ['sala', this.sala], ['cuarto', this.cuarto], ['eco', this.eco]].forEach(([k, dst]) => { if (!m[k]) return; const s = c.createGain(); s.gain.value = m[k]; g.tono.connect(s); s.connect(dst); g.nodos.push(s); });
@@ -1373,6 +1374,79 @@ class Ambient {
       // voz: frases breves cada pocos compases
       const fr = frase.find(([q]) => q === p32);
       if (fr && compas > 4 && ciclo % 8 >= 4) voz(this.nota(fr[1], 1), t, tP * azar(3, 6), 0.11);
+    });
+  }
+  triphop(g) {
+    // trip-hop de Bristol (Massive Attack, Portishead): break lento, pesado y polvoriento, bajo profundo, cuerdas oscuras de película,
+    // melodía tipo theremin con portamento, punteos de piano/clave, rasgueos de scratch y vinilo de fondo.
+    const c = this.ctx, bpm = 80, tP = 60 / bpm / 4, sw = 0.1;
+    this.eco.delayTime.setTargetAtTime(tP * 3, c.currentTime, 0.2);
+    const envio = (src, dst, v) => { const s = c.createGain(); s.gain.value = v; src.connect(s); s.connect(dst); g.salidas.push(s); g.nodos.push(s); return s; };
+    const paneo = (src, v) => { const pn = c.createStereoPanner(); pn.pan.value = v; src.connect(pn); return pn; };
+    g.vaiven = c.createGain(); const wow = c.createOscillator(), wg = c.createGain(); wow.frequency.value = 0.33; wg.gain.value = 6; wow.connect(wg); wg.connect(g.vaiven); wow.start(); g.nodos.push(wow, wg, g.vaiven);
+    // vinilo: siseo, crepitar y un poco de rumble
+    this.fondo(g, 0.006, 'highpass', 5000, 0.4);
+    const crepita = () => { const t = c.currentTime + 0.05; for (let k = 0; k < 5; k++) if (Math.random() < 0.6) this.ruidoCorto(g, t + Math.random() * 0.6, azar(0.003, 0.01), azar(0.015, 0.05), 'highpass', azar(2000, 6000)); this.luego(g, 0.6, crepita); };
+    crepita();
+    // ---- batería: bus sucio (reducción de bits suave + paso bajo) ----
+    const crush = c.createWaveShaper(), cc = new Float32Array(4096); for (let i = 0; i < 4096; i++) { const x = i / 2047.5 - 1; cc[i] = Math.round(x * 48) / 48; } crush.curve = cc;
+    const bat = c.createGain(), batLp = c.createBiquadFilter(); bat.gain.value = 0.6; batLp.type = 'lowpass'; batLp.frequency.value = 5200; bat.connect(crush); crush.connect(batLp); batLp.connect(g.fader); envio(batLp, this.cuarto, 0.45); g.nodos.push(crush, bat, batLp);
+    const ruido = (t, dur, gain, tipo, fr, q, pan = 0) => { const sr = c.createBufferSource(), f = c.createBiquadFilter(), v = c.createGain(); sr.buffer = this.ruido;
+      f.type = tipo; f.frequency.value = fr; f.Q.value = q; v.gain.setValueAtTime(gain, t); v.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+      sr.connect(f); f.connect(v); (pan ? paneo(v, pan) : v).connect(bat); sr.start(t, Math.random() * 2); sr.stop(t + dur + 0.05); };
+    const tono = (t, f0, f1, dec, gain, tipo = 'sine') => { const o = c.createOscillator(), v = c.createGain(); o.type = tipo; o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f1, t + dec * 0.3);
+      v.gain.setValueAtTime(gain, t); v.gain.exponentialRampToValueAtTime(0.0001, t + dec); o.connect(v); v.connect(bat); o.start(t); o.stop(t + dec + 0.02); };
+    const bombo = (t, k = 1) => { tono(t, 95, 44, 0.45, 0.55 * k); ruido(t, 0.012, 0.08 * k, 'lowpass', 1200, 0.6); };
+    const caja = (t, k = 1) => { tono(t, 190, 150, 0.12, 0.14 * k, 'triangle'); ruido(t, 0.32, 0.22 * k, 'bandpass', 1700, 0.7); ruido(t, 0.08, 0.07 * k, 'highpass', 4500, 0.6); };
+    const hat = (t, k = 1, ab = false) => ruido(t, ab ? 0.2 : 0.05, 0.045 * k, 'highpass', 7000, 0.6, azar(-0.3, 0.3));
+    // ---- bajo profundo con un punto de distorsión ----
+    const dist = c.createWaveShaper(), dc = new Float32Array(1024); for (let i = 0; i < 1024; i++) { const x = i / 511.5 - 1; dc[i] = Math.tanh(1.6 * x) / Math.tanh(1.6); } dist.curve = dc;
+    const bajoLp = c.createBiquadFilter(), bajoV = c.createGain(); bajoLp.type = 'lowpass'; bajoLp.frequency.value = 380; bajoV.gain.value = 0.1; dist.connect(bajoLp); bajoLp.connect(bajoV); bajoV.connect(g.fader); g.nodos.push(dist, bajoLp, bajoV);
+    const bajo = (m, t, dur) => { const o = c.createOscillator(), o2 = c.createOscillator(), v = c.createGain(); o2.type = 'triangle'; o.frequency.value = hz(m); o2.frequency.value = hz(m) * 1.003;
+      v.gain.value = 0; v.gain.setValueAtTime(0, t); v.gain.linearRampToValueAtTime(0.16, t + 0.04); v.gain.setValueAtTime(0.16, t + dur * 0.8); v.gain.linearRampToValueAtTime(0.0001, t + dur);
+      o.connect(v); o2.connect(v); v.connect(dist); [o, o2].forEach(n => { n.start(t); n.stop(t + dur + 0.02); }); };
+    // ---- cuerdas oscuras ----
+    const cuerdasF = c.createBiquadFilter(); cuerdasF.type = 'lowpass'; cuerdasF.frequency.value = 1800; cuerdasF.Q.value = 0.5; cuerdasF.connect(g.fader); envio(cuerdasF, this.sala, 1.0); g.nodos.push(cuerdasF);
+    const cuerdas = (notas, t, dur, gain = 0.011) => notas.forEach(m => [-10, 0, 10].forEach(det => { const o = c.createOscillator(), v = c.createGain(), vib = c.createOscillator(), vg = c.createGain();
+      o.type = 'sawtooth'; o.frequency.value = hz(m); o.detune.value = det + azar(-3, 3); vib.frequency.value = azar(4.8, 5.6); vg.gain.value = 9; vib.connect(vg); vg.connect(o.detune); g.vaiven.connect(o.detune);
+      this.env(v, t, 2.4, gain, Math.max(0, dur - 5), t + dur + 2.6); o.connect(v); paneo(v, det / 14).connect(cuerdasF); [o, vib].forEach(n => { n.start(t); n.stop(t + dur + 2.7); }); }));
+    // ---- theremin: seno con portamento y vibrato ancho ----
+    const tv = c.createGain(), to = c.createOscillator(), tvib = c.createOscillator(), tvg = c.createGain(), tlp = c.createBiquadFilter(); to.type = 'sine'; tlp.type = 'lowpass'; tlp.frequency.value = 2400;
+    tvib.frequency.value = 5.8; tvg.gain.value = 22; tvib.connect(tvg); tvg.connect(to.detune); to.frequency.value = hz(this.nota(4, 1)); tv.gain.value = 0;
+    to.connect(tlp); tlp.connect(tv); const tpn = paneo(tv, 0.2); tpn.connect(g.fader); envio(tpn, this.sala, 0.9); envio(tpn, this.eco, 0.35); to.start(); tvib.start(); g.nodos.push(tv, to, tvib, tvg, tlp);
+    const theremin = (m, t, dur, gain = 0.035) => { to.frequency.setTargetAtTime(hz(m), t, 0.07); tv.gain.setTargetAtTime(gain, t, 0.06); tv.gain.setTargetAtTime(0.0001, t + dur, 0.18); };
+    // ---- piano/clave punteado ----
+    const punteo = (m, t, gain = 0.08) => { const v = c.createGain(); v.gain.value = 0; [[1, 1, 'triangle'], [2, 0.4, 'square'], [3, 0.12, 'sine']].forEach(([h, a, tipo]) => { const o = c.createOscillator(), av = c.createGain(); o.type = tipo; o.frequency.value = hz(m) * h; av.gain.value = a; o.connect(av); av.connect(v); o.start(t); o.stop(t + 1.3); });
+      v.gain.setValueAtTime(gain, t); v.gain.exponentialRampToValueAtTime(0.0001, t + 1.2); const lp = c.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3000; v.connect(lp); const pn = paneo(lp, -0.3); pn.connect(g.fader); envio(pn, this.sala, 0.5); envio(pn, this.eco, 0.2); };
+    // ---- scratch: ruido filtrado cuyo tono sube y baja como un disco movido a mano ----
+    const scratch = (t, golpes = 3) => { for (let k = 0; k < golpes; k++) { const t0 = t + k * tP * 0.5, sr = c.createBufferSource(), bp = c.createBiquadFilter(), v = c.createGain(); sr.buffer = this.ruido;
+      bp.type = 'bandpass'; bp.Q.value = 6; bp.frequency.setValueAtTime(400, t0); bp.frequency.exponentialRampToValueAtTime(k % 2 ? 500 : 2600, t0 + tP * 0.22); bp.frequency.exponentialRampToValueAtTime(300, t0 + tP * 0.45);
+      v.gain.setValueAtTime(0.0001, t0); v.gain.linearRampToValueAtTime(0.16, t0 + 0.01); v.gain.exponentialRampToValueAtTime(0.0001, t0 + tP * 0.45);
+      sr.connect(bp); bp.connect(v); paneo(v, 0.35).connect(bat); sr.start(t0, Math.random() * 2); sr.stop(t0 + tP * 0.5); } };
+    // ---- armonía: i · VI · iv · v, dos compases cada uno ----
+    const PROG = [0, 5, 3, 4];
+    let compas = 0, gr = 0, azarC = 0, frase = [];
+    const nuevaFrase = () => { let gg = elige([4, 6, 7]); frase = [0, 6, 10, 16, 22, 26].filter(() => Math.random() < 0.7).map(q => { gg = Math.max(2, Math.min(9, gg + elige([-2, -1, 1, 2, 0]))); return [q, gg, elige([4, 6, 8])]; }); };
+    nuevaFrase();
+    this.secuenciador(g, bpm, (n, t) => {
+      const p = n % 16, p32 = n % 32, tt = t + (p % 2 ? tP * sw : 0);
+      if (p === 0) { compas++; azarC = Math.random();
+        if ((compas - 1) % 2 === 0) { gr = PROG[((compas - 1) / 2 | 0) % 4]; cuerdas([this.nota(gr, 0), this.nota(gr + 2, 0), this.nota(gr + 4, 0), this.nota(gr, 1)], t, tP * 32); }
+        if (compas % 4 === 1) nuevaFrase(); }
+      const ciclo = (compas - 1) % 32, intro = compas <= 2, respiro = ciclo >= 20 && ciclo < 22, conBat = !intro && !respiro;
+      // break lento: bombo en 1 y en el «y» del 2 y del 3, caja gorda en 2 y 4
+      if (conBat) {
+        if (p === 0 || p === 7 || (p === 10 && azarC > 0.3) || (p === 15 && azarC < 0.2)) bombo(tt, p === 0 ? 1 : 0.85);
+        if (p === 4 || p === 12) caja(tt + 0.008);
+        if ((p === 9 || p === 14) && Math.random() < 0.25) caja(tt, 0.25);
+        if (p % 2 === 0) hat(tt, p % 4 === 2 ? 0.9 : 0.55, p === 14 && azarC > 0.6);
+        if (p === 0) bajo(this.nota(gr, -1), t, tP * 7); if (p === 8) bajo(this.nota(gr + (azarC > 0.5 ? 4 : 0), -1), t, tP * 6);
+      }
+      if (compas % 8 === 0 && p === 12 && !intro) scratch(tt, 3);
+      // theremin en las frases centrales; punteos en el resto
+      const fr = frase.find(([q]) => q === p32);
+      if (fr && compas > 4 && ciclo % 8 >= 4) theremin(this.nota(fr[1], 1), tt, fr[2] * tP);
+      if (compas > 2 && ciclo % 8 < 4 && (p === 2 || p === 6 || p === 11) && Math.random() < 0.55) punteo(this.nota(gr + elige([0, 2, 4, 7]), 1), tt);
     });
   }
   arrancar() { const est = CANALES[this.canal][3], g = this.nuevaGen(est); this.gen = g; this[est](g); }
