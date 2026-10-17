@@ -295,34 +295,22 @@
       "year": 2026
     },
     {
-      "genre": "EDIT",
+      "genre": "REGGAETON",
       "soundcloud": "",
       "artist": "UFISI",
       "tracks": [],
       "code": "AU0200",
       "bandcamp": "",
-      "cover": "",
+      "cover": "covers/delete2.jpeg",
       "format": "SINGLE",
-      "title": "[ S/T ]",
+      "title": "INTENSITAT",
       "credits": [
         {
           "rol": "PRODUCCIÓN",
           "nombre": "UFISI"
-        },
-        {
-          "rol": "MEZCLA",
-          "nombre": ""
-        },
-        {
-          "rol": "MÁSTER",
-          "nombre": ""
-        },
-        {
-          "rol": "ARTE",
-          "nombre": ""
         }
       ],
-      "spotify": "",
+      "spotify": "https://open.spotify.com/intl-es/album/0ht07dk2jiuSZOckxxFzuq?si=Ta0dL8m4RrmvhC-S2wWuHw",
       "year": 2024
     }
   ]
