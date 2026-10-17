@@ -1,0 +1,10 @@
+// aurality · configuración de Cloudflare (Workers con archivos estáticos). No hace falta tocarla.
+// Publica solo la carpeta web/; las cabeceras de caché están en web/_headers.
+{
+  "name": "aurality-web",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    "directory": "./web",
+    "not_found_handling": "single-page-application"
+  }
+}
