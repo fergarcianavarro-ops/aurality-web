@@ -16,6 +16,7 @@ web/                lo que se publica
   senal/              portadas de la Señal Mensual
   img/                faja de cromo, punta, barra móvil, lettering
   _headers            cabeceras de Cloudflare (caché y panel fuera de buscadores)
+netlify.toml        configuración de Netlify, por si se vuelve a publicar allí (publica web/)
 fuente/             código de origen de la web (no se publica)
   home_src.html       diseño, escena 3D, radio ambient, secciones
   parts.js, geo.json  piezas 3D AU-01…AU-05
