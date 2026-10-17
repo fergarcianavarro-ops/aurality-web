@@ -1,0 +1,18 @@
+# aurality · cabeceras de Cloudflare Pages (no hace falta tocarlo)
+
+# contenido siempre fresco, para que lo que se guarda en el panel se vea al momento
+/contenido/*
+  Cache-Control: no-cache
+
+# el panel privado no aparece en buscadores
+/admin/*
+  X-Robots-Tag: noindex, nofollow
+  Cache-Control: no-cache
+
+# imágenes con caché
+/img/*
+  Cache-Control: public, max-age=604800
+/covers/*
+  Cache-Control: public, max-age=86400
+/senal/*
+  Cache-Control: public, max-age=86400

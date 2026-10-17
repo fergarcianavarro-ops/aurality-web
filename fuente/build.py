@@ -54,10 +54,6 @@ head = f'''<!doctype html>
 <meta name="twitter:card" content="summary_large_image">
 <script>window.AU_DEPLOY = true;</script>
 </head><body>
-<!-- formulario estático para que Netlify lo detecte al desplegar (el visible se rellena por código) -->
-<form name="senal" method="POST" data-netlify="true" netlify-honeypot="bot-field" hidden>
-  <input name="tipo"><input name="nombre"><input name="email"><input name="enlace"><textarea name="mensaje"></textarea><input name="bot-field">
-</form>
 '''
 open(os.path.join(WEB, 'index.html'), 'w', encoding='utf-8').write(head + s + '\n</body></html>\n')
 print('web/index.html', len(s) // 1024, 'KB')

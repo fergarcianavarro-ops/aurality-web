@@ -1439,9 +1439,12 @@ function vistaContacto() {
     const aMano = C.email ? `Cópiala y envíala a <span class="dato">${esc(C.email)}</span>.` : 'Copia el mensaje y envíalo por Instagram.';
     if (!DESPLEGADO) { copia('Señal preparada', aMano); return; }
     boton.disabled = true; boton.textContent = 'Enviando…';
-    fetch('/', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ 'form-name': 'senal', tipo: TIPOS[tipoC], nombre: nom, email: mail, enlace: link, mensaje: msg, 'bot-field': $('cBot').value }).toString() })
-      .then(res => { if (!res.ok) throw new Error(res.status);
+    // el mensaje llega al correo de contacto a través de FormSubmit (gratis, sin cuenta; la primera vez pide activar el formulario desde ese correo)
+    if (!C.email) { copia('Señal preparada', aMano); boton.disabled = false; boton.textContent = 'Enviar señal'; return; }
+    fetch('https://formsubmit.co/ajax/' + encodeURIComponent(C.email), { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+      body: JSON.stringify({ _subject: `aurality · ${TIPOS[tipoC]} · ${nom}`, _template: 'table', _captcha: 'false', _honey: $('cBot').value, _replyto: mail,
+        tipo: TIPOS[tipoC], nombre: nom, email: mail, enlace: link || '—', mensaje: msg }) })
+      .then(res => res.json().catch(() => ({}))).then(d => { if (String(d.success) !== 'true') throw new Error(d.message || 'error');
         $('formC').reset(); $('cListo').innerHTML = '<div class="listo" role="status"><b class="dato">Señal enviada</b><span class="bio">Ha llegado a aurality. Gracias por escribir.</span></div>'; $('cListo').scrollIntoView({ block: 'nearest' }); })
       .catch(() => copia('No se ha podido enviar', 'Ha fallado la conexión. ' + aMano))
       .finally(() => { boton.disabled = false; boton.textContent = 'Enviar señal'; });

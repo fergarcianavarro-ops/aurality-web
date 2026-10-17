@@ -1,6 +1,6 @@
 # aurality · web AU-00
 
-La web de aurality. Netlify la publica desde este repositorio: cualquier cambio que llegue aquí
+La web de aurality. Cloudflare Pages la publica desde este repositorio: cualquier cambio que llegue aquí
 (desde el panel o desde Claude) sale en la web en un minuto, sobrescribiendo la versión anterior.
 
 ```
@@ -15,64 +15,71 @@ web/                lo que se publica
   covers/             portadas y fotos que subes desde el panel
   senal/              portadas de la Señal Mensual
   img/                faja de cromo, punta, barra móvil, lettering
+  _headers            cabeceras de Cloudflare (caché y panel fuera de buscadores)
 fuente/             código de origen de la web (no se publica)
   home_src.html       diseño, escena 3D, radio ambient, secciones
   parts.js, geo.json  piezas 3D AU-01…AU-05
   build.py            regenera web/index.html  →  python3 fuente/build.py
-netlify.toml        configuración de Netlify (publica web/)
 ```
 
 ---
 
-## 1 · Conectar Netlify con este repositorio (una vez)
+## 1 · Publicar con Cloudflare Pages (una vez)
 
-- **Si ya subiste la web arrastrándola:** *Project configuration → Build & deploy → Continuous deployment → Link repository* → GitHub → `aurality-web`.
-- **Si empiezas de cero:** *Add new project → Import an existing project → GitHub* → `aurality-web`.
+1. Crea una cuenta gratis en https://dash.cloudflare.com/sign-up.
+2. En el menú: **Compute → Workers & Pages → Create**. Si te ofrece crear un *Worker*, busca la opción **Pages** («Looking to deploy Pages? Get started»).
+3. **Import an existing Git repository → Connect GitHub**. Autoriza a Cloudflare y elige solo el repositorio `aurality-web`.
+4. Configuración de la compilación:
+   - *Project name*: `aurality` (será `aurality.pages.dev` si está libre).
+   - *Production branch*: `main`.
+   - *Framework preset*: **None**.
+   - *Build command*: vacío.
+   - *Build output directory*: **`web`**.
+5. **Save and Deploy**. En un minuto tienes la web en `https://aurality.pages.dev`.
 
-Deja **Build command** vacío. El directorio de publicación (`web`) ya viene en `netlify.toml`. Pulsa *Deploy*.
+El plan gratuito permite 500 publicaciones al mes y no cobra por visitas ni por tráfico.
 
-## 2 · Activar el panel privado (una vez)
+## 2 · Entrar en el panel privado
 
-**a) Crear la llave en GitHub**
-1. Entra en https://github.com/settings/developers → **OAuth Apps → New OAuth App**.
-2. *Application name*: `aurality panel`. *Homepage URL*: la dirección de tu web.
-3. *Authorization callback URL*: `https://api.netlify.com/auth/done`
-4. *Register application*. Copia el **Client ID**. Pulsa *Generate a new client secret* y copia el **Client Secret**: solo se ve una vez.
+**a) Crear tu clave de GitHub (una vez)**
+1. Entra en https://github.com/settings/personal-access-tokens/new (*Settings → Developer settings → Personal access tokens → Fine-grained tokens → Generate new token*).
+2. *Token name*: `aurality panel`. *Expiration*: la más larga que te deje (cuando caduque, se crea otra igual).
+3. *Repository access*: **Only select repositories** → `aurality-web`.
+4. *Permissions → Repository permissions → Contents*: **Read and write**.
+5. *Generate token* y copia la clave (empieza por `github_pat_`). Guárdala en un sitio seguro: GitHub no la vuelve a enseñar.
 
-**b) Dársela a Netlify**
-*Project configuration → Security → OAuth → Install provider* → **GitHub** → pega el Client ID y el Client Secret → guarda.
-
-**c) Entrar**
-Ve a `https://tu-web.netlify.app/admin` → *Iniciar sesión con GitHub*.
-Solo entra quien tenga permiso de escritura en este repositorio. Para dar acceso a un socio:
-*Settings → Collaborators → Add people*.
+**b) Entrar**
+Ve a `https://aurality.pages.dev/admin` → **Iniciar sesión con token** → pega la clave.
+El navegador la recuerda, así que solo se pide la primera vez en cada aparato.
+Un socio puede entrar con su propia clave si le añades al repositorio (*Settings → Collaborators → Add people*).
+Si alguien pierde el móvil o el portátil, borra su clave en GitHub y deja de valer.
 
 ## 3 · Usar el panel
 
-- **Lanzamientos → Add lanzamiento.** Aparece arriba. Rellena código, artista, título, formato, año y portada (*Elige una imagen → Subir nuevo → Confirmar selección*). Después **Publicar → Publicar ahora**.
+- **Lanzamientos → Agregar lanzamiento.** Aparece arriba. Rellena código, artista, título, formato, año y portada (arrastra la imagen o pulsa *Explorar*). Después **Guardar**.
   - **Colaboraciones:** separa los artistas con ` × `. Cada uno cuenta para su propio filtro y perfil.
   - **Participaciones:** si el lanzamiento es de alguien de fuera (C.EME, MDNA…) y un miembro de aurality produjo, mezcló o colaboró, pon a ese artista como *Artista principal* y añade en *Participación de aurality* quién y qué hizo (p. ej. UFISI · PRODUCCIÓN · 3 TEMAS). La web lo marca como PARTICIPACIÓN, lo enseña en el perfil del miembro y el artista de fuera no aparece en el roster.
-  - **Portada:** cuadrada, JPG de unos 1200 px. Sin portada, la web muestra una placa con el código.
+  - **Portada:** cuadrada. Súbela tal cual: el panel la reduce a 1600 px y la convierte a WebP antes de subirla. Sin portada, la web muestra una placa con el código.
   - **SoundCloud:** si pones el enlace, la ficha muestra el reproductor.
 - **Artistas.** Rol, biografía, foto (sale en blanco y negro) y redes. El nombre tiene que coincidir con el de los lanzamientos.
-- **Señal mensual.** Cada mes, *Add edición*: mes, año, portada, temas y destacados. La más reciente sale **En antena** y las anteriores pasan solas a **Archivada**.
+- **Señal mensual.** Cada mes, *Agregar edición*: mes, año, portada, temas y destacados. La más reciente sale **En antena** y las anteriores pasan solas a **Archivada**.
 - **Manifiesto y contacto.** Los textos de esas secciones.
 
 La web se actualiza alrededor de un minuto después de publicar. Cada cambio queda en el historial del repositorio y se puede deshacer.
 
 ## 4 · Formulario de contacto (una vez)
 
-1. *Project configuration → Forms → Enable form detection*.
-2. Vuelve a publicar: *Deploys → Trigger deploy → Deploy site*.
-3. *Project configuration → Notifications → Emails → Add notification → Form submission notification*: elige el formulario `senal` y tu correo.
+Los mensajes del formulario llegan al correo de contacto (el de *Manifiesto y contacto* en el panel) a través de FormSubmit, gratis y sin cuenta.
+La primera vez que alguien envíe el formulario, FormSubmit manda a ese correo un aviso **«Activate Form»**: pulsa el botón y a partir de ahí llegan todos.
+Lo más fácil es enviarte tú un mensaje de prueba nada más publicar la web.
 
 ## 5 · Dominio e imagen al compartir
 
-- **Dominio:** *Domain management → Add a domain*. Netlify indica los registros DNS. El HTTPS se activa solo.
+- **Dominio:** en el proyecto de Cloudflare Pages, *Custom domains → Set up a domain*. Cloudflare indica los registros DNS. El HTTPS se activa solo.
 - **Imagen al compartir:** con dominio propio, la etiqueta `og:image` tiene que llevar la dirección completa (por ejemplo `https://aurality.es/og-image.jpg`). Se cambia en `fuente/build.py` (lo hace Claude si se lo pides).
 
 ## 6 · Para quien toque el código
 
 - El diseño se cambia en `fuente/` y se regenera con `python3 fuente/build.py`. Ese script solo reescribe `web/index.html`, nunca el contenido ni las imágenes.
 - Antes de subir cambios, trae lo último (`git pull`). El panel también escribe en este repositorio.
-- three.js (jsDelivr), las fuentes (Google Fonts), el reproductor de SoundCloud y el panel (Decap CMS, unpkg) se cargan desde fuera.
+- three.js (jsDelivr), las fuentes (Google Fonts), el reproductor de SoundCloud el panel (Sveltia CMS, unpkg) y el envío del formulario (FormSubmit) se cargan desde fuera.

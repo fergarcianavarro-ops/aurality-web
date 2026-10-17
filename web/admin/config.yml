@@ -1,22 +1,29 @@
-# aurality · panel privado (Decap CMS)
-# Solo puede entrar quien tenga permiso de escritura en el repositorio de GitHub de la web.
-# Cada vez que guardas, el cambio se sube a GitHub y Netlify vuelve a publicar la web sola (≈ 1 minuto).
+# aurality · panel privado (Sveltia CMS, compatible con Decap)
+# Se entra con una clave de GitHub (token) que tenga permiso de escritura en el repositorio de la web.
+# Cada vez que guardas, el cambio se sube a GitHub y Cloudflare Pages vuelve a publicar la web sola (≈ 1 minuto).
 
 backend:
   name: github
   repo: fergarcianavarro-ops/aurality-web     # usuario de GitHub / repositorio de la web
   branch: main
+  auth_methods: [token]                       # sin servidor de OAuth: se entra con un token personal de GitHub
   commit_messages:
     update: "panel: actualiza {{slug}}"
     uploadMedia: "panel: sube {{path}}"
     deleteMedia: "panel: borra {{path}}"
 
-local_backend: true                 # solo para pruebas en el propio ordenador; en la web publicada no hace nada
-locale: es
 logo_url: /img/lettering.png
 
 media_folder: web/covers            # portadas, fotos de artistas…
 public_folder: covers
+
+# las imágenes se optimizan en el navegador antes de subirlas: lado mayor 1600 px, WebP al 82 %
+media_libraries:
+  default:
+    config:
+      slugify_filename: true
+      transformations:
+        raster_image: { format: webp, quality: 82, width: 1600, height: 1600 }
 
 collections:
   - name: web
@@ -55,7 +62,7 @@ collections:
               - { name: format, label: Formato, widget: select, options: [SINGLE, EP, REMIXES, ÁLBUM, EDIT], default: SINGLE }
               - { name: genre, label: Género, widget: string, required: false, hint: "CLUB, RAP, DRILL, EDIT…" }
               - { name: year, label: Año, widget: number, value_type: int, min: 2020, max: 2100 }
-              - { name: cover, label: Portada, widget: image, required: false, choose_url: false, hint: "Cuadrada, JPG de unos 1200 px. Sin portada la web muestra una placa con el código." }
+              - { name: cover, label: Portada, widget: image, required: false, choose_url: false, hint: "Cuadrada. Sube la imagen tal cual: el panel la reduce y la optimiza solo. Sin portada la web muestra una placa con el código." }
               - { name: soundcloud, label: SoundCloud, widget: string, required: false, hint: "Enlace al tema o al set. Si lo hay, la ficha muestra el reproductor." }
               - { name: spotify, label: Spotify, widget: string, required: false }
               - { name: bandcamp, label: Bandcamp, widget: string, required: false }
