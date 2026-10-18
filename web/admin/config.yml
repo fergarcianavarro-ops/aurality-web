@@ -62,6 +62,7 @@ collections:
               - { name: format, label: Formato, widget: select, options: [SINGLE, EP, REMIXES, ÁLBUM, EDIT], default: SINGLE }
               - { name: genre, label: Género, widget: string, required: false, hint: "CLUB, RAP, DRILL, EDIT…" }
               - { name: year, label: Año, widget: number, value_type: int, min: 2020, max: 2100 }
+              - { name: destacado, label: Destacar en la portada, widget: boolean, required: false, default: false, hint: "Sale en la portada como aviso (en el móvil, como tarjeta deslizable). Como mucho se ven 3: los más recientes que estén marcados. Si no marcas ninguno, sale el último lanzamiento." }
               - { name: cover, label: Portada, widget: image, required: false, choose_url: false, hint: "Cuadrada. Sube la imagen tal cual: el panel la reduce y la optimiza solo. Sin portada la web muestra una placa con el código." }
               - { name: soundcloud, label: SoundCloud, widget: string, required: false, hint: "Enlace al tema o al set. Si lo hay, la ficha muestra el reproductor." }
               - { name: spotify, label: Spotify, widget: string, required: false }

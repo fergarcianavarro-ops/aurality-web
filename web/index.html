@@ -62,8 +62,11 @@ body{background:linear-gradient(180deg,var(--cielo-1) 0%,var(--cielo-2) 72%);col
 .testigo{position:absolute;top:83.1%;width:8%;aspect-ratio:1;transition:background .6s,box-shadow .6s}
 .testigo.azul{left:61.5%;border-radius:50%;background:#20263a}
 .testigo.rojo{left:72.5%;background:#2a2228}
-.testigo.azul.on{background:radial-gradient(circle at 40% 35%,#6a74e8,var(--azul) 70%);box-shadow:0 0 .6cqh rgba(70,82,220,.55)}
-.testigo.rojo.on{background:radial-gradient(circle at 40% 35%,#ff7a6a,var(--rojo) 70%);box-shadow:0 0 .6cqh rgba(214,44,44,.5)}
+/* pilotos: mismo acabado para los dos (cristal plano, borde hundido y halo), el azul en un azul de LED limpio */
+.testigo{box-shadow:inset 0 0 0 1px rgba(0,0,0,.45),inset 0 1px 2px rgba(0,0,0,.5)}
+.testigo.azul{background:#1b2236}
+.testigo.azul.on{background:radial-gradient(circle at 36% 30%,#b9ccff 0 8%,#4d78ff 30%,#2346d8 70%,#1a2f9e 100%);box-shadow:inset 0 0 0 1px rgba(10,20,70,.55),0 0 .7cqh rgba(60,110,255,.6)}
+.testigo.rojo.on{background:radial-gradient(circle at 36% 30%,#ffc2b8 0 8%,#ff5a48 30%,var(--rojo) 70%,#a51c1c 100%);box-shadow:inset 0 0 0 1px rgba(80,10,10,.55),0 0 .7cqh rgba(214,44,44,.55)}
 .codigo-mes{position:absolute;left:10%;top:85.463%;width:70%;height:3.889%;display:flex;align-items:center;justify-content:space-between;
   padding:0 6%;color:var(--letra-relieve);font:800 1.3cqh/1 var(--f-mono);letter-spacing:.02em;box-sizing:border-box}
 .codigo-mes small{font:500 .85cqh/1 var(--f-mono);opacity:.75;letter-spacing:.1em}
@@ -83,6 +86,22 @@ body{background:linear-gradient(180deg,var(--cielo-1) 0%,var(--cielo-2) 72%);col
 .ficha .art{font:800 17px/1.1 var(--f-mono);letter-spacing:.02em;margin-top:6px}
 .ficha .tit{font:500 12.5px/1.35 var(--f-texto);opacity:.9;margin-top:4px;text-wrap:balance}
 .ficha .acciones{display:flex;gap:8px;flex-wrap:wrap}
+/* destacados: en escritorio, pila de avisos como las notificaciones del sistema (se cierran con ×); en móvil, tarjetas que se deslizan */
+.notas{display:grid;padding-top:calc((var(--n,1) - 1) * 12px)}
+.notas .nota{grid-area:1/1;transform-origin:50% 0;transform:translateY(calc(var(--i,0) * -12px)) scale(calc(1 - var(--i,0) * .05));z-index:calc(10 - var(--i,0));
+  transition:transform .5s cubic-bezier(.2,.7,.2,1),opacity .35s,filter .35s;animation:avisoEntra .6s cubic-bezier(.2,.7,.2,1) backwards;animation-delay:calc(var(--o,0) * .14s + .3s)}
+.notas .nota>*{transition:opacity .3s}
+.notas .nota.atras>*{opacity:.25}
+.notas .nota.atras{filter:brightness(.82);pointer-events:none}
+.notas:empty{display:none}
+.notas .nota.fuera{transform:translateX(115%) !important;opacity:0}
+@keyframes avisoEntra{from{transform:translateX(110%);opacity:0}}
+.ficha .dest{display:inline-flex;align-items:center;gap:6px;color:#ff5a48;opacity:1}
+.ficha .dest i{width:7px;height:7px;border-radius:50%;background:var(--rojo);box-shadow:0 0 6px rgba(255,70,50,.75)}
+.ficha .eti{align-items:center}.ficha .eti .der{display:flex;align-items:center;gap:10px}
+.ficha .cierra{appearance:none;border:0;background:rgba(255,255,255,.12);color:var(--letra-relieve);width:22px;height:22px;border-radius:3px;display:grid;place-items:center;cursor:pointer;font:700 13px/1 var(--f-mono);padding:0}
+.ficha .cierra:hover{background:rgba(255,255,255,.24)}
+@media (prefers-reduced-motion:reduce){.notas .nota{animation:none;transition:none}}
 .tecla{appearance:none;border:0;cursor:pointer;font:700 10.5px/1 var(--f-mono);letter-spacing:.12em;text-transform:uppercase;text-decoration:none;
   color:var(--tinta);background:linear-gradient(180deg,#f3f2ee,#dedcd5);padding:11px 14px 10px;border-radius:4px;
   box-shadow:0 1px 0 #fff inset,0 -2px 0 rgba(0,0,0,.12) inset,0 3px 6px var(--sombra);transition:transform .12s,box-shadow .12s;display:inline-flex;gap:8px;align-items:center}
@@ -167,7 +186,7 @@ body{background:linear-gradient(180deg,var(--cielo-1) 0%,var(--cielo-2) 72%);col
 .desp li.nada{cursor:default;color:#6a6f7b;font-weight:500}
 .fader{display:grid;grid-template-columns:76px 1fr;align-items:center;gap:14px}
 .fader .lbl{font:700 10px/1 var(--f-mono);letter-spacing:.16em;color:#3b4150}
-.riel{position:relative;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;padding-top:18px;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.riel{position:relative;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;padding-top:18px;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
 .riel.arrastra{cursor:grabbing}.riel.arrastra .cursor{transition:none;cursor:grabbing}
 .riel::before{content:"";position:absolute;left:4%;right:4%;top:5px;height:6px;border-radius:3px;background:#2a2d33;box-shadow:inset 0 1px 2px rgba(0,0,0,.6)}
 .riel button{appearance:none;border:0;background:none;cursor:pointer;font:500 10px/1.2 var(--f-mono);letter-spacing:.06em;color:#4a5060;padding:6px 2px 2px;text-transform:uppercase;position:relative}
@@ -178,6 +197,8 @@ body{background:linear-gradient(180deg,var(--cielo-1) 0%,var(--cielo-2) 72%);col
 .riel .cursor{position:absolute;top:-1px;width:26px;height:18px;margin-left:-13px;border-radius:3px;background:linear-gradient(180deg,#f6f5f1,#d8d6ce);
   box-shadow:0 1px 0 #fff inset,0 -2px 0 rgba(0,0,0,.14) inset,0 2px 4px var(--sombra);transition:left .35s cubic-bezier(.3,.7,.2,1);pointer-events:none}
 .riel .cursor::after{content:"";position:absolute;left:50%;top:3px;bottom:3px;width:2px;margin-left:-1px;background:var(--tinta)}
+#resultados{position:relative}
+.fantasma{z-index:1}
 .conteo{display:flex;justify-content:space-between;align-items:center;font:500 11px/1 var(--f-mono);letter-spacing:.08em;color:#4a5060;margin:0 0 12px;text-transform:uppercase}
 .rejilla{display:grid;grid-template-columns:repeat(auto-fill,minmax(168px,1fr));gap:16px}
 .ref{display:grid;gap:10px;text-decoration:none;color:inherit;padding:10px 10px 12px;background:#f1f0eb;clip-path:var(--chaflan);transition:transform .2s,background .2s}
@@ -341,8 +362,10 @@ iframe.sc{width:100%;height:166px;border:0;display:block;background:#d9d6ce}
   .barra .tm{position:absolute;top:25px;width:14px;height:14px;transition:background .6s,box-shadow .6s}
   .barra .tm.azul{left:175.5px;border-radius:50%;background:#20263a}
   .barra .tm.rojo{left:195.5px;background:#2a2228}
-  .barra .tm.azul.on{background:radial-gradient(circle at 40% 35%,#6a74e8,var(--azul) 70%);box-shadow:0 0 5px rgba(70,82,220,.6)}
-  .barra .tm.rojo.on{background:radial-gradient(circle at 40% 35%,#ff7a6a,var(--rojo) 70%)}
+  .barra .tm{box-shadow:inset 0 0 0 1px rgba(0,0,0,.45),inset 0 1px 2px rgba(0,0,0,.5)}
+  .barra .tm.azul{background:#1b2236}
+  .barra .tm.azul.on{background:radial-gradient(circle at 36% 30%,#b9ccff 0 8%,#4d78ff 30%,#2346d8 70%,#1a2f9e 100%);box-shadow:inset 0 0 0 1px rgba(10,20,70,.55),0 0 5px rgba(60,110,255,.6)}
+  .barra .tm.rojo.on{background:radial-gradient(circle at 36% 30%,#ffc2b8 0 8%,#ff5a48 30%,var(--rojo) 70%,#a51c1c 100%);box-shadow:inset 0 0 0 1px rgba(80,10,10,.55),0 0 5px rgba(214,44,44,.5)}
   .menu{position:absolute;right:max(12px,env(safe-area-inset-right,0px));top:9px;height:44px;min-width:128px;border:0;cursor:pointer;
     display:grid;grid-template-columns:auto auto;align-items:center;gap:2px 10px;padding:0 14px;color:var(--letra-relieve);text-align:left;
     background:linear-gradient(180deg,#59627a,#3f4659);clip-path:var(--chaflan);box-shadow:inset 0 1px 0 rgba(255,255,255,.2)}
@@ -359,6 +382,8 @@ iframe.sc{width:100%;height:166px;border:0;display:block;background:#d9d6ce}
     padding-inline:max(12px,env(safe-area-inset-left,0px)) max(12px,env(safe-area-inset-right,0px));scrollbar-width:none;scroll-padding-inline:12px}
   .lateral::-webkit-scrollbar{display:none}
   .lateral>*{flex:0 0 min(86%,340px);scroll-snap-align:start}
+  .notas{display:contents}.notas .nota{transform:none !important;animation:none;flex:0 0 min(86%,340px);scroll-snap-align:start}
+  .notas .nota>*{opacity:1 !important}.notas .nota{filter:none !important;pointer-events:auto !important}.ficha .cierra{display:none}
   .ficha{padding:14px 16px 16px;gap:10px}
   .ficha .cuerpo{grid-template-columns:72px 1fr;gap:12px}
   .ficha img{width:72px;height:72px}
@@ -489,24 +514,10 @@ iframe.sc{width:100%;height:166px;border:0;display:block;background:#d9d6ce}
 </div>
 
 <aside class="lateral">
-  <article class="ficha" aria-label="Último lanzamiento">
-    <div class="eti"><span>Último lanzamiento</span><span>● Destacado</span></div>
-    <div class="cuerpo">
-      <img src="covers/AU0212.jpg" alt="Portada de ESTIU 2026: EDICIÓ SAINT-TROPEZ">
-      <div>
-        <div class="cod">AU0212 · REMIXES · 2026</div>
-        <div class="art">PARANOID REALM</div>
-        <div class="tit">ESTIU 2026: EDICIÓ SAINT-TROPEZ</div>
-      </div>
-    </div>
-    <div class="acciones">
-      <a class="tecla" href="https://soundcloud.com/paranoidrealm/sets/estiu-2026-edicio-saint-tropez" target="_blank" rel="noopener">Escuchar en SoundCloud ↗</a>
-      <a class="tecla oscura" href="#AU0212">Ficha</a>
-    </div>
-  </article>
+  <div class="notas" id="notas" aria-label="Lanzamientos destacados"></div>
   <article class="senal" aria-label="Señal mensual">
     <span class="eti">Playlist mensual</span>
-    <span class="nom">SEÑAL MENSUAL<b>10_26</b></span>
+    <span class="nom">SEÑAL MENSUAL<b id="senCod">—</b></span>
     <span class="des">Lanzamientos, hallazgos y obsesiones del mes.</span>
     <a class="tecla" href="#senal">Abrir</a>
   </article>
@@ -1807,7 +1818,7 @@ const DATA = await (async () => {
   const D = Object.assign({}, COPIA, ...partes.filter(Boolean));
   // el panel guarda listas de objetos; la web trabaja con el formato compacto (y acepta ambos)
   if (Array.isArray(D.artists)) D.artists = Object.fromEntries(D.artists.filter(a => a && a.name).map(({ name, ...r }) => [name.trim().toUpperCase(), r]));
-  D.releases = (D.releases || []).filter(r => r && r.code && r.artist).map(r => ({ ...r, artist: r.artist.trim().toUpperCase(), title: r.title || '[ S/T ]', format: (r.format || 'SINGLE').toUpperCase(), genre: (r.genre || '—').toUpperCase().trim(), cover: r.cover || '', soundcloud: r.soundcloud || '', spotify: r.spotify || '', bandcamp: r.bandcamp || '', year: +r.year || r.year || '',
+  D.releases = (D.releases || []).filter(r => r && r.code && r.artist).map(r => ({ ...r, artist: r.artist.trim().toUpperCase(), title: r.title || '[ S/T ]', destacado: r.destacado === true || r.destacado === 'true', format: (r.format || 'SINGLE').toUpperCase(), genre: (r.genre || '—').toUpperCase().trim(), cover: r.cover || '', soundcloud: r.soundcloud || '', spotify: r.spotify || '', bandcamp: r.bandcamp || '', year: +r.year || r.year || '',
     credits: (r.credits || []).map(c => Array.isArray(c) ? c : [c.rol || '', c.nombre || '']).filter(([k]) => k),
     tracks: (r.tracks || []).map(t => typeof t === 'string' ? t : (t && t.titulo) || '').filter(Boolean),
     participantes: (r.participantes || []).map(p => Array.isArray(p) ? p : [(p && p.artista) || '', (p && p.rol) || '']).map(([a, rol]) => [String(a).trim().toUpperCase(), String(rol || '').trim()]).filter(([a]) => a) }))
@@ -1858,13 +1869,38 @@ function pintaFaders() {
   corredorDesdeSel();
 }
 function corredorDesdeSel() { corredor(['format', 'year', 'genre'].map(k => { const i = FILTROS.findIndex(f => f.k === k); return FILTROS[i].ops.length > 1 ? sel[i] / (FILTROS[i].ops.length - 1) : 0; })); }
+const tarjetaRef = x => `<a class="ref" href="#${x.code}" data-c="${x.code}">${portada(x, 'portada')}${esPart(x) ? '<span class="marca">PARTICIPACIÓN</span>' : ''}
+      <span class="c">${x.code} · ${esc(x.format)} · ${x.year}</span><span class="a">${esc(x.artist)}</span><span class="t">${esc(titulo(x))}</span>${lineaPart(x)}</a>`;
+const filaRef = x => `<a class="fila" href="#${x.code}" data-c="${x.code}"><span class="x">${x.code}</span><span class="a">${esc(x.artist)}${esPart(x) ? '<small>PART.</small>' : ''}</span><span class="t">${esc(titulo(x))}</span><span class="f x">${esc(x.format)}</span><span class="g x">${esc(x.genre)}</span><span class="y x">${x.year}</span><span aria-hidden="true">→</span></a>`;
+const sinMov = matchMedia('(prefers-reduced-motion: reduce)');
+let vistaPintada = null;
+// todas las referencias se pintan una vez; al filtrar, las que salen se desvanecen en su sitio, las que quedan se deslizan
+// a su nueva posición y las que entran aparecen escalonadas
 function pintaResultados() {
-  const r = filtrados(), cont = $('resultados'); $('conteo').textContent = `Mostrando ${r.length} de ${REL.length}`;
-  if (!r.length) { cont.innerHTML = `<div class="vacio">Ninguna referencia con estos filtros.<button class="tecla" id="bLimpiar">Quitar filtros</button></div>`; $('bLimpiar').onclick = () => { sel.fill(0); pintaFaders(); pintaResultados(); }; return; }
-  if (vista === 'rejilla') cont.innerHTML = `<div class="rejilla">${r.map(x => `<a class="ref" href="#${x.code}">${portada(x, 'portada')}${esPart(x) ? '<span class="marca">PARTICIPACIÓN</span>' : ''}
-      <span class="c">${x.code} · ${esc(x.format)} · ${x.year}</span><span class="a">${esc(x.artist)}</span><span class="t">${esc(titulo(x))}</span>${lineaPart(x)}</a>`).join('')}</div>`;
-  else cont.innerHTML = `<div class="lista"><div class="fila cab" aria-hidden="true"><span>CÓDIGO</span><span>ARTISTA</span><span class="t">TÍTULO</span><span class="f">FORMATO</span><span class="g">GÉNERO</span><span class="y">AÑO</span><span></span></div>
-      ${r.map(x => `<a class="fila" href="#${x.code}"><span class="x">${x.code}</span><span class="a">${esc(x.artist)}${esPart(x) ? '<small>PART.</small>' : ''}</span><span class="t">${esc(titulo(x))}</span><span class="f x">${esc(x.format)}</span><span class="g x">${esc(x.genre)}</span><span class="y x">${x.year}</span><span aria-hidden="true">→</span></a>`).join('')}</div>`;
+  const r = filtrados(), codes = new Set(r.map(x => x.code)), cont = $('resultados'); $('conteo').textContent = `Mostrando ${r.length} de ${REL.length}`;
+  const q = vista === 'rejilla' ? '.ref' : '.fila[data-c]';
+  if (vistaPintada !== vista || !cont.querySelector(q)) {
+    cont.innerHTML = (vista === 'rejilla' ? `<div class="rejilla">${REL.map(tarjetaRef).join('')}</div>`
+      : `<div class="lista"><div class="fila cab" aria-hidden="true"><span>CÓDIGO</span><span>ARTISTA</span><span class="t">TÍTULO</span><span class="f">FORMATO</span><span class="g">GÉNERO</span><span class="y">AÑO</span><span></span></div>${REL.map(filaRef).join('')}</div>`)
+      + `<div class="vacio" id="vacioC" hidden>Ninguna referencia con estos filtros.<button class="tecla" id="bLimpiar">Quitar filtros</button></div>`;
+    $('bLimpiar').onclick = () => { sel.fill(0); pintaFaders(); pintaResultados(); };
+    vistaPintada = vista; cont.querySelectorAll(q).forEach(el => { el.hidden = !codes.has(el.dataset.c); }); $('vacioC').hidden = r.length > 0; return;
+  }
+  const els = [...cont.querySelectorAll(q)];
+  cont.querySelectorAll('.fantasma').forEach(f => f.remove()); els.forEach(el => el.getAnimations().forEach(a => a.cancel()));
+  const caja = cont.getBoundingClientRect(), antes = new Map();
+  els.forEach(el => { if (!el.hidden) antes.set(el, el.getBoundingClientRect()); });
+  els.forEach(el => { const fuera = !codes.has(el.dataset.c);
+    if (fuera && !el.hidden && !sinMov.matches) { const b = antes.get(el), f = el.cloneNode(true); f.classList.add('fantasma'); f.removeAttribute('href'); f.setAttribute('aria-hidden', 'true');
+      Object.assign(f.style, { position: 'absolute', left: b.left - caja.left + 'px', top: b.top - caja.top + 'px', width: b.width + 'px', height: b.height + 'px', margin: 0, pointerEvents: 'none' });
+      cont.appendChild(f); f.animate([{ opacity: 1, transform: 'scale(1)' }, { opacity: 0, transform: 'scale(.9)' }], { duration: 240, easing: 'cubic-bezier(.4,0,.2,1)' }).onfinish = () => f.remove(); }
+    el.hidden = fuera; });
+  $('vacioC').hidden = r.length > 0;
+  if (sinMov.matches) return;
+  let k = 0;
+  els.forEach(el => { if (el.hidden) return; const b0 = antes.get(el), b1 = el.getBoundingClientRect();
+    if (b0) { const dx = b0.left - b1.left, dy = b0.top - b1.top; if (dx || dy) el.animate([{ transform: `translate(${dx}px,${dy}px)` }, { transform: 'none' }], { duration: 420, easing: 'cubic-bezier(.2,.7,.2,1)' }); }
+    else el.animate([{ opacity: 0, transform: 'translateY(12px) scale(.95)' }, { opacity: 1, transform: 'none' }], { duration: 380, delay: Math.min(k++, 10) * 28, easing: 'cubic-bezier(.2,.7,.2,1)', fill: 'backwards' }); });
 }
 // filtros con muchas opciones (más de 6): visor con buscador en lugar de fader. Escala a cualquier número de artistas o géneros.
 const MAXF = 6, esSel = f => f.ops.length - 1 > MAXF;
@@ -1918,22 +1954,22 @@ function vistaCatalogo() {
     // el cursor se arrastra a lo largo de la ranura y encaja en la opción más cercana
     const cur = riel.querySelector('.cursor');
     riel.addEventListener('pointerdown', e => {
-      if (e.button !== 0) return;
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      e.preventDefault();                                                                              // en el móvil el dedo no se lo lleva el scroll
       const bs = [...riel.querySelectorAll('button')], cx = bs.map(b => b.offsetLeft + b.offsetWidth / 2), x0 = e.clientX, r0 = riel.getBoundingClientRect();
-      let mov = false;
-      const sigue = ev => {
-        if (!mov && Math.abs(ev.clientX - x0) < 4) return;
-        if (!mov) { mov = true; riel.classList.add('arrastra'); riel.setPointerCapture(e.pointerId); }
-        const x = Math.max(cx[0], Math.min(cx[cx.length - 1], ev.clientX - r0.left)); cur.style.left = x + 'px';
-        const j = cx.reduce((m, c, k) => Math.abs(c - x) < Math.abs(cx[m] - x) ? k : m, 0);
-        if (j !== sel[i]) { sel[i] = j; bs.forEach((b, k) => b.setAttribute('aria-pressed', k === j)); pintaResultados(); corredorDesdeSel(); }
-      };
-      const suelta = () => { riel.removeEventListener('pointermove', sigue); riel.removeEventListener('pointerup', suelta); riel.removeEventListener('pointercancel', suelta);
-        if (mov) { riel.classList.remove('arrastra'); riel.dataset.arr = '1'; setTimeout(() => delete riel.dataset.arr, 0); pintaFaders(); } };
+      const pos = ev => Math.max(cx[0], Math.min(cx[cx.length - 1], ev.clientX - r0.left)), cerca = x => cx.reduce((m, c, k) => Math.abs(c - x) < Math.abs(cx[m] - x) ? k : m, 0);
+      const aplica = j => { if (j === sel[i]) return; sel[i] = j; bs.forEach((b, k) => b.setAttribute('aria-pressed', k === j)); pintaResultados(); corredorDesdeSel(); };
+      let mov = false; try { riel.setPointerCapture(e.pointerId); } catch (err) {}
+      const sigue = ev => { if (!mov && Math.abs(ev.clientX - x0) < 4) return; if (!mov) { mov = true; riel.classList.add('arrastra'); }
+        const x = pos(ev); cur.style.left = x + 'px'; aplica(cerca(x)); };
+      const suelta = ev => { riel.removeEventListener('pointermove', sigue); riel.removeEventListener('pointerup', suelta); riel.removeEventListener('pointercancel', suelta);
+        riel.classList.remove('arrastra'); if (!mov && ev.type === 'pointerup') aplica(cerca(pos(ev)));                      // un toque sin arrastrar elige la opción más cercana
+        riel.dataset.arr = '1'; setTimeout(() => delete riel.dataset.arr, 0); pintaFaders(); };
       riel.addEventListener('pointermove', sigue); riel.addEventListener('pointerup', suelta); riel.addEventListener('pointercancel', suelta);
     });
     riel.addEventListener('keydown', e => { const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0; if (!d) return; e.preventDefault(); sel[i] = Math.max(0, Math.min(FILTROS[i].ops.length - 1, sel[i] + d)); pintaFaders(); pintaResultados(); riel.querySelectorAll('button')[sel[i]].focus(); });
   });
+  vistaPintada = null;
   const setV = v => { vista = v; try { localStorage.setItem('au-vista', v); } catch (e) {} $('vRej').setAttribute('aria-pressed', v === 'rejilla'); $('vLis').setAttribute('aria-pressed', v === 'lista'); pintaResultados(); };
   $('vRej').onclick = () => setV('rejilla'); $('vLis').onclick = () => setV('lista');
   pintaResultados(); requestAnimationFrame(pintaFaders);
@@ -2102,7 +2138,8 @@ function ruta() {
   const navS = seccion === 'ficha' ? 'catalogo' : seccion === 'artista' ? 'roster' : seccion;
   document.querySelectorAll('.placa').forEach(p => p.setAttribute('aria-current', p.dataset.s === navS ? 'page' : 'false')); punta();
   $('menuN').textContent = NOMBRE[navS][0]; $('menuT').textContent = NOMBRE[navS][1];
-  document.querySelector('.lateral').hidden = seccion !== 'escucha';
+  const lat = document.querySelector('.lateral'), vuelve = lat.hidden && seccion === 'escucha';
+  lat.hidden = seccion !== 'escucha'; if (vuelve) lat.scrollLeft = 0;                    // en el móvil, empieza siempre por el primer destacado
   document.querySelector('.estado').hidden = seccion !== 'escucha';
   const P = $('panel'); P.hidden = seccion === 'escucha';
   if (radioPorSC) { radioPorSC = false; radio.encender().then(pintaPlay); }
@@ -2111,6 +2148,30 @@ function ruta() {
   foco = ({ catalogo: 'p4', ficha: 'hero', roster: 'p3', artista: 'p3', senal: 'p2', manifiesto: 'hero', contacto: 'p5' })[seccion] || null;
   mesSenal = seccion === 'senal' ? sen.mes : 0; tunePulse = 0.6;
 }
+// ---------- destacados de la portada ----------
+// se eligen a mano en el panel (casilla «Destacar en la portada»): como mucho 3, los más recientes primero.
+// Si no hay ninguno marcado, sale el último lanzamiento. En escritorio se apilan como avisos y se cierran con ×.
+const DEST = (() => { const d = REL.filter(r => r.destacado).slice(0, 3); return d.length ? d : REL.slice(0, 1); })();
+const cerrados = (() => { try { return JSON.parse(sessionStorage.getItem('au-cerrados') || '[]'); } catch (e) { return []; } })();
+function pintaAvisos() {
+  const A = $('notas'), vivos = DEST.filter(r => !cerrados.includes(r.code));
+  A.innerHTML = vivos.map((r, o) => `<article class="ficha nota" data-c="${r.code}" style="--o:${o}" aria-label="${o ? 'Lanzamiento destacado' : 'Último lanzamiento destacado'}: ${esc(r.artist)}">
+      <div class="eti"><span>${r === REL[0] ? 'Último lanzamiento' : 'Lanzamiento'}</span><span class="der"><span class="dest"><i></i>Destacado</span><button class="cierra" aria-label="Cerrar aviso">×</button></span></div>
+      <div class="cuerpo">${r.cover ? `<img src="${esc(r.cover)}" alt="Portada de ${esc(r.title)}" width="96" height="96">` : `<span class="placa-cod" style="width:96px;height:96px;display:grid;place-items:center;background:#2c3242;font:700 11px var(--f-mono)">${r.code}</span>`}
+        <div><div class="cod">${r.code} · ${esc(r.format)} · ${r.year}</div><div class="art">${esc(r.artist)}</div><div class="tit">${esc(titulo(r))}</div></div></div>
+      <div class="acciones">${r.soundcloud ? `<a class="tecla" href="${esc(r.soundcloud)}" target="_blank" rel="noopener">Escuchar en SoundCloud ↗</a>` : r.spotify ? `<a class="tecla" href="${esc(r.spotify)}" target="_blank" rel="noopener">Escuchar en Spotify ↗</a>` : ''}<a class="tecla oscura" href="#${r.code}">Ficha</a></div></article>`).join('');
+  apila(); A.parentNode.scrollLeft = 0;
+  A.querySelectorAll('.cierra').forEach(b => b.onclick = () => { const el = b.closest('.nota'); cerrados.push(el.dataset.c);
+    try { sessionStorage.setItem('au-cerrados', JSON.stringify(cerrados)); } catch (e) {}
+    el.classList.add('fuera'); el.style.zIndex = 20; setTimeout(() => { el.remove(); apila(); }, 380); apila(el); });
+}
+function apila(saliendo) {
+  const A = $('notas'), vs = [...A.querySelectorAll('.nota')].filter(el => el !== saliendo);
+  A.style.setProperty('--n', vs.length || 1);
+  vs.forEach((el, i) => { el.style.setProperty('--i', i); el.classList.toggle('atras', i > 0); });
+}
+if (SEN[0]) $('senCod').textContent = SEN[0].code; else document.querySelector('.lateral .senal').remove();
+pintaAvisos();
 addEventListener('hashchange', ruta);
 ruta();
 window.__carga?.mark('datos', REL.length + ' REF. · SEÑAL ' + (SEN[0] ? SEN[0].code : '—'));

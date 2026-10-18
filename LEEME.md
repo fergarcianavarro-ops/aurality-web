@@ -63,6 +63,7 @@ Si alguien pierde el móvil o el portátil, borra su clave en GitHub y deja de v
   - **Participaciones:** si el lanzamiento es de alguien de fuera (C.EME, MDNA…) y un miembro de aurality produjo, mezcló o colaboró, pon a ese artista como *Artista principal* y añade en *Participación de aurality* quién y qué hizo (p. ej. UFISI · PRODUCCIÓN · 3 TEMAS). La web lo marca como PARTICIPACIÓN, lo enseña en el perfil del miembro y el artista de fuera no aparece en el roster.
   - **Portada:** cuadrada. Súbela tal cual: el panel la reduce a 1600 px y la convierte a WebP antes de subirla. Sin portada, la web muestra una placa con el código.
   - **SoundCloud:** si pones el enlace, la ficha muestra el reproductor.
+  - **Destacar en la portada:** marca la casilla en los lanzamientos que quieras enseñar en la portada. Se ven como mucho 3, los más recientes marcados primero (en el ordenador, apilados como avisos que se cierran con ×; en el móvil, como tarjetas que se deslizan). Para quitar uno, desmárcalo. Si no hay ninguno marcado, sale el último lanzamiento.
 - **Artistas.** Rol, biografía, foto (sale en blanco y negro) y redes. El nombre tiene que coincidir con el de los lanzamientos.
 - **Señal mensual.** Cada mes, *Agregar edición*: mes, año, portada, temas y destacados. La más reciente sale **En antena** y las anteriores pasan solas a **Archivada**.
 - **Manifiesto y contacto.** Los textos de esas secciones.
