@@ -127,8 +127,8 @@ body{background:linear-gradient(180deg,var(--cielo-1) 0%,var(--cielo-2) 72%);col
 .pletina::after{content:"AURALITY  AU-00 · PLETINA";position:absolute;right:26px;bottom:7px;font:500 8.5px/1 var(--f-mono);letter-spacing:.2em;color:var(--grabado);white-space:pre}
 .ahora{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:center;min-width:0}
 .led{width:11px;height:11px;border-radius:50%;background:#9aa0ab;box-shadow:inset 0 1px 2px rgba(0,0,0,.35);grid-row:1/4;transition:background .4s,box-shadow .4s}
-.led.on{background:radial-gradient(circle at 40% 35%,#6a74e8,var(--azul) 70%);box-shadow:0 0 6px rgba(70,82,220,.55)}
-.ahora .k{font:700 10px/1 var(--f-mono);letter-spacing:.16em;color:#4a5060;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+.led.on{background:radial-gradient(circle at 36% 30%,#b9ccff 0 8%,#4d78ff 30%,#2346d8 70%,#1a2f9e 100%);box-shadow:inset 0 0 0 1px rgba(10,20,70,.55),0 0 6px rgba(60,110,255,.6)}
+.ahora .k{font:700 10px/1.25 var(--f-mono);letter-spacing:.16em;color:#4a5060;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .ahora .t{font:800 16px/1.1 var(--f-mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
 .ahora .s{font:500 11px/1.2 var(--f-mono);color:#4a5060;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .transporte{display:flex;gap:8px}
@@ -144,6 +144,11 @@ body{background:linear-gradient(180deg,var(--cielo-1) 0%,var(--cielo-2) 72%);col
 .casillas button{flex:0 0 auto;width:15px;height:15px;padding:0;border:0;cursor:pointer;background:#cfccc4;box-shadow:inset 0 1px 2px rgba(0,0,0,.28)}
 .casillas button[aria-pressed="true"]{background:var(--tinta);box-shadow:none}
 .casillas button:hover{background:#b9b6ad}
+.casillas button.c00{margin-right:5px;background:#b7bccb}
+.casillas button.c00[aria-pressed="true"]{background:var(--tinta)}
+.ahora .s a{color:inherit;text-decoration:underline;text-decoration-color:rgba(74,80,96,.4);text-underline-offset:2px}
+.ahora .s a:hover{color:var(--tinta)}
+.sc00{position:fixed;left:0;bottom:0;width:2px;height:2px;border:0;opacity:.01;pointer-events:none;z-index:-1}
 /* la pletina se adapta a su propio ancho (clases que pone un ResizeObserver): media → casillas y huecos más pequeños; estrecha → sin vúmetro */
 .pletina.p-m{gap:18px;padding:0 20px}
 .pletina.p-m .casillas{gap:3px}.pletina.p-m .casillas button{width:12px;height:12px}
@@ -541,7 +546,7 @@ iframe.sc{width:100%;height:166px;border:0;display:block;background:#d9d6ce}
 <section class="pletina" aria-label="Radio">
   <div class="ahora">
     <span class="led" id="led"></span>
-    <span class="k">Radio ambient · en directo</span>
+    <span class="k" id="canalK">Radio ambient · en directo</span>
     <span class="t" id="canalNom">CANAL 03 · HORIZONTE</span>
     <span class="s" id="canalSub">Do lidio · generado en directo, nunca se repite</span>
   </div>
@@ -876,7 +881,7 @@ const MEZCLA = {
 };
 
 class Ambient {
-  constructor() { this.canal = 2; this.on = false; this.ctx = null; this.gen = null; }
+  constructor() { this.canal = 2; this.amb = 2; this.on = false; this.ctx = null; this.gen = null; this.cat = null; }   // canal -1 = canal 00 (catálogo)
   init() {
     const AC = window.AudioContext || window.webkitAudioContext; const c = this.ctx = new AC();
     this.master = c.createGain(); this.master.gain.value = 0;
@@ -924,7 +929,7 @@ class Ambient {
       if (prox < c.currentTime - 0.4) { const salto = Math.ceil((c.currentTime - prox) / dur), fin = Math.ceil((n + salto) / 16) * 16; prox += (fin - n) * dur; n = fin; }
       while (prox < c.currentTime + 0.35) { paso(n, Math.max(prox, c.currentTime), dur); n++; prox += dur; } }, 40);
   }
-  nota(grado, oct = 0) { const [, root, modo] = CANALES[this.canal], sc = MODOS[modo], n = sc.length; const o = Math.floor(grado / n); return root + sc[((grado % n) + n) % n] + 12 * (o + oct); }
+  nota(grado, oct = 0) { const [, root, modo] = CANALES[this.amb], sc = MODOS[modo], n = sc.length; const o = Math.floor(grado / n); return root + sc[((grado % n) + n) % n] + 12 * (o + oct); }
   // ---------- instrumentos ----------
   env(gn, t, a, peak, d, fin) { gn.gain.setValueAtTime(0, t); gn.gain.linearRampToValueAtTime(peak, t + a); if (d) gn.gain.setValueAtTime(peak, t + a + d); gn.gain.linearRampToValueAtTime(0.0001, fin); }
   pad(g, notas, t, dur, o = {}) {
@@ -1755,7 +1760,19 @@ class Ambient {
       if (compas > 2 && ciclo % 8 < 4 && (p === 2 || p === 6 || p === 11) && Math.random() < 0.55) punteo(this.nota(gr + elige([0, 2, 4, 7]), 1), tt);
     });
   }
-  arrancar() { const est = CANALES[this.canal][3], g = this.nuevaGen(est); this.gen = g; this[est](g); }
+  arrancar() {
+    if (this.canal < 0) { this.gen = null; this.estatica(2.4, 0.03); if (this.cat) this.cat.empieza(); return; }
+    this.amb = this.canal; const est = CANALES[this.canal][3], g = this.nuevaGen(est); this.gen = g; this[est](g);
+  }
+  // estática de radio entre emisoras: ruido filtrado, corto y suave
+  estatica(dur, amp) {
+    const c = this.ctx; if (!c || !this.on) return; const t = c.currentTime, s = c.createBufferSource(), bp = c.createBiquadFilter(), g = c.createGain();
+    s.buffer = this.ruido; s.loop = true; s.playbackRate.value = 0.85 + Math.random() * 0.3;
+    bp.type = 'bandpass'; bp.frequency.setValueAtTime(900 + Math.random() * 1400, t); bp.frequency.linearRampToValueAtTime(1400 + Math.random() * 1800, t + dur); bp.Q.value = 0.9;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(amp, t + Math.min(0.3, dur / 4)); g.gain.setValueAtTime(amp, t + dur * 0.55); g.gain.linearRampToValueAtTime(0, t + dur);
+    s.connect(bp); bp.connect(g); g.connect(this.master); s.start(t, Math.random() * 2); s.stop(t + dur + 0.05);
+    s.onended = () => { try { s.disconnect(); bp.disconnect(); g.disconnect(); } catch (e) {} };
+  }
   // ---------- control ----------
   // iPhone: con el interruptor de silencio puesto, Safari calla el Web Audio salvo que la página reproduzca "medios".
   // Se declara la sesión como reproducción y se mantiene un audio mudo en bucle mientras suena la radio.
@@ -1770,11 +1787,18 @@ class Ambient {
     const m = this.master.gain, t = this.ctx.currentTime; m.cancelScheduledValues(t); m.setValueAtTime(m.value, t); m.linearRampToValueAtTime(0.9, t + 4);
   }
   apagar() {
-    if (!this.ctx) return; this.on = false; this.matarGen(this.gen, 1.2); this.gen = null; if (this.mudo) setTimeout(() => { if (!this.on) this.mudo.pause(); }, 1500);
+    if (!this.ctx) return; this.on = false; this.matarGen(this.gen, 1.2); this.gen = null; if (this.cat) this.cat.para(1.2); if (this.mudo) setTimeout(() => { if (!this.on) this.mudo.pause(); }, 1500);
     const m = this.master.gain, t = this.ctx.currentTime; m.cancelScheduledValues(t); m.setValueAtTime(m.value, t); m.linearRampToValueAtTime(0, t + 1.4);
   }
-  sintonizar(i) { this.canal = (i + 12) % 12; if (!this.on) return; this.matarGen(this.gen, 2.5); this.arrancar(); }
-  nivel() { if (!this.ctx || !this.on) return 0; this.analyser.getFloatTimeDomainData(this.buf); let s = 0; for (const v of this.buf) s += v * v; return Math.sqrt(s / this.buf.length); }
+  sintonizar(i) {                                   // 13 posiciones: 00 (catálogo) y 01–12
+    this.canal = ((i + 1) % 13 + 13) % 13 - 1; if (!this.on) return;
+    this.matarGen(this.gen, 2.5); this.gen = null; if (this.cat && this.canal >= 0) this.cat.para(2.5);
+    this.estatica(1.8, 0.03); this.arrancar();
+  }
+  nivel() {
+    if (!this.ctx || !this.on) return 0; this.analyser.getFloatTimeDomainData(this.buf); let s = 0; for (const v of this.buf) s += v * v;
+    return Math.sqrt(s / this.buf.length) + (this.canal < 0 && this.cat ? this.cat.nivel() : 0);
+  }
 }
 const radio = new Ambient();
 window.__radio = radio;
@@ -1792,12 +1816,16 @@ const cas = $('casillas');
   const ajusta = () => { const w = pl.getBoundingClientRect().width, m = movil.matches;
     pl.classList.toggle('p-m', !m && w < 1000); pl.classList.toggle('p-s', !m && w < 760); };
   new ResizeObserver(ajusta).observe(pl); movil.addEventListener('change', ajusta); ajusta(); }
+{ const b = document.createElement('button'); b.id = 'canal0'; b.className = 'c00'; b.title = 'aurality · fragmentos del catálogo'; b.setAttribute('aria-label', 'Canal 00, aurality, fragmentos del catálogo'); b.onclick = () => tune(-1); cas.appendChild(b); }
 CANALES.forEach(([nom, , , est], i) => { const b = document.createElement('button'); b.id = 'canal' + (i + 1); b.title = nom + ' · ' + ESTILOS[est]; b.setAttribute('aria-label', 'Canal ' + String(i + 1).padStart(2, '0') + ', ' + nom + ', ' + ESTILOS[est]); b.onclick = () => tune(i); cas.appendChild(b); });
 function pintaCanal() {
+  [...cas.children].forEach((b, i) => b.setAttribute('aria-pressed', i - 1 === radio.canal ? 'true' : 'false'));
+  if (radio.canal < 0) { $('canalK').textContent = 'Radio · catálogo'; $('canalNom').textContent = 'CANAL 00 · aurality'; $('canalNum').textContent = '00 / 12';
+    $('canalSub').innerHTML = radio.cat ? radio.cat.rotulo() : 'Fragmentos del catálogo'; return; }
+  $('canalK').textContent = 'Radio ambient · en directo';
   const [nom, root, modo, est] = CANALES[radio.canal], n = String(radio.canal + 1).padStart(2, '0');
   $('canalNom').textContent = 'CANAL ' + n + ' · ' + nom; $('canalNum').textContent = n + ' / 12';
   $('canalSub').textContent = ESTILOS[est].charAt(0).toUpperCase() + ESTILOS[est].slice(1) + ' · ' + NOTAS[root % 12].charAt(0) + NOTAS[root % 12].slice(1).toLowerCase() + ' ' + NOMMODO[modo] + ' · en directo';
-  [...cas.children].forEach((b, i) => b.setAttribute('aria-pressed', i === radio.canal ? 'true' : 'false'));
 }
 function pintaPlay() {
   const on = radio.on; $('bPlay').setAttribute('aria-pressed', on); $('bPlay').setAttribute('aria-label', on ? 'Pausar' : 'Reproducir');
@@ -1805,8 +1833,9 @@ function pintaPlay() {
   $('led').classList.toggle('on', on); $('tAzul').classList.toggle('on', on); $('tAzulM').classList.toggle('on', on); $('estadoTxt').textContent = on ? 'En directo' : (encendido ? 'En pausa' : 'En espera');
 }
 let encendido = false, tunePulse = 0;
-async function togglePlay() { if (radio.on) radio.apagar(); else await radio.encender(); pintaPlay(); }
-function tune(i) { radio.sintonizar(i); pintaCanal(); tunePulse = 1; knobTarget = -(radio.canal + 1) * Math.PI / 6; }
+async function togglePlay() { if (radio.on) radio.apagar(); else await radio.encender(); pintaPlay(); pintaCanal(); }
+const angulo = c => c < 0 ? -Math.PI / 12 : -(c + 1) * Math.PI / 6;       // el 00 cae entre el 12 y el 01 del dial
+function tune(i) { radio.sintonizar(i); pintaCanal(); tunePulse = 1; knobTarget = angulo(radio.canal); }
 $('bPlay').onclick = togglePlay; $('bPrev').onclick = () => tune(radio.canal - 1); $('bNext').onclick = () => tune(radio.canal + 1);
 async function encender(conSonido) {
   encendido = true; $('encendido').classList.add('fuera'); powerT0 = performance.now();
@@ -1991,6 +2020,114 @@ function vistaCatalogo() {
 }
 let scApi = null, radioPorSC = false;
 function cargaSC() { return scApi || (scApi = new Promise((ok, ko) => { const t = document.createElement('script'); t.src = 'https://w.soundcloud.com/player/api.js'; t.onload = () => ok(window.SC); t.onerror = ko; document.head.appendChild(t); })); }
+// ---------- canal 00 · aurality: fragmentos largos del catálogo, servidos por SoundCloud ----------
+// Dos reproductores ocultos se turnan: mientras suena uno, el otro prepara el siguiente fragmento, y entran cruzados
+// con la estática de la radio por encima. Suena todo lanzamiento con enlace de SoundCloud en el panel;
+// el fragmento empieza hacia la mitad del tema, o en el minuto que diga el panel («Inicio del fragmento»).
+const FRAG = 75, FUNDE = 7;                                                          // segundos de cada fragmento y de cada cruce
+const aSeg = v => { const m = String(v || '').trim().match(/^(\d+):(\d{1,2})$/); return m ? +m[1] * 60 + +m[2] : null; };
+const cat00 = radio.cat = {
+  cola: REL.filter(r => r.soundcloud), w: [], vol: [0, 0], iv: [], act: -1, prep: null, ahora: null, timers: [], ult: [], pedido: null,
+  id: 0, vivo: false, bloqueo: false, fallo: false, SC: null,
+  luego(f, s) { this.timers.push(setTimeout(f, s * 1000)); },
+  async monta() {
+    if (this.w.length === 2) return true;
+    try {
+      const SC = this.SC = await Promise.race([cargaSC(), new Promise((_, ko) => setTimeout(() => ko(new Error('sin respuesta')), 9000))]);
+      for (let k = this.w.length; k < 2; k++) {
+        const f = document.createElement('iframe'); f.className = 'sc00'; f.allow = 'autoplay'; f.tabIndex = -1; f.setAttribute('aria-hidden', 'true'); f.title = 'Canal 00';
+        f.src = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(this.cola[0].soundcloud) + '&auto_play=false&single_active=false&visual=false&show_artwork=false&buying=false&sharing=false&download=false&show_comments=false&show_user=false&hide_related=true';
+        document.body.appendChild(f); const w = SC.Widget(f);
+        await new Promise(ok => { w.bind(SC.Widget.Events.READY, ok); setTimeout(ok, 9000); });
+        w.setVolume(0); this.w.push(w);
+      }
+      return true;
+    } catch (e) { return false; }
+  },
+  siguiente() {
+    if (this.pedido) { const r = this.pedido; this.pedido = null; return r; }
+    const op = this.cola.filter(r => !this.ult.includes(r.code)), r = (op.length ? op : this.cola)[Math.floor(Math.random() * (op.length || this.cola.length))];
+    this.ult = [r.code, ...this.ult].slice(0, Math.max(0, Math.min(2, this.cola.length - 1))); return r;
+  },
+  // carga un lanzamiento en el reproductor k (si es un set, elige uno de sus temas) y calcula dónde empieza el fragmento
+  prepara(k, r) {
+    const w = this.w[k];
+    return new Promise(ok => {
+      let hecho = false; const fin = v => { if (!hecho) { hecho = true; ok(v); } }; setTimeout(() => fin(null), 12000);
+      w.setVolume(0);
+      w.load(r.soundcloud, { auto_play: false, single_active: false, visual: false, show_artwork: false, buying: false, sharing: false, download: false, show_comments: false, show_user: false, hide_related: true,
+        callback: () => w.getSounds(ss => {
+          const n = (ss && ss.length) || 1, i = Math.floor(Math.random() * n);
+          const datos = () => w.getCurrentSound(snd => w.getDuration(ms => {
+            const dur = (ms || 0) / 1000; let ini = aSeg(r.fragmento); if (ini == null || ini > dur - 30) ini = dur * 0.42;
+            ini = Math.max(0, Math.min(ini, dur - FRAG - FUNDE));
+            fin({ r, k, ini, dur, tema: (snd && snd.title) || titulo(r), url: (snd && snd.permalink_url) || r.soundcloud });
+          }));
+          if (n > 1) { w.setVolume(0); w.skip(i); setTimeout(() => { w.pause(); datos(); }, 700); } else datos();
+        }) });
+    });
+  },
+  funde(k, a, s, fin) {                                                                // fundido de igual potencia, en pasos de 80 ms
+    clearInterval(this.iv[k]); const w = this.w[k], v0 = this.vol[k], t0 = performance.now();
+    this.iv[k] = setInterval(() => {
+      const x = Math.min(1, (performance.now() - t0) / (s * 1000)), v = a > v0 ? v0 + (a - v0) * Math.sin(x * Math.PI / 2) : v0 * Math.cos(x * Math.PI / 2);
+      this.vol[k] = v; w.setVolume(Math.round(v));
+      if (x >= 1) { clearInterval(this.iv[k]); if (fin) fin(); }
+    }, 80);
+  },
+  suena(p, id) {
+    if (id !== this.id) return;
+    const w = this.w[p.k]; this.act = p.k; this.ahora = p; this.bloqueo = false; this.fallo = false;
+    w.setVolume(0); w.seekTo(p.ini * 1000); w.play(); setTimeout(() => w.seekTo(p.ini * 1000), 400);
+    this.funde(p.k, 100, FUNDE); pintaCanal();
+    // algunos navegadores (sobre todo en iPhone) no dejan sonar un reproductor externo sin tocarlo: se avisa
+    this.luego(() => w.isPaused(pa => { if (pa && id === this.id && this.ahora === p) { this.bloqueo = true; pintaCanal(); } }), 5);
+    this.luego(async () => { const q = await this.prepara(1 - p.k, this.siguiente()); if (id === this.id) this.prep = q; }, 12);
+    this.luego(() => this.cruza(id), Math.max(20, Math.min(FRAG, p.dur - p.ini) - FUNDE));
+  },
+  async cruza(id) {
+    if (id !== this.id) return;
+    const sale = this.act, q = this.prep; this.prep = null;
+    radio.estatica(FUNDE * 0.9, 0.022);
+    this.funde(sale, 0, FUNDE, () => this.w[sale].pause());
+    if (q) this.suena(q, id);
+    else { const q2 = await this.prepara(1 - sale, this.siguiente()); if (q2) this.suena(q2, id); else if (id === this.id) { this.fallo = true; pintaCanal(); } }
+  },
+  async empieza(r) {
+    if (r) this.pedido = r;
+    const id = ++this.id; this.timers.forEach(clearTimeout); this.timers = []; this.prep = null; this.vivo = true; this.ahora = null; this.fallo = false; this.bloqueo = false; pintaCanal();
+    if (!this.cola.length) return;
+    if (!(await this.monta())) { if (id === this.id) { this.fallo = true; pintaCanal(); } return; }
+    if (id !== this.id) return;
+    const k = this.act >= 0 ? 1 - this.act : 0;
+    if (this.act >= 0) { const s = this.act; this.funde(s, 0, 2.5, () => this.w[s].pause()); }
+    const p = await this.prepara(k, this.siguiente());
+    if (id !== this.id) return;
+    if (p) this.suena(p, id); else { this.fallo = true; pintaCanal(); }
+  },
+  para(s = 2.5) {
+    this.id++; this.vivo = false; this.timers.forEach(clearTimeout); this.timers = []; this.prep = null; this.ahora = null; this.act = -1;
+    this.w.forEach((w, k) => this.funde(k, 0, s, () => w.pause()));
+  },
+  nivel() {                                                                            // el vúmetro no puede leer el audio de SoundCloud: se aproxima
+    if (!this.ahora || this.bloqueo) return 0; const t = performance.now() / 1000, v = Math.max(...this.vol) / 100;
+    return v * (0.13 + 0.035 * Math.sin(t * 7.3) + 0.03 * Math.sin(t * 2.1) + 0.035 * Math.random());
+  },
+  rotulo() {
+    const p = this.ahora;
+    if (!this.cola.length) return 'Todavía no hay lanzamientos con SoundCloud en el panel';
+    if (p) { const entero = p.r.spotify || p.url, ab = `<a href="${esc(entero)}" target="_blank" rel="noopener">${this.bloqueo ? 'abrir' : 'entero'} ↗</a>`;
+      return (this.bloqueo ? 'Este navegador no deja sonar SoundCloud aquí · ' : `<a href="#${p.r.code}">${esc(p.r.artist)} — ${esc(p.tema)}</a> · `) + ab; }
+    if (this.fallo) return 'Sin señal de SoundCloud · prueba en un rato u otro canal';
+    return radio.on ? 'Sintonizando el catálogo…' : `Fragmentos del catálogo · ${plural(this.cola.length, 'lanzamiento', 'lanzamientos')}`;
+  },
+};
+// desde una ficha: pon este lanzamiento en el canal 00
+async function escucha00(r) {
+  if (!encendido) await encender(false);
+  cat00.pedido = r;
+  if (radio.canal === -1 && radio.on) cat00.empieza(); else { tune(-1); if (!radio.on) { await radio.encender(); pintaPlay(); } }
+}
 function montaSC(P) {
   const f = P.querySelector('iframe.sc'); if (!f) return;
   cargaSC().then(SC => { const w = SC.Widget(f);
@@ -2009,13 +2146,14 @@ function vistaFicha(r) {
       <div class="datos"><div class="cod">${r.code} · ${esc(r.format)} · ${r.year} · ${esc(r.genre)}</div><h3>${esc(r.artist)}</h3><p class="tit">${esc(titulo(r))}</p>
         ${partic(r).length ? `<div class="aqui"><span class="k">${esPart(r) ? 'AURALITY EN ESTE LANZAMIENTO' : 'TAMBIÉN DE AURALITY'}</span>${lineaPart(r)}</div>` : ''}
         <div class="enlaces mas">${miembros(r).map(a => `<a class="tecla oscura" href="#a-${slug(a)}">${esc(a)} · perfil</a>`).join('')}</div>
-        <div class="enlaces">${enl.map(([n, u]) => u ? `<a class="tecla" href="${esc(u)}" target="_blank" rel="noopener">${n} ↗</a>` : `<span class="tecla" aria-disabled="true">${n} · sin enlace</span>`).join('')}</div>
+        <div class="enlaces">${r.soundcloud ? '<button class="tecla oscura" type="button" id="bRadio00">Escuchar en la radio · canal 00</button>' : ''}${enl.map(([n, u]) => u ? `<a class="tecla" href="${esc(u)}" target="_blank" rel="noopener">${n} ↗</a>` : `<span class="tecla" aria-disabled="true">${n} · sin enlace</span>`).join('')}</div>
         ${DESPLEGADO && r.soundcloud ? `<iframe class="sc" title="Reproductor de SoundCloud: ${esc(r.title)}" allow="autoplay" loading="lazy"
           src="https://w.soundcloud.com/player/?url=${encodeURIComponent(r.soundcloud)}&color=%230e0f12&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=false"></iframe>` : ''}
         <table class="creditos"><tbody>${r.credits.map(([k, v]) => `<tr><th scope="row">${esc(k)}</th>${pend(v) ? '<td class="pend">Por definir</td>' : `<td>${esc(v)}</td>`}</tr>`).join('')}</tbody></table>
         <div class="escala"><span class="k">TRACKLIST</span>${r.tracks && r.tracks.length ? r.tracks.map((t, n) => `<p>${String(n + 1).padStart(2, '0')} · ${esc(t)}</p>`).join('') : '<p>Tracklist por publicar.</p>'}</div>
       </div></div>
       <nav class="pasos" aria-label="Otras referencias">${ant ? `<a class="tecla" href="#${ant.code}">← ${ant.code}</a>` : '<span></span>'}${sig ? `<a class="tecla" href="#${sig.code}">${sig.code} →</a>` : '<span></span>'}</nav></div>`;
+  if ($('bRadio00')) $('bRadio00').onclick = () => escucha00(r);
 }
 // ---------- roster ----------
 const slug = a => a.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
@@ -2240,6 +2378,7 @@ document.querySelectorAll('.faja a').forEach(a => a.addEventListener('click', ()
 // ======================= escena 3D en vivo =======================
 const tactil = matchMedia('(pointer: coarse)').matches || innerWidth < 821;
 let knobTarget = -3 * Math.PI / 6, powerT0 = 0;
+if (cat00.cola.length >= 3 && !radio.on) { radio.canal = -1; knobTarget = angulo(-1); pintaCanal(); }   // con 3 lanzamientos o más en SoundCloud, la radio arranca en el 00
 {
   const cv = $('escena');
   const renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: true });

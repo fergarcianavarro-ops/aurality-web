@@ -64,7 +64,8 @@ collections:
               - { name: year, label: Año, widget: number, value_type: int, min: 2020, max: 2100 }
               - { name: destacado, label: Destacar en la portada, widget: boolean, required: false, default: false, hint: "Sale en la portada como aviso (en el móvil, como tarjeta deslizable). Como mucho se ven 3: los más recientes que estén marcados. Si no marcas ninguno, sale el último lanzamiento." }
               - { name: cover, label: Portada, widget: image, required: false, choose_url: false, hint: "Cuadrada. Sube la imagen tal cual: el panel la reduce y la optimiza solo. Sin portada la web muestra una placa con el código." }
-              - { name: soundcloud, label: SoundCloud, widget: string, required: false, hint: "Enlace al tema o al set. Si lo hay, la ficha muestra el reproductor." }
+              - { name: soundcloud, label: SoundCloud, widget: string, required: false, hint: "Enlace al tema o al set. Si lo hay, la ficha muestra el reproductor y el lanzamiento suena en el canal 00 de la radio." }
+              - { name: fragmento, label: Inicio del fragmento (canal 00), widget: string, required: false, pattern: ['^\d{1,2}:\d{2}$', 'Formato m:ss, por ejemplo 1:45'], hint: "Opcional. Minuto en el que empieza el trozo que suena en el canal 00 (m:ss). Vacío = hacia la mitad del tema. En los sets se aplica a todos los temas." }
               - { name: spotify, label: Spotify, widget: string, required: false }
               - { name: bandcamp, label: Bandcamp, widget: string, required: false }
               - name: credits
