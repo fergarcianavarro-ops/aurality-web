@@ -74,9 +74,8 @@ Si alguien pierde el móvil o el portátil, borra su clave en GitHub y deja de v
   - TX-00 es la de bienvenida (03.4, siempre activa): enseña que hay más. Cadencia recomendada: una o dos al mes.
   - Solo funciona publicada en Cloudflare (el portero está en `worker/`); en Netlify, /tx/ queda cerrado.
 - **Señal mensual.** Cada mes, *Agregar edición*: mes, año, portada, temas y destacados. La más reciente sale **En antena** y las anteriores pasan solas a **Archivada**.
-- **Manifiesto y contacto.** El *titular* del manifiesto es también la frase de entrada de la portada.
+- **Manifiesto y contacto.** Los textos de esas secciones. El *titular* del manifiesto es también la frase de entrada de la portada.
 - **Desde tu última visita.** No hay que hacer nada: si alguien vuelve después de más de 6 horas, el primer aviso de la portada le cuenta lo nuevo (lanzamientos, Señal, transmisiones que se perdió y si hay alguna emitiendo). Para verlo: `tu-web/?demo=visita`.
-- **Manifiesto y contacto.** Los textos de esas secciones.
 
 **Compartir enlaces.** Cada lanzamiento, artista y edición de la Señal tiene su dirección, la que se ve en la barra del navegador: `tu-web/AU0212`, `tu-web/ufisi`, `tu-web/senal`, `tu-web/catalogo`. Al pegarla en WhatsApp, Instagram o X, la vista previa enseña la portada, la foto o la Señal que toca. Las portadas en JPG son las que mejor funcionan en esas vistas previas.
 
