@@ -392,6 +392,36 @@ img.retrato{aspect-ratio:1;width:100%;object-fit:cover;filter:grayscale(1) contr
 .firma{display:flex;align-items:center;gap:10px;font:500 11px/1 var(--f-mono);letter-spacing:.12em;color:#4a5060;text-transform:uppercase}
 .firma i{width:10px;height:10px;border-radius:50%;background:var(--azul)}.firma s{display:block;width:10px;height:10px;background:var(--rojo);text-decoration:none}
 .form{display:grid;gap:16px;max-width:640px}
+/* kit de prensa: una página-documento por artista y otra del sello, que también se imprime (o se guarda en PDF) limpia */
+.kit{display:grid;gap:26px;max-width:860px}
+.kit-cab{display:grid;grid-template-columns:minmax(160px,240px) minmax(0,1fr);gap:26px;align-items:start}
+.kit-cab .cod{font:500 11px/1.4 var(--f-mono);letter-spacing:.1em;color:#4a5060;text-transform:uppercase}
+.kit-cab h3{margin:6px 0 0;font:800 clamp(22px,2.6vw,34px)/1.05 var(--f-mono)}
+.kit-cab .rol{margin-top:6px;font:500 12px/1.4 var(--f-mono);letter-spacing:.08em;color:#3b4150;text-transform:uppercase}
+.kit .lead{margin:14px 0 0;font:400 17px/1.55 var(--f-texto);color:var(--tinta);max-width:60ch}
+.kit p{margin:10px 0 0;font:400 15px/1.65 var(--f-texto);max-width:66ch}
+.kit .sub2{margin-top:0}
+.kit-lista{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:6px;font:500 12.5px/1.45 var(--f-mono)}
+.kit-lista a{color:inherit}
+.kit-lista b{font-weight:800}
+.kit .logo{display:block;width:min(320px,70%);height:auto;margin:6px 0 0}
+.kit .isotipo{width:96px;height:96px;display:block;clip-path:var(--chaflan)}
+.kit .logos{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-top:10px;padding:18px;background:#e6e4dd}
+.kit .credito{font:500 10.5px/1.3 var(--f-mono);color:#6a6f7b;margin-top:6px}
+.kit .cifras{grid-template-columns:repeat(auto-fit,minmax(130px,1fr))}
+@media (max-width:600px){.kit-cab{grid-template-columns:1fr}}
+@media print{
+  @page{margin:16mm}
+  html,body{height:auto !important;overflow:visible !important;background:#fff !important}
+  body>*:not(#panel){display:none !important}
+  #panel{position:static !important;inset:auto !important;width:auto !important;height:auto !important;clip-path:none !important;box-shadow:none !important;background:#fff !important;animation:none !important;display:block !important}
+  #panel .panel-cuerpo{overflow:visible !important;padding:0 !important}
+  #panel .panel-cab{padding:0 0 12px !important}
+  #panel .panel-cab .tecla,#panel .no-imprime{display:none !important}
+  .kit{max-width:none}.kit section{break-inside:avoid}
+  .kit a{text-decoration:none;color:#000}
+  .kit .enlaces a.tecla::after{content:" · " attr(href);font-weight:400;letter-spacing:0;text-transform:none}
+}
 .caminos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;max-width:640px}
 .camino{appearance:none;border:0;cursor:pointer;text-align:left;display:grid;gap:6px;padding:14px 14px 13px;background:linear-gradient(180deg,#f4f3ef,#dfddd6);box-shadow:0 2px 0 #b3b0a8,0 3px 6px rgba(0,0,0,.12),inset 0 1px 0 #fff;color:var(--tinta);clip-path:var(--chaflan)}
 .camino .n{font:800 12px/1.2 var(--f-mono);letter-spacing:.08em;text-transform:uppercase}
@@ -2624,7 +2654,7 @@ function vistaArtista(a) {
   P.innerHTML = `<header class="panel-cab"><div><h2>${esc(a.n)}</h2><div class="sub">${esc(a.info.role || 'Artista')} · aurality</div></div><a class="tecla" href="#roster">← Roster</a></header>
     <div class="panel-cuerpo"><div class="fl">${foto(a)}<div class="datos">${bio}
       <div class="cifras"><div><span>${a.ps.length ? 'LANZ. · PART.' : 'REFERENCIAS'}</span><b>${a.rs.length}${a.ps.length ? ' · ' + a.ps.length : ''}</b></div><div><span>AÑOS</span><b>${anios(a)}</b></div><div><span>FORMATOS</span><b class="lst">${fmts}</b></div></div>
-      <div class="enlaces">${enl.map(([n, u]) => u ? `<a class="tecla" href="${esc(u)}" target="_blank" rel="noopener">${n} ↗</a>` : `<span class="tecla" aria-disabled="true">${n} · sin enlace</span>`).join('')}<a class="tecla oscura" href="#contacto" data-contrata="${esc(a.n)}">Contratar</a>
+      <div class="enlaces">${enl.map(([n, u]) => u ? `<a class="tecla" href="${esc(u)}" target="_blank" rel="noopener">${n} ↗</a>` : `<span class="tecla" aria-disabled="true">${n} · sin enlace</span>`).join('')}<a class="tecla oscura" href="#contacto" data-contrata="${esc(a.n)}">Contratar</a><a class="tecla" href="#kit-${a.s}">Kit de prensa</a>
         <a class="tecla oscura" href="#catalogo" id="verCat">Ver en el catálogo</a></div>
       ${a.colab.length ? `<div><div class="sub2">COLABORACIONES</div><div class="enlaces">${a.colab.map(c => esMiembro(c) ? `<a class="tecla" href="#a-${slug(c)}">× ${esc(c)}</a>` : `<span class="tecla" aria-disabled="true">× ${esc(c)}</span>`).join('')}</div></div>` : ''}
     </div></div>
@@ -2705,6 +2735,47 @@ function vistaManifiesto() {
       <p class="cierre">${esc(M.cierre || '')}</p><div class="firma"><i></i><s></s><span>aurality · Elda</span></div></article></div>`;
 }
 // ---------- contacto: enviar señal ----------
+// ---------- kit de prensa ----------
+// Uno por artista (/kit-ufisi) y otro del sello (/kit). Sale de lo que hay en el panel; lo que no está, no aparece.
+// «Imprimir / guardar PDF» deja solo el documento, limpio.
+const parrafos = t => String(t || '').split(/\n\s*\n/).map(x => x.trim()).filter(Boolean).map(x => `<p>${esc(x).replace(/\n/g, '<br>')}</p>`).join('');
+const hoyTxt = () => { const d = new Date(); return dos(d.getDate()) + '.' + dos(d.getMonth() + 1) + '.' + d.getFullYear(); };
+function vistaKit(a) {
+  const P = $('panel'), C = DATA.contacto || {}, K = DATA.kit || {};
+  const imprime = '<button class="tecla oscura" type="button" id="bImprime">Imprimir / guardar PDF</button>';
+  const contacto = C.email ? `<p>${a ? 'Contratación y prensa' : 'Prensa y contratación'}: <b class="dato">${esc(C.email)}</b>${C.instagram ? ` · Instagram @${esc(C.instagram.replace(/\/$/, '').split('/').pop())}` : ''}</p>` : '';
+  if (a) {
+    const i = a.info, larga = i.bio && !/por definir/i.test(i.bio) ? i.bio : '', corta = (i.bio_corta || '').trim() || (larga ? larga.split(/(?<=[.!?])\s/)[0] : '');
+    const fotos = (i.fotos_prensa || []).map(f => typeof f === 'string' ? { img: f, cr: '' } : { img: (f && f.imagen) || '', cr: (f && f.credito) || '' }).filter(f => f.img);
+    if (!fotos.length && i.photo) fotos.push({ img: i.photo, cr: '' });
+    const todos = [...a.rs, ...a.ps], generos = uniq(todos.map(r => r.genre).filter(g => g && g !== '—')).slice(0, 4).join(' · ');
+    const enl = [['Instagram', i.instagram], ['Spotify', i.spotify], ['SoundCloud', i.soundcloud]].filter(([, u]) => u);
+    P.innerHTML = `<header class="panel-cab"><div><h2>KIT DE PRENSA</h2><div class="sub">${esc(a.n)} · aurality · ${hoyTxt()}</div></div><a class="tecla" href="#a-${a.s}">← Perfil</a></header>
+      <div class="panel-cuerpo"><article class="kit">
+        <div class="kit-cab">${foto(a)}<div><div class="cod">ARTISTA · AURALITY${i.origen ? ' · ' + esc(i.origen) : ''}</div><h3>${esc(a.n)}</h3>${i.role ? `<div class="rol">${esc(i.role)}</div>` : ''}${corta ? `<p class="lead">${esc(corta)}</p>` : ''}</div></div>
+        <div class="cifras"><div><span>REFERENCIAS</span><b>${a.rs.length}${a.ps.length ? ' + ' + a.ps.length : ''}</b></div><div><span>AÑOS</span><b>${anios(a)}</b></div>${generos ? `<div><span>GÉNEROS</span><b class="x">${esc(generos)}</b></div>` : ''}</div>
+        ${larga ? `<section><div class="sub2">BIOGRAFÍA</div>${parrafos(larga)}</section>` : ''}
+        ${todos.length ? `<section><div class="sub2">DISCOGRAFÍA EN AURALITY</div><ul class="kit-lista">${todos.map(r => `<li><a href="#${r.code}"><b>${r.code}</b> · ${esc(r.artist)} — ${esc(titulo(r))} · ${esc(r.format)} · ${r.year}${a.ps.includes(r) ? ' · participación' : ''}</a></li>`).join('')}</ul></section>` : ''}
+        ${fotos.length ? `<section><div class="sub2">FOTOS DE PRENSA</div><div class="fotos">${fotos.map(f => `<a class="foto" href="${esc(f.img)}" download target="_blank" rel="noopener" aria-label="Descargar foto${f.cr ? ' · ' + esc(f.cr) : ''}"><img src="${esc(f.img)}" alt="${esc(a.n)}" loading="lazy"></a>`).join('')}</div>${fotos.some(f => f.cr) ? `<div class="credito">Fotos: ${esc(uniq(fotos.map(f => f.cr).filter(Boolean)).join(' · '))}</div>` : ''}</section>` : ''}
+        ${enl.length ? `<section><div class="sub2">ESCUCHAR Y SEGUIR</div><div class="enlaces">${enl.map(([n, u]) => `<a class="tecla" href="${esc(u)}" target="_blank" rel="noopener">${n} ↗</a>`).join('')}</div></section>` : ''}
+        <section><div class="sub2">MATERIAL Y CONTRATACIÓN</div>${contacto}<div class="enlaces">${i.kit_enlace ? `<a class="tecla" href="${esc(i.kit_enlace)}" target="_blank" rel="noopener">Fotos en alta y material ↗</a>` : ''}${i.rider ? `<a class="tecla" href="${esc(i.rider)}" target="_blank" rel="noopener">Rider técnico (PDF) ↗</a>` : ''}<a class="tecla oscura no-imprime" href="#contacto" data-contrata="${esc(a.n)}">Contratar</a><span class="no-imprime">${imprime}</span></div></section>
+      </article></div>`;
+  } else {
+    const anio0 = Math.min(...REL.map(r => +r.year).filter(Boolean)), M = DATA.manifiesto || {};
+    const texto = (K.texto || '').trim() || [M.titular, (M.parrafos || [])[0]].filter(Boolean).join('\n\n');
+    P.innerHTML = `<header class="panel-cab"><div><h2>KIT DE PRENSA</h2><div class="sub">El sello · aurality · ${hoyTxt()}</div></div><a class="tecla" href="#contacto">← Contacto</a></header>
+      <div class="panel-cuerpo"><article class="kit">
+        <div><img class="logo" src="img/lettering.png" alt="aurality" width="802" height="245"><div class="rol" style="margin-top:12px;font:500 12px/1.4 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:#3b4150">Sello y plataforma creativa · Elda</div>${texto ? `<div class="lead-bloque">${parrafos(texto).replace('<p>', '<p class="lead">')}</div>` : ''}</div>
+        <div class="cifras"><div><span>ARTISTAS</span><b>${ART.length}</b></div><div><span>REFERENCIAS</span><b>${REL.length}</b></div>${isFinite(anio0) ? `<div><span>DESDE</span><b>${anio0}</b></div>` : ''}<div><span>BASE</span><b>ELDA</b></div></div>
+        <section><div class="sub2">ROSTER</div><ul class="kit-lista">${ART.map(x => `<li><a href="#kit-${x.s}"><b>${esc(x.n)}</b>${x.info.role ? ' · ' + esc(x.info.role) : ''} · kit de prensa →</a></li>`).join('')}</ul></section>
+        <section><div class="sub2">ÚLTIMOS LANZAMIENTOS</div><ul class="kit-lista">${REL.slice(0, 6).map(r => `<li><a href="#${r.code}"><b>${r.code}</b> · ${esc(r.artist)} — ${esc(titulo(r))} · ${r.year}</a></li>`).join('')}</ul></section>
+        <section><div class="sub2">LOGOS</div><div class="logos"><a href="img/lettering.png" download="aurality-lettering.png"><img class="logo" src="img/lettering.png" alt="Lettering de aurality" style="width:220px"></a><a href="apple-touch-icon.png" download="aurality-isotipo.png"><img class="isotipo" src="apple-touch-icon.png" alt="Isotipo de aurality"></a></div>
+          <div class="credito no-imprime">Pulsa un logo para descargarlo. Úsalo tal cual: sin recomponer el lettering con otra tipografía.</div></section>
+        <section><div class="sub2">MATERIAL Y CONTACTO</div>${contacto}<div class="enlaces">${K.enlace ? `<a class="tecla" href="${esc(K.enlace)}" target="_blank" rel="noopener">Logos en alta y fotos ↗</a>` : ''}<a class="tecla oscura no-imprime" href="#contacto">Escribir</a><span class="no-imprime">${imprime}</span></div></section>
+      </article></div>`;
+  }
+  $('bImprime').onclick = () => print();
+}
 // ---------- contacto: tres caminos ----------
 // Demos, contratación y prensa: cada uno con su explicación (editable en el panel) y sus campos. Todo llega al correo
 // de contacto con el asunto ya marcado. Desde el perfil de un artista, «Contratar» abre este formulario con él elegido.
@@ -2714,6 +2785,7 @@ const CAMINOS = [
   { k: 'prensa', n: 'Prensa', d: 'Medios y entrevistas', intro: 'Entrevistas, reseñas, estrenos y material para medios. Te contestamos con lo que necesites.' },
 ];
 let caminoC = 0, artistaC = '';
+const kitDe = n => { const a = ART.find(x => x.n === n) || (n ? null : ART[0]); return a ? '#kit-' + a.s : '#kit'; };
 function vistaContacto() {
   const C = DATA.contacto || {}, cam = CAMINOS[caminoC], intro = (C['intro_' + cam.k] || '').trim() || cam.intro;
   const campo = (id, lbl, extra = '', tipo = 'text') => `<div class="campo"><label for="${id}">${lbl}</label><input id="${id}" type="${tipo}" ${extra}></div>`;
@@ -2734,7 +2806,7 @@ function vistaContacto() {
       <div class="trampa" aria-hidden="true"><label for="cBot">No rellenar</label><input id="cBot" tabindex="-1" autocomplete="off"></div>
       <div class="campo"><span class="err" id="cErr" role="alert"></span></div>
       <div class="enlaces"><button class="tecla oscura" type="submit">Enviar ${cam.k === 'demo' ? 'demo' : cam.k === 'contratacion' ? 'petición' : 'mensaje'}</button>
-        ${cam.k !== 'demo' ? `<span class="tecla" aria-disabled="true" title="En preparación">Kit de prensa${cam.k === 'contratacion' ? ' del artista' : ' del sello'} · pronto</span>` : ''}</div>
+        ${cam.k === 'contratacion' ? `<a class="tecla" id="kitArt" href="${kitDe(artistaC)}">Kit de prensa del artista</a>` : cam.k === 'prensa' ? '<a class="tecla" href="#kit">Kit de prensa del sello</a>' : ''}</div>
       ${C.nota && cam.k === 'demo' ? `<p class="bio pend">${esc(C.nota)}</p>` : ''}
     </form><div id="cListo"></div>
     <div class="sub2">DIRECTO</div><div class="enlaces">
@@ -2743,7 +2815,7 @@ function vistaContacto() {
     ${casillaAlta('altaC')}</div>`;
   montaAlta('altaC');
   $('panel').querySelectorAll('.camino').forEach(b => b.onclick = () => { caminoC = +b.dataset.i; vistaContacto(); });
-  if ($('cArt')) $('cArt').onchange = e => { artistaC = e.target.value; };
+  if ($('cArt')) $('cArt').onchange = e => { artistaC = e.target.value; $('kitArt').href = kitDe(artistaC); };
   const copiaEmail = $('cCopEmail'); if (copiaEmail) copiaEmail.onclick = () => navigator.clipboard.writeText(C.email).then(() => { copiaEmail.textContent = 'Copiado'; }, () => { const r = document.createRange(); r.selectNodeContents($('cEmail')); const s2 = getSelection(); s2.removeAllRanges(); s2.addRange(r); copiaEmail.textContent = 'Seleccionado'; });
   $('formC').onsubmit = e => {
     e.preventDefault();
@@ -2784,10 +2856,11 @@ function ruta(ev) {
   const h = porHash ? decodeURIComponent(location.hash.slice(1)) : deDireccion(decodeURIComponent(location.pathname.slice(1))), r = REL.find(x => x.code === h.toUpperCase());
   const art = h.startsWith('a-') && ART.find(a => a.s === h.slice(2));
   const sen = h === 'senal' ? SEN[0] : h.startsWith('s-') ? SEN.find(e => e.code === h.slice(2)) : null;
-  seccion = ['catalogo', 'roster', 'manifiesto', 'contacto', 'registro'].includes(h) ? h : sen ? 'senal' : r ? 'ficha' : art ? 'artista' : 'escucha';
-  const dir = '/' + (seccion === 'escucha' ? '' : seccion === 'ficha' ? r.code : seccion === 'artista' ? art.s : seccion === 'senal' ? (h === 'senal' ? 'senal' : 'senal-' + sen.code) : h);
+  const kitA = h.startsWith('kit-') ? ART.find(a => a.s === h.slice(4)) : null;
+  seccion = ['catalogo', 'roster', 'manifiesto', 'contacto', 'registro', 'kit'].includes(h) || kitA ? (kitA ? 'kit' : h) : sen ? 'senal' : r ? 'ficha' : art ? 'artista' : 'escucha';
+  const dir = '/' + (seccion === 'escucha' ? '' : seccion === 'ficha' ? r.code : seccion === 'artista' ? art.s : seccion === 'senal' ? (h === 'senal' ? 'senal' : 'senal-' + sen.code) : seccion === 'kit' ? (kitA ? 'kit-' + kitA.s : 'kit') : h);
   if (location.pathname + location.hash !== dir) try { history.replaceState(history.state, '', dir); } catch (e) {}
-  const navS = seccion === 'ficha' ? 'catalogo' : seccion === 'artista' ? 'roster' : seccion === 'registro' ? 'escucha' : seccion;
+  const navS = seccion === 'ficha' ? 'catalogo' : seccion === 'artista' ? 'roster' : seccion === 'registro' ? 'escucha' : seccion === 'kit' ? (kitA ? 'roster' : 'contacto') : seccion;
   document.querySelectorAll('.placa').forEach(p => p.setAttribute('aria-current', p.dataset.s === navS ? 'page' : 'false')); punta();
   $('menuN').textContent = NOMBRE[navS][0]; $('menuT').textContent = NOMBRE[navS][1];
   const lat = document.querySelector('.lateral'), vuelve = lat.hidden && seccion === 'escucha';
@@ -2795,9 +2868,9 @@ function ruta(ev) {
   document.querySelector('.estado').hidden = seccion !== 'escucha'; $('lema').hidden = seccion !== 'escucha';
   const P = $('panel'); P.hidden = seccion === 'escucha';
   if (radioPorSC) { radioPorSC = false; radio.encender().then(pintaPlay); }
-  if (seccion === 'catalogo') vistaCatalogo(); if (seccion === 'ficha') { vistaFicha(r); montaSC($('panel')); } if (seccion === 'roster') vistaRoster(); if (seccion === 'artista') vistaArtista(art); if (seccion === 'senal') { anioSen = sen.anio; vistaSenal(sen); } if (seccion === 'manifiesto') vistaManifiesto(); if (seccion === 'contacto') vistaContacto(); if (seccion === 'registro') vistaRegistro();
+  if (seccion === 'catalogo') vistaCatalogo(); if (seccion === 'ficha') { vistaFicha(r); montaSC($('panel')); } if (seccion === 'roster') vistaRoster(); if (seccion === 'artista') vistaArtista(art); if (seccion === 'senal') { anioSen = sen.anio; vistaSenal(sen); } if (seccion === 'manifiesto') vistaManifiesto(); if (seccion === 'contacto') vistaContacto(); if (seccion === 'registro') vistaRegistro(); if (seccion === 'kit') vistaKit(kitA);
   if (seccion !== 'escucha') { P.style.animation = 'none'; void P.offsetWidth; P.style.animation = ''; P.querySelector('.panel-cuerpo').scrollTop = 0; }
-  foco = ({ catalogo: 'p4', ficha: 'hero', roster: 'p3', artista: 'p3', senal: 'p2', registro: 'p2', manifiesto: 'hero', contacto: 'p5' })[seccion] || null;
+  foco = ({ catalogo: 'p4', ficha: 'hero', roster: 'p3', artista: 'p3', senal: 'p2', registro: 'p2', kit: 'hero', manifiesto: 'hero', contacto: 'p5' })[seccion] || null;
   mesSenal = seccion === 'senal' ? sen.mes : 0; tunePulse = 0.6;
 }
 // ---------- destacados de la portada ----------

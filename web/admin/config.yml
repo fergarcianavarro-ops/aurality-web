@@ -124,6 +124,19 @@ collections:
               - { name: instagram, label: Instagram, widget: string, required: false }
               - { name: spotify, label: Spotify, widget: string, required: false }
               - { name: soundcloud, label: SoundCloud, widget: string, required: false }
+              - { name: origen, label: "Kit de prensa · de dónde es", widget: string, required: false, hint: "Ciudad o zona, p. ej. ELDA · ALICANTE." }
+              - { name: bio_corta, label: "Kit de prensa · bio corta", widget: text, required: false, hint: "Una o dos frases para medios y carteles. Vacío = la primera frase de la biografía." }
+              - name: fotos_prensa
+                label: "Kit de prensa · fotos"
+                label_singular: foto
+                widget: list
+                required: false
+                hint: "Fotos para medios y promotores. Vacío = la foto del perfil."
+                fields:
+                  - { name: imagen, label: Foto, widget: image, choose_url: false }
+                  - { name: credito, label: Autor de la foto, widget: string, required: false }
+              - { name: kit_enlace, label: "Kit de prensa · enlace al material en alta", widget: string, required: false, hint: "Carpeta de Drive o Dropbox con fotos a máxima calidad, logos, etc." }
+              - { name: rider, label: "Kit de prensa · rider técnico (PDF)", widget: file, required: false, choose_url: false }
 
       # ---------------------------------------------------------------- señal mensual
       - name: senal
@@ -173,6 +186,13 @@ collections:
               - { name: intro_demo, label: "Texto de «Demos»", widget: text, required: false, hint: "Qué esperáis recibir y qué pasa después. Vacío = el texto de serie." }
               - { name: intro_contratacion, label: "Texto de «Contratación»", widget: text, required: false, hint: "Para promotores y festivales. Vacío = el texto de serie." }
               - { name: intro_prensa, label: "Texto de «Prensa»", widget: text, required: false, hint: "Para medios. Vacío = el texto de serie." }
+          - name: kit
+            label: Kit de prensa del sello
+            widget: object
+            required: false
+            fields:
+              - { name: texto, label: Texto del sello para medios, widget: text, required: false, hint: "Vacío = el titular y el primer párrafo del manifiesto." }
+              - { name: enlace, label: Enlace al material en alta, widget: string, required: false, hint: "Carpeta con logos en alta, fotos del sello, etc." }
           - name: manifiesto
             label: Manifiesto
             widget: object

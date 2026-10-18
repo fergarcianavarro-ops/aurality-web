@@ -7,7 +7,8 @@ const SECCIONES = {
   catalogo: ['Catálogo', 'El catálogo completo de aurality: lanzamientos y participaciones.'],
   roster: ['Roster', 'Los artistas de aurality.'],
   manifiesto: ['Manifiesto', 'Un sello no es un sonido. Es un criterio.'],
-  contacto: ['Contacto', 'Demos, contrataciones y prensa.'],
+  contacto: ['Contacto', 'Demos, contratación y prensa.'],
+  kit: ['Kit de prensa', 'El sello, el roster, los logos y el contacto de prensa de aurality.'],
 };
 const slug = a => String(a).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 const titulo = t => !t || /S\/T/.test(t) ? 'Sin título' : t;
@@ -33,7 +34,9 @@ async function tarjeta(env, origen, clave) {
     const e = k === 'senal' ? lista[0] : lista.find(x => x.code.toLowerCase() === k.slice(6));
     if (e) return { titulo: `Señal mensual ${e.code} · aurality`, texto: e.descripcion || 'La playlist mensual de aurality.', imagen: e.cover };
   }
-  const a = ((await json(env, origen, 'artistas.json')).artists || []).find(x => x && x.name && slug(x.name) === k);
+  const esKit = k.startsWith('kit-'), ks = esKit ? k.slice(4) : k;
+  const a = ((await json(env, origen, 'artistas.json')).artists || []).find(x => x && x.name && slug(x.name) === ks);
+  if (a && esKit) return { titulo: `${String(a.name).toUpperCase()} · kit de prensa · aurality`, texto: a.bio_corta || a.bio || [a.role, 'aurality'].filter(Boolean).join(' · '), imagen: a.photo };
   if (a) return { titulo: `${String(a.name).toUpperCase()} · aurality`, texto: a.bio || [a.role, 'aurality'].filter(Boolean).join(' · '), imagen: a.photo };
   return null;
 }
