@@ -392,6 +392,16 @@ img.retrato{aspect-ratio:1;width:100%;object-fit:cover;filter:grayscale(1) contr
 .firma{display:flex;align-items:center;gap:10px;font:500 11px/1 var(--f-mono);letter-spacing:.12em;color:#4a5060;text-transform:uppercase}
 .firma i{width:10px;height:10px;border-radius:50%;background:var(--azul)}.firma s{display:block;width:10px;height:10px;background:var(--rojo);text-decoration:none}
 .form{display:grid;gap:16px;max-width:640px}
+.caminos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;max-width:640px}
+.camino{appearance:none;border:0;cursor:pointer;text-align:left;display:grid;gap:6px;padding:14px 14px 13px;background:linear-gradient(180deg,#f4f3ef,#dfddd6);box-shadow:0 2px 0 #b3b0a8,0 3px 6px rgba(0,0,0,.12),inset 0 1px 0 #fff;color:var(--tinta);clip-path:var(--chaflan)}
+.camino .n{font:800 12px/1.2 var(--f-mono);letter-spacing:.08em;text-transform:uppercase}
+.camino .d{font:500 11px/1.3 var(--f-mono);color:#4a5060}
+.camino[aria-pressed="true"]{background:linear-gradient(180deg,#59627a,#3f4659);color:var(--letra-relieve);box-shadow:inset 0 2px 4px rgba(0,0,0,.35)}
+.camino[aria-pressed="true"] .d{color:#c9d0de}
+.camino:focus-visible{outline:2px solid var(--azul);outline-offset:2px}
+.intro{margin:16px 0 18px}
+.campo select{width:100%;box-sizing:border-box;border:0;padding:12px 13px;font:500 14px/1.4 var(--f-mono);background:#dcd9d1;box-shadow:inset 0 1px 3px rgba(0,0,0,.18);color:var(--tinta)}
+@media (max-width:520px){.caminos{grid-template-columns:1fr}.camino{grid-template-columns:auto 1fr;align-items:baseline;gap:12px}}
 .campo{display:grid;gap:7px}
 .campo label,.campo .lbl{font:700 10px/1 var(--f-mono);letter-spacing:.16em;color:#3b4150;text-transform:uppercase}
 .campo input,.campo textarea{width:100%;box-sizing:border-box;border:0;padding:12px 13px;font:500 14px/1.4 var(--f-mono);background:#dcd9d1;box-shadow:inset 0 1px 3px rgba(0,0,0,.18);color:var(--tinta)}
@@ -2604,6 +2614,7 @@ function mapaRed(C) {
     M.querySelectorAll('.nd').forEach((g, i) => g.firstElementChild.animate([{ transform: 'scale(0)' }, { transform: 'scale(1)' }], { duration: 380, delay: i * 55, easing: 'cubic-bezier(.3,1.6,.5,1)', fill: 'backwards' })); }
 }
 let rRed = 0; addEventListener('resize', () => { clearTimeout(rRed); rRed = setTimeout(() => { if (seccion === 'roster' && vistaR === 'red' && $('rosterC')) mapaRed($('rosterC')); }, 250); });
+document.addEventListener('click', e => { const c = e.target.closest('[data-contrata]'); if (c) { caminoC = 1; artistaC = c.dataset.contrata; } });
 function vistaArtista(a) {
   const bio = a.info.bio && !/por definir/i.test(a.info.bio) ? `<p class="bio">${esc(a.info.bio)}</p>` : '<p class="bio pend">Biografía por definir.</p>';
   const fmts = uniq([...a.rs, ...a.ps].map(r => r.format)).join(' · ');
@@ -2613,7 +2624,7 @@ function vistaArtista(a) {
   P.innerHTML = `<header class="panel-cab"><div><h2>${esc(a.n)}</h2><div class="sub">${esc(a.info.role || 'Artista')} · aurality</div></div><a class="tecla" href="#roster">← Roster</a></header>
     <div class="panel-cuerpo"><div class="fl">${foto(a)}<div class="datos">${bio}
       <div class="cifras"><div><span>${a.ps.length ? 'LANZ. · PART.' : 'REFERENCIAS'}</span><b>${a.rs.length}${a.ps.length ? ' · ' + a.ps.length : ''}</b></div><div><span>AÑOS</span><b>${anios(a)}</b></div><div><span>FORMATOS</span><b class="lst">${fmts}</b></div></div>
-      <div class="enlaces">${enl.map(([n, u]) => u ? `<a class="tecla" href="${esc(u)}" target="_blank" rel="noopener">${n} ↗</a>` : `<span class="tecla" aria-disabled="true">${n} · sin enlace</span>`).join('')}
+      <div class="enlaces">${enl.map(([n, u]) => u ? `<a class="tecla" href="${esc(u)}" target="_blank" rel="noopener">${n} ↗</a>` : `<span class="tecla" aria-disabled="true">${n} · sin enlace</span>`).join('')}<a class="tecla oscura" href="#contacto" data-contrata="${esc(a.n)}">Contratar</a>
         <a class="tecla oscura" href="#catalogo" id="verCat">Ver en el catálogo</a></div>
       ${a.colab.length ? `<div><div class="sub2">COLABORACIONES</div><div class="enlaces">${a.colab.map(c => esMiembro(c) ? `<a class="tecla" href="#a-${slug(c)}">× ${esc(c)}</a>` : `<span class="tecla" aria-disabled="true">× ${esc(c)}</span>`).join('')}</div></div>` : ''}
     </div></div>
@@ -2694,55 +2705,72 @@ function vistaManifiesto() {
       <p class="cierre">${esc(M.cierre || '')}</p><div class="firma"><i></i><s></s><span>aurality · Elda</span></div></article></div>`;
 }
 // ---------- contacto: enviar señal ----------
-const TIPOS = ['Demo', 'Prensa', 'Colaboración', 'Otro'];
-let tipoC = 0;
+// ---------- contacto: tres caminos ----------
+// Demos, contratación y prensa: cada uno con su explicación (editable en el panel) y sus campos. Todo llega al correo
+// de contacto con el asunto ya marcado. Desde el perfil de un artista, «Contratar» abre este formulario con él elegido.
+const CAMINOS = [
+  { k: 'demo', n: 'Demos', d: 'Mandar música', intro: 'Escuchamos todo lo que llega. Mándanos un enlace privado (SoundCloud, Drive, Dropbox), no archivos adjuntos: dos o tres temas bastan. Si encaja, te escribimos.' },
+  { k: 'contratacion', n: 'Contratación', d: 'Bolos, festivales, sesiones', intro: 'Para contratar a un artista de aurality o un showcase del sello. Cuéntanos fecha, ciudad y qué tienes en mente.' },
+  { k: 'prensa', n: 'Prensa', d: 'Medios y entrevistas', intro: 'Entrevistas, reseñas, estrenos y material para medios. Te contestamos con lo que necesites.' },
+];
+let caminoC = 0, artistaC = '';
 function vistaContacto() {
-  const C = DATA.contacto || {};
-  $('panel').innerHTML = `<header class="panel-cab"><div><h2>CONTACTO</h2><div class="sub">Enviar señal · demos, prensa y colaboraciones</div></div></header>
-    <div class="panel-cuerpo"><form class="form" id="formC" novalidate>
-      <div class="campo"><span class="lbl" id="lTipo">Tipo de señal</span><div class="tipos" role="group" aria-labelledby="lTipo">${TIPOS.map((t, i) => `<button type="button" class="tecla" id="tipo${i}" aria-pressed="${i === tipoC}">${t}</button>`).join('')}</div></div>
-      <div class="dos"><div class="campo"><label for="cNom">Nombre o proyecto</label><input id="cNom" autocomplete="name" required></div>
-        <div class="campo"><label for="cMail">Email</label><input id="cMail" type="email" autocomplete="email" required></div></div>
-      <div class="campo"><label for="cLink">Enlace (SoundCloud, Drive, Dropbox…)</label><input id="cLink" type="url" inputmode="url" placeholder="https://"></div>
-      <div class="campo"><label for="cMsg">Mensaje</label><textarea id="cMsg" required placeholder="Quién eres, qué nos mandas y por qué aurality."></textarea></div>
+  const C = DATA.contacto || {}, cam = CAMINOS[caminoC], intro = (C['intro_' + cam.k] || '').trim() || cam.intro;
+  const campo = (id, lbl, extra = '', tipo = 'text') => `<div class="campo"><label for="${id}">${lbl}</label><input id="${id}" type="${tipo}" ${extra}></div>`;
+  const campos = {
+    demo: `<div class="dos">${campo('cNom', 'Nombre o proyecto', 'autocomplete="name"')}${campo('cMail', 'Email', 'autocomplete="email"', 'email')}</div>
+      ${campo('cLink', 'Enlace a la música (privado)', 'inputmode="url" placeholder="https://"', 'url')}`,
+    contratacion: `<div class="dos">${campo('cNom', 'Nombre y promotora o sala', 'autocomplete="name"')}${campo('cMail', 'Email', 'autocomplete="email"', 'email')}</div>
+      <div class="dos"><div class="campo"><label for="cArt">Artista</label><select id="cArt">${[...ART.map(a => a.n), 'SHOWCASE AURALITY (VARIOS)'].map(n => `<option${n === artistaC ? ' selected' : ''}>${esc(n)}</option>`).join('')}</select></div>
+        ${campo('cFecha', 'Fecha (si la hay)', '', 'date')}</div>${campo('cCiudad', 'Ciudad y sala o festival')}`,
+    prensa: `<div class="dos">${campo('cNom', 'Nombre', 'autocomplete="name"')}${campo('cMedio', 'Medio')}</div>${campo('cMail', 'Email', 'autocomplete="email"', 'email')}`,
+  }[cam.k];
+  $('panel').innerHTML = `<header class="panel-cab"><div><h2>CONTACTO</h2><div class="sub">Enviar señal · demos, contratación y prensa</div></div></header>
+    <div class="panel-cuerpo">
+      <div class="caminos" role="group" aria-label="¿Qué nos quieres mandar?">${CAMINOS.map((c, i) => `<button class="camino" type="button" data-i="${i}" aria-pressed="${i === caminoC}"><span class="n">${String(i + 1).padStart(2, '0')} · ${c.n}</span><span class="d">${c.d}</span></button>`).join('')}</div>
+      <p class="bio intro">${esc(intro)}</p>
+      <form class="form" id="formC" novalidate>${campos}
+      <div class="campo"><label for="cMsg">Mensaje</label><textarea id="cMsg" required placeholder="${cam.k === 'demo' ? 'Quién eres, qué nos mandas y por qué aurality.' : cam.k === 'contratacion' ? 'Tipo de evento, horario, condiciones…' : 'Qué preparas y para cuándo.'}"></textarea></div>
       <div class="trampa" aria-hidden="true"><label for="cBot">No rellenar</label><input id="cBot" tabindex="-1" autocomplete="off"></div>
       <div class="campo"><span class="err" id="cErr" role="alert"></span></div>
-      <div><button class="tecla oscura" type="submit">Enviar señal</button></div>
-      <p class="bio pend">${esc(C.nota || '')}</p>
+      <div class="enlaces"><button class="tecla oscura" type="submit">Enviar ${cam.k === 'demo' ? 'demo' : cam.k === 'contratacion' ? 'petición' : 'mensaje'}</button>
+        ${cam.k !== 'demo' ? `<span class="tecla" aria-disabled="true" title="En preparación">Kit de prensa${cam.k === 'contratacion' ? ' del artista' : ' del sello'} · pronto</span>` : ''}</div>
+      ${C.nota && cam.k === 'demo' ? `<p class="bio pend">${esc(C.nota)}</p>` : ''}
     </form><div id="cListo"></div>
     <div class="sub2">DIRECTO</div><div class="enlaces">
       ${C.email ? `<span class="tecla">Email · <span class="dato" id="cEmail">${esc(C.email)}</span></span><button class="tecla oscura" type="button" id="cCopEmail">Copiar email</button>` : '<span class="tecla" aria-disabled="true">Email · por definir</span>'}
       ${C.instagram ? `<a class="tecla" href="${esc(C.instagram)}" target="_blank" rel="noopener">Instagram · @${esc(C.instagram.replace(/\/$/, '').split('/').pop())} ↗</a>` : '<span class="tecla" aria-disabled="true">Instagram · por definir</span>'}</div>
     ${casillaAlta('altaC')}</div>`;
   montaAlta('altaC');
+  $('panel').querySelectorAll('.camino').forEach(b => b.onclick = () => { caminoC = +b.dataset.i; vistaContacto(); });
+  if ($('cArt')) $('cArt').onchange = e => { artistaC = e.target.value; };
   const copiaEmail = $('cCopEmail'); if (copiaEmail) copiaEmail.onclick = () => navigator.clipboard.writeText(C.email).then(() => { copiaEmail.textContent = 'Copiado'; }, () => { const r = document.createRange(); r.selectNodeContents($('cEmail')); const s2 = getSelection(); s2.removeAllRanges(); s2.addRange(r); copiaEmail.textContent = 'Seleccionado'; });
-  TIPOS.forEach((_, i) => $('tipo' + i).onclick = () => { tipoC = i; TIPOS.forEach((__, j) => $('tipo' + j).setAttribute('aria-pressed', j === i)); });
   $('formC').onsubmit = e => {
     e.preventDefault();
-    const nom = $('cNom').value.trim(), mail = $('cMail').value.trim(), link = $('cLink').value.trim(), msg = $('cMsg').value.trim();
-    const falta = !nom ? 'Falta el nombre o proyecto.' : !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail) ? 'El email no parece válido.' : link && !/^https?:\/\//.test(link) ? 'El enlace tiene que empezar por https://' : !msg ? 'Falta el mensaje.' : '';
+    const v = id => ($(id) ? $(id).value.trim() : ''), nom = v('cNom'), mail = v('cMail'), msg = v('cMsg'), link = v('cLink'), medio = v('cMedio'), art = v('cArt'), fecha = v('cFecha'), ciudad = v('cCiudad');
+    const falta = !nom ? 'Falta el nombre.' : !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(mail) ? 'El email no parece válido.'
+      : cam.k === 'demo' && !/^https?:\/\/\S+/.test(link) ? 'Falta el enlace a la música (tiene que empezar por https://).'
+      : cam.k === 'prensa' && !medio ? 'Falta el medio.' : !msg ? 'Falta el mensaje.' : '';
     $('cErr').textContent = falta; if (falta) return;
-    const texto = `[${TIPOS[tipoC].toUpperCase()}] ${nom}\n${mail}${link ? '\n' + link : ''}\n\n${msg}`;
-    const boton = $('formC').querySelector('button[type=submit]');
+    const datos = { camino: cam.n, nombre: nom, email: mail, ...(cam.k === 'demo' ? { enlace: link } : {}), ...(cam.k === 'contratacion' ? { artista: art, fecha: fecha || '—', lugar: ciudad || '—' } : {}), ...(cam.k === 'prensa' ? { medio } : {}), mensaje: msg };
+    const asunto = `aurality · ${cam.n.toUpperCase()} · ${cam.k === 'contratacion' ? art + ' · ' : cam.k === 'prensa' ? medio + ' · ' : ''}${nom}`;
+    const texto = asunto + '\n' + Object.entries(datos).filter(([k]) => k !== 'mensaje' && k !== 'camino').map(([k, x]) => `${k}: ${x}`).join('\n') + '\n\n' + msg;
+    const boton = $('formC').querySelector('button[type=submit]'), etiqueta = boton.textContent;
     const copia = (titulo, txt) => {
-    $('cListo').innerHTML = `<div class="listo" role="status"><b class="dato">${titulo}</b>
-      <span class="bio">${txt}</span>
-      <pre id="cTexto">${esc(texto)}</pre><div><button class="tecla" id="cCopiar" type="button">Copiar mensaje</button></div></div>`;
-    $('cCopiar').onclick = () => navigator.clipboard.writeText(texto).then(() => { $('cCopiar').textContent = 'Copiado'; }, () => { const r = document.createRange(); r.selectNodeContents($('cTexto')); const s2 = getSelection(); s2.removeAllRanges(); s2.addRange(r); $('cCopiar').textContent = 'Selecciónalo y copia'; });
-    $('cListo').scrollIntoView({ block: 'nearest' });
+      $('cListo').innerHTML = `<div class="listo" role="status"><b class="dato">${titulo}</b><span class="bio">${txt}</span><pre id="cTexto">${esc(texto)}</pre><div><button class="tecla" id="cCopiar" type="button">Copiar mensaje</button></div></div>`;
+      $('cCopiar').onclick = () => navigator.clipboard.writeText(texto).then(() => { $('cCopiar').textContent = 'Copiado'; }, () => { const r = document.createRange(); r.selectNodeContents($('cTexto')); const s2 = getSelection(); s2.removeAllRanges(); s2.addRange(r); $('cCopiar').textContent = 'Selecciónalo y copia'; });
+      $('cListo').scrollIntoView({ block: 'nearest' });
     };
     const aMano = C.email ? `Cópiala y envíala a <span class="dato">${esc(C.email)}</span>.` : 'Copia el mensaje y envíalo por Instagram.';
-    if (!DESPLEGADO) { copia('Señal preparada', aMano); return; }
+    if (!DESPLEGADO || !C.email) { copia('Señal preparada', aMano); return; }
     boton.disabled = true; boton.textContent = 'Enviando…';
-    // el mensaje llega al correo de contacto a través de FormSubmit (gratis, sin cuenta; la primera vez pide activar el formulario desde ese correo)
-    if (!C.email) { copia('Señal preparada', aMano); boton.disabled = false; boton.textContent = 'Enviar señal'; return; }
+    // llega al correo de contacto a través de FormSubmit (la primera vez pide activar el formulario desde ese correo)
     fetch('https://formsubmit.co/ajax/' + encodeURIComponent(C.email), { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-      body: JSON.stringify({ _subject: `aurality · ${TIPOS[tipoC]} · ${nom}`, _template: 'table', _captcha: 'false', _honey: $('cBot').value, _replyto: mail,
-        tipo: TIPOS[tipoC], nombre: nom, email: mail, enlace: link || '—', mensaje: msg }) })
+      body: JSON.stringify({ _subject: asunto, _template: 'table', _captcha: 'false', _honey: $('cBot').value, _replyto: mail, ...datos }) })
       .then(res => res.json().catch(() => ({}))).then(d => { if (String(d.success) !== 'true') throw new Error(d.message || 'error');
         $('formC').reset(); $('cListo').innerHTML = '<div class="listo" role="status"><b class="dato">Señal enviada</b><span class="bio">Ha llegado a aurality. Gracias por escribir.</span></div>'; $('cListo').scrollIntoView({ block: 'nearest' }); })
       .catch(() => copia('No se ha podido enviar', 'Ha fallado la conexión. ' + aMano))
-      .finally(() => { boton.disabled = false; boton.textContent = 'Enviar señal'; });
+      .finally(() => { boton.disabled = false; boton.textContent = etiqueta; });
   };
 }
 let seccion = 'escucha', foco = null, mesSenal = 0;

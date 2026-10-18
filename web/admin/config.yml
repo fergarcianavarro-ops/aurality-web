@@ -169,7 +169,10 @@ collections:
             fields:
               - { name: email, label: Email, widget: string }
               - { name: instagram, label: Instagram (enlace), widget: string }
-              - { name: nota, label: Nota bajo el formulario, widget: string, required: false }
+              - { name: nota, label: Nota bajo el formulario de demos, widget: string, required: false }
+              - { name: intro_demo, label: "Texto de «Demos»", widget: text, required: false, hint: "Qué esperáis recibir y qué pasa después. Vacío = el texto de serie." }
+              - { name: intro_contratacion, label: "Texto de «Contratación»", widget: text, required: false, hint: "Para promotores y festivales. Vacío = el texto de serie." }
+              - { name: intro_prensa, label: "Texto de «Prensa»", widget: text, required: false, hint: "Para medios. Vacío = el texto de serie." }
           - name: manifiesto
             label: Manifiesto
             widget: object
