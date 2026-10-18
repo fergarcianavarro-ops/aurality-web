@@ -261,7 +261,7 @@ body{background:linear-gradient(180deg,var(--cielo-1) 0%,var(--cielo-2) 72%);col
 .desp{position:absolute;left:0;right:0;top:calc(100% + 6px);z-index:5;background:#f3f2ee;box-shadow:0 12px 28px rgba(30,40,60,.28);padding:10px}
 .desp input{width:100%;box-sizing:border-box;border:0;padding:11px 12px;font:500 13px/1 var(--f-mono);background:#dcd9d1;box-shadow:inset 0 1px 3px rgba(0,0,0,.18);color:var(--tinta)}
 .desp input:focus-visible{outline:2px solid var(--azul);outline-offset:0}
-.desp ul{list-style:none;margin:8px 0 0;padding:0;max-height:248px;overflow:auto;overscroll-behavior:contain}
+.desp ul{list-style:none;margin:8px 0 0;padding:0;max-height:min(248px,38vh);overflow:auto;overscroll-behavior:contain}
 .desp li{display:flex;justify-content:space-between;gap:12px;padding:10px;font:700 12px/1.2 var(--f-mono);letter-spacing:.02em;cursor:pointer;border-bottom:1px solid #dedbd3}
 .desp li span:last-child{color:#6a6f7b;font-weight:500}
 .desp li.act,.desp li:hover{background:#e3e1da}
@@ -481,10 +481,10 @@ iframe.vid{display:block;width:100%;aspect-ratio:16/9;border:0;margin-top:8px;ba
 .foto img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s cubic-bezier(.2,.7,.2,1)}
 .foto:hover img{transform:scale(1.04)}
 .foto:focus-visible{outline:2px solid var(--azul);outline-offset:2px}
-.visor{position:fixed;inset:0;z-index:40;display:grid;align-content:center;justify-items:center;gap:12px;padding:20px;background:rgba(14,15,18,.9);animation:aparece .25s}
-.visor img{max-width:100%;max-height:76vh;object-fit:contain;display:block}
-.visor .pie{font:500 11.5px/1.4 var(--f-mono);letter-spacing:.08em;color:#eef1f6;text-align:center}
-.visor .bts{display:flex;gap:8px}
+.visorfoto{position:fixed;inset:0;z-index:40;display:grid;align-content:center;justify-items:center;gap:12px;padding:20px;background:rgba(14,15,18,.9);animation:aparece .25s}
+.visorfoto img{max-width:100%;max-height:76vh;object-fit:contain;display:block}
+.visorfoto .pie{font:500 11.5px/1.4 var(--f-mono);letter-spacing:.08em;color:#eef1f6;text-align:center}
+.visorfoto .bts{display:flex;gap:8px}
 .ref .marca.sello{background:var(--rojo)}
 .creditos th{text-align:left;font:700 9.5px/1 var(--f-mono);letter-spacing:.16em;color:#6a6f7b;padding:9px 12px 9px 0;width:110px;border-bottom:1px solid #c9c6be;font-weight:700}
 .creditos td{padding:9px 0;border-bottom:1px solid #c9c6be}
@@ -2289,7 +2289,8 @@ function montaSelector(el) {
       : '<li class="nada">Sin resultados</li>';
     ul.querySelector('.act')?.scrollIntoView({ block: 'nearest' });
   };
-  const abrir = v => { desp.hidden = !v; vis.setAttribute('aria-expanded', v); if (v) { inp.value = ''; act = 0; lista(); inp.focus(); } };
+  const abrir = v => { desp.hidden = !v; vis.setAttribute('aria-expanded', v); if (v) { inp.value = ''; act = 0; lista(); inp.focus({ preventScroll: true });
+    requestAnimationFrame(() => desp.scrollIntoView({ block: 'nearest', behavior: sinMov.matches ? 'auto' : 'smooth' })); } };   // que la lista entera quede a la vista dentro del panel
   const elegir = j => { sel[i] = j; abrir(false); vis.focus(); pintaFaders(); pintaResultados(); };
   vis.onclick = () => abrir(desp.hidden);
   inp.oninput = () => { act = 0; lista(); };
@@ -2531,7 +2532,7 @@ function extrasFicha(r) {
   return hist || vid || fotos ? `<div class="extra">${hist}${vid}${fotos}</div>` : '';
 }
 function visor(fotos, i) {
-  const V = document.createElement('div'); V.className = 'visor'; V.setAttribute('role', 'dialog'); V.setAttribute('aria-modal', 'true'); V.setAttribute('aria-label', 'Fotos');
+  const V = document.createElement('div'); V.className = 'visorfoto'; V.setAttribute('role', 'dialog'); V.setAttribute('aria-modal', 'true'); V.setAttribute('aria-label', 'Fotos');
   const pinta = () => { const f = fotos[i]; V.innerHTML = `<img src="${esc(f.img)}" alt="${esc(f.pie)}"><div class="pie">${String(i + 1).padStart(2, '0')} / ${String(fotos.length).padStart(2, '0')}${f.pie ? ' · ' + esc(f.pie) : ''}</div>
     <div class="bts">${fotos.length > 1 ? '<button class="tecla" data-a="-1" aria-label="Anterior">←</button><button class="tecla" data-a="1" aria-label="Siguiente">→</button>' : ''}<button class="tecla oscura" data-a="x">Cerrar</button></div>`; V.querySelector('[data-a="x"]').focus(); };
   const mueve = d => { i = (i + d + fotos.length) % fotos.length; pinta(); }, cierra = () => { V.remove(); removeEventListener('keydown', tecla); };
