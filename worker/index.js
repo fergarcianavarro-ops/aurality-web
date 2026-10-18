@@ -68,7 +68,7 @@ const comoJson = o => new Response(JSON.stringify(o), { headers: { ...sinCache, 
 const sinSenal = () => new Response('Sin señal', { status: 404, headers: { ...sinCache, 'content-type': 'text/plain; charset=utf-8' } });
 async function portero(peticion, env, url) {
   const [, que, id] = url.pathname.split('/').filter(Boolean), ahora = Date.now(), lista = await transmisiones(env, url.origin);
-  if (que === 'activas' && !id) return comoJson(lista.filter(t => emite(t, ahora)).map(t => ({ id: t.id, f: t.f })));
+  if (que === 'activas' && !id) return comoJson(lista.filter(t => emite(t, ahora)).map(t => ({ id: t.id, f: t.f, ...(t.bienvenida ? { b: 1 } : {}) })));
   if (que === 'registro' && !id) return comoJson(lista.filter(t => !t.bienvenida && t.hasta <= ahora).sort((a, b) => b.hasta - a.hasta)
     .map(t => ({ id: t.id, f: t.f, desde: t.dDesde, hasta: t.dHasta, noche: t.noche })));
   const t = id && lista.find(x => x.id === decodeURIComponent(id).toUpperCase());

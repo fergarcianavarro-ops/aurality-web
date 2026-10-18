@@ -62,6 +62,17 @@ body{background:linear-gradient(180deg,var(--cielo-1) 0%,var(--cielo-2) 72%);col
 
 /* ---------- tarjetas sobre la escena ---------- */
 .lateral{position:fixed;right:28px;bottom:132px;z-index:6;width:min(360px,34vw);display:flex;flex-direction:column;gap:14px}
+/* frase de entrada: qué es esto, sin encasillar */
+.lema{position:fixed;top:26px;left:calc(var(--faja-w) + 34px);z-index:5;display:grid;gap:9px;pointer-events:none;max-width:min(44vw,520px);animation:aparece 1.2s .6s backwards}
+.lema[hidden]{display:none}
+.lema .k{font:700 10px/1.25 var(--f-mono);letter-spacing:.2em;text-transform:uppercase;color:#2b3242}
+.lema .t{font:400 15px/1.35 var(--f-display);letter-spacing:.05em;color:var(--tinta);text-wrap:balance}
+.lema span{text-shadow:0 0 10px rgba(205,214,228,.95),0 0 3px rgba(205,214,228,.9)}
+/* desde tu última visita: un aviso más de la pila */
+.nota .nov{list-style:none;margin:0;padding:0;display:grid;gap:9px}
+.nota .nov li{display:flex;align-items:baseline;gap:10px;font:500 12.5px/1.4 var(--f-mono);letter-spacing:.02em}
+.nota .nov li i{flex:none;width:7px;height:7px;border-radius:50%;transform:translateY(-1px);background:radial-gradient(circle at 36% 30%,#b9ccff 0 8%,#4d78ff 30%,#2346d8 70%,#1a2f9e 100%);box-shadow:0 0 6px rgba(80,130,255,.7)}
+.nota .nov a{color:inherit;text-decoration:underline;text-decoration-color:rgba(238,241,246,.35);text-underline-offset:3px}
 /* AU-06 · lo próximo: un aparatito digital con pantalla (arriba a la derecha en Escucha; en móvil, una tarjeta más del carrusel) */
 .proximo{position:fixed;top:68px;right:28px;z-index:6;width:min(340px,32vw);box-sizing:border-box;background:linear-gradient(180deg,#ebe9e3,#d5d3cc);clip-path:var(--chaflan);
   padding:9px 12px 12px;display:grid;gap:9px;box-shadow:inset 0 1px 0 #fff,inset 0 -2px 0 rgba(0,0,0,.07);animation:proxEntra .7s cubic-bezier(.2,.7,.2,1) .2s backwards}
@@ -472,6 +483,7 @@ iframe.sc{width:100%;height:166px;border:0;display:block;background:#d9d6ce}
   .velo{display:block;position:fixed;inset:0;z-index:12;background:rgba(18,24,36,.42);opacity:0;pointer-events:none;transition:opacity .35s}
   .velo.on{opacity:1;pointer-events:auto}
   .proximo{position:relative;top:auto;right:auto;width:auto;order:1;animation:none;align-self:stretch;align-content:start}
+  .lema{top:calc(84px + env(safe-area-inset-top,0px));left:18px;right:18px;max-width:none;gap:6px}.lema .k{font-size:9px}.lema .t{font-size:13px}
   .proximo.activo{order:-1}.lateral .senal{order:2}
   .lateral{left:0;right:0;width:auto;bottom:calc(150px + env(safe-area-inset-bottom,0px));flex-direction:row;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;
     padding-inline:max(12px,env(safe-area-inset-left,0px)) max(12px,env(safe-area-inset-right,0px));scrollbar-width:none;scroll-padding-inline:12px}
@@ -602,6 +614,8 @@ iframe.sc{width:100%;height:166px;border:0;display:block;background:#d9d6ce}
   <span class="testigo rojo on" id="tRojo" title="Testigo rojo: lanzamiento destacado"></span>
   <div class="codigo-mes"><span>SEÑAL 10_26</span><small>MES 10/12</small></div>
 </nav>
+
+<div class="lema" id="lema"><span class="k">Sello y plataforma creativa · Elda</span><span class="t" id="lemaT">Un sello no es un sonido. Es un criterio.</span></div>
 
 <div class="estado" aria-live="polite">
   <span>AU-00 · Receptor<br><b id="estadoTxt">En espera</b></span>
@@ -2419,7 +2433,7 @@ function ruta(ev) {
   $('menuN').textContent = NOMBRE[navS][0]; $('menuT').textContent = NOMBRE[navS][1];
   const lat = document.querySelector('.lateral'), vuelve = lat.hidden && seccion === 'escucha';
   lat.hidden = seccion !== 'escucha'; if (vuelve) lat.scrollLeft = 0;                    // en el móvil, empieza siempre por el primer destacado
-  document.querySelector('.estado').hidden = seccion !== 'escucha';
+  document.querySelector('.estado').hidden = seccion !== 'escucha'; $('lema').hidden = seccion !== 'escucha';
   const P = $('panel'); P.hidden = seccion === 'escucha';
   if (radioPorSC) { radioPorSC = false; radio.encender().then(pintaPlay); }
   if (seccion === 'catalogo') vistaCatalogo(); if (seccion === 'ficha') { vistaFicha(r); montaSC($('panel')); } if (seccion === 'roster') vistaRoster(); if (seccion === 'artista') vistaArtista(art); if (seccion === 'senal') { anioSen = sen.anio; vistaSenal(sen); } if (seccion === 'manifiesto') vistaManifiesto(); if (seccion === 'contacto') vistaContacto(); if (seccion === 'registro') vistaRegistro();
@@ -2433,9 +2447,46 @@ function ruta(ev) {
 const DEST = (() => { const rec = REL.filter(r => r.fecha && Date.now() - new Date(r.fecha + 'T00:00:00') < 7 * 864e5);      // lo recién salido entra solo
   const d = uniq([...rec, ...REL.filter(r => r.destacado)]).slice(0, 3); return d.length ? d : REL.slice(0, 1); })();
 const cerrados = (() => { try { return JSON.parse(sessionStorage.getItem('au-cerrados') || '[]'); } catch (e) { return []; } })();
+// ---------- desde tu última visita ----------
+// La web recuerda (solo en este navegador) cuándo viniste y qué había. Si han pasado más de 6 horas, el primer aviso
+// de la pila cuenta qué ha cambiado: lanzamientos nuevos, Señal nueva y transmisiones que se emitieron mientras tanto.
+// Para verlo sin esperar: ?demo=visita
+const NOV = (() => {
+  const ahora = Date.now(), demo = (() => { try { return new URLSearchParams(location.search).get('demo') === 'visita'; } catch (e) { return false; } })();
+  let ses = null; try { ses = JSON.parse(sessionStorage.getItem('au-novedades') || 'null'); } catch (e) {}
+  if (ses && !demo) return ses;
+  let prev = null; try { prev = JSON.parse(localStorage.getItem('au-visita') || 'null'); } catch (e) {}
+  try { localStorage.setItem('au-visita', JSON.stringify({ t: ahora, rel: REL.map(r => r.code), sen: SEN[0] ? SEN[0].code : '' })); } catch (e) {}
+  if (demo) prev = { t: ahora - 12 * 864e5, rel: REL.slice(1).map(r => r.code), sen: '—' };
+  if (!prev || !prev.t || ahora - prev.t < 6 * 36e5) return null;
+  const n = { desde: prev.t, nuevos: REL.filter(r => !(prev.rel || []).includes(r.code)).map(r => r.code).slice(0, 3),
+    sen: SEN[0] && prev.sen && SEN[0].code !== prev.sen ? SEN[0].code : null, emitidas: 0, ahora: 0, demo };
+  try { sessionStorage.setItem('au-novedades', JSON.stringify(n)); } catch (e) {}
+  return n;
+})();
+async function novedadesTX() {                                                      // las transmisiones solo las sabe el portero
+  if (!NOV) return;
+  let pasadas = []; if (DESPLEGADO) try { const r = await fetch('/tx/registro', { cache: 'no-store' }); if (r.ok) pasadas = await r.json(); } catch (e) {}
+  const emitidas = pasadas.filter(p => new Date(p.hasta).getTime() > NOV.desde).length + (NOV.demo ? 2 : 0), ahora = TXS.filter(t => !t.b).length + (NOV.demo ? 1 : 0);
+  if (emitidas === NOV.emitidas && ahora === NOV.ahora) return;
+  NOV.emitidas = emitidas; NOV.ahora = ahora; try { sessionStorage.setItem('au-novedades', JSON.stringify(NOV)); } catch (e) {}
+  if (!cerrados.includes('visita')) pintaAvisos();
+}
+const haceTxt = ms => { const h = Math.round(ms / 36e5), d = Math.round(ms / 864e5); return h < 36 ? plural(h, 'hora', 'horas') : d < 60 ? plural(d, 'día', 'días') : plural(Math.round(d / 30), 'mes', 'meses'); };
+function notaVisita() {
+  if (!NOV || cerrados.includes('visita')) return '';
+  const li = [...NOV.nuevos.map(c => { const r = REL.find(x => x.code === c); return r ? `<li><i></i><a href="#${r.code}">Nuevo · ${r.code} · ${esc(r.artist)} — ${esc(titulo(r))}</a></li>` : ''; }),
+    NOV.sen ? `<li><i></i><a href="#senal">Señal ${esc(NOV.sen)} en antena</a></li>` : '',
+    NOV.emitidas ? `<li><i></i><a href="#registro">${NOV.emitidas === 1 ? 'Se emitió una transmisión' : `Se emitieron ${NOV.emitidas} transmisiones`} mientras no estabas</a></li>` : '',
+    NOV.ahora ? `<li><i></i><span>${NOV.ahora === 1 ? 'Hay una transmisión' : `Hay ${NOV.ahora} transmisiones`} emitiendo ahora mismo, en algún punto del dial</span></li>` : ''].filter(Boolean);
+  if (!li.length) return '';
+  return `<article class="ficha nota visita" data-c="visita" aria-label="Desde tu última visita">
+      <div class="eti"><span>Desde tu última visita · hace ${haceTxt(Date.now() - NOV.desde)}</span><span class="der"><button class="cierra" aria-label="Cerrar aviso">×</button></span></div>
+      <ul class="nov">${li.join('')}</ul></article>`;
+}
 function pintaAvisos() {
   const A = $('notas'), vivos = DEST.filter(r => !cerrados.includes(r.code));
-  A.innerHTML = vivos.map((r, o) => `<article class="ficha nota" data-c="${r.code}" style="--o:${o}" aria-label="${o ? 'Lanzamiento destacado' : 'Último lanzamiento destacado'}: ${esc(r.artist)}">
+  A.innerHTML = notaVisita() + vivos.map((r, o) => `<article class="ficha nota" data-c="${r.code}" style="--o:${o}" aria-label="${o ? 'Lanzamiento destacado' : 'Último lanzamiento destacado'}: ${esc(r.artist)}">
       <div class="eti"><span>${r === REL[0] ? 'Último lanzamiento' : 'Lanzamiento'}</span><span class="der"><span class="dest"><i></i>Destacado</span><button class="cierra" aria-label="Cerrar aviso">×</button></span></div>
       <div class="cuerpo">${r.cover ? `<img src="${esc(r.cover)}" alt="Portada de ${esc(r.title)}" width="96" height="96">` : `<span class="placa-cod" style="width:96px;height:96px;display:grid;place-items:center;background:#2c3242;font:700 11px var(--f-mono)">${r.code}</span>`}
         <div><div class="cod">${r.code} · ${esc(r.format)} · ${r.year}</div><div class="art">${esc(r.artist)}</div><div class="tit">${esc(titulo(r))}</div></div></div>
@@ -2538,8 +2589,9 @@ function tocaFragmento() {
   audioFrag.play().then(() => { if (b) b.textContent = b.textContent.replace('▶', '■'); }).catch(vuelve);
 }
 pintaProximo(); setInterval(() => { if (seccion === 'escucha' && !document.hidden) pintaProximo(); }, 1000);
-cargaTX(); setInterval(cargaTX, 5 * 60 * 1000);                                    // transmisiones que emiten ahora (frecuencias, nada más)
+cargaTX().then(novedadesTX); setInterval(cargaTX, 5 * 60 * 1000);                                    // transmisiones que emiten ahora (frecuencias, nada más)
 pintaAvisos();
+if ((DATA.manifiesto || {}).titular) $('lemaT').textContent = DATA.manifiesto.titular;
 addEventListener('hashchange', ruta);
 addEventListener('popstate', () => { if (!location.hash) ruta(); });   // atrás / adelante entre direcciones limpias
 ruta();
