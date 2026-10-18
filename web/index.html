@@ -148,6 +148,13 @@ body{background:linear-gradient(180deg,var(--cielo-1) 0%,var(--cielo-2) 72%);col
 .casillas button.c00[aria-pressed="true"]{background:var(--tinta)}
 .ahora .s a{color:inherit;text-decoration:underline;text-decoration-color:rgba(74,80,96,.4);text-underline-offset:2px}
 .ahora .s a:hover{color:var(--tinta)}
+.tira00{position:fixed;z-index:8;box-sizing:border-box;padding:10px 12px 12px;background:linear-gradient(180deg,#59627a,#3f4659);clip-path:var(--chaflan);
+  display:grid;gap:8px;opacity:0;transform:translateY(8px);pointer-events:none;transition:opacity .3s,transform .3s;left:-9999px;width:300px}
+.tira00.on{opacity:1;transform:none;pointer-events:auto}
+.tira00 .k{display:flex;align-items:center;gap:8px;font:700 10px/1.2 var(--f-mono);letter-spacing:.16em;color:var(--letra-relieve)}
+.tira00 .k i{width:7px;height:7px;border-radius:50%;background:radial-gradient(circle at 36% 30%,#b9ccff 0 8%,#4d78ff 30%,#2346d8 70%,#1a2f9e 100%);box-shadow:0 0 6px rgba(60,110,255,.7);animation:parpadea 1.1s steps(2) infinite}
+@keyframes parpadea{50%{opacity:.25}}
+.tira00 iframe{display:block;width:100%;height:20px;border:0}
 .sc00{position:fixed;left:0;bottom:0;width:2px;height:2px;border:0;opacity:.01;pointer-events:none;z-index:-1}
 /* la pletina se adapta a su propio ancho (clases que pone un ResizeObserver): media → casillas y huecos más pequeños; estrecha → sin vúmetro */
 .pletina.p-m{gap:18px;padding:0 20px}
@@ -561,6 +568,8 @@ iframe.sc{width:100%;height:166px;border:0;display:block;background:#d9d6ce}
     <div class="casillas" id="casillas" role="group" aria-label="Elegir canal"></div>
   </div>
 </section>
+
+<div class="tira00" id="tira00" aria-hidden="true" role="region" aria-label="Canal 00 · SoundCloud"><div class="k"><i></i>CANAL 00 · TOCA ▶ PARA SINTONIZAR</div><div class="f" id="tira00f"></div></div>
 
 <div class="encendido" id="encendido">
   <div class="mando">
@@ -2026,20 +2035,27 @@ function cargaSC() { return scApi || (scApi = new Promise((ok, ko) => { const t 
 // el fragmento empieza hacia la mitad del tema, o en el minuto que diga el panel («Inicio del fragmento»).
 const FRAG = 75, FUNDE = 7;                                                          // segundos de cada fragmento y de cada cruce
 const aSeg = v => { const m = String(v || '').trim().match(/^(\d+):(\d{1,2})$/); return m ? +m[1] * 60 + +m[2] : null; };
+addEventListener('resize', () => { if ($('tira00').classList.contains('on')) cat00.muestraTira(true); });
 const cat00 = radio.cat = {
   cola: REL.filter(r => r.soundcloud), w: [], vol: [0, 0], iv: [], act: -1, prep: null, ahora: null, timers: [], ult: [], pedido: null,
-  id: 0, vivo: false, bloqueo: false, fallo: false, SC: null,
+  id: 0, vivo: false, bloqueo: false, fallo: false, SC: null, sonando: false,
+  // iPhone / iPad: Safari solo deja sonar el reproductor de SoundCloud si se toca con el dedo. Ahí el canal 00 usa un único
+  // reproductor visible (una tira encima de la pletina): se toca ▶ una vez y después los fragmentos se encadenan solos,
+  // con un corte cubierto por estática en lugar del cruce (Safari tampoco deja cambiar el volumen)
+  tira: /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1),
   luego(f, s) { this.timers.push(setTimeout(f, s * 1000)); },
   async monta() {
-    if (this.w.length === 2) return true;
+    if (this.w.length === (this.tira ? 1 : 2)) return true;
     try {
       const SC = this.SC = await Promise.race([cargaSC(), new Promise((_, ko) => setTimeout(() => ko(new Error('sin respuesta')), 9000))]);
-      for (let k = this.w.length; k < 2; k++) {
-        const f = document.createElement('iframe'); f.className = 'sc00'; f.allow = 'autoplay'; f.tabIndex = -1; f.setAttribute('aria-hidden', 'true'); f.title = 'Canal 00';
-        f.src = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(this.cola[0].soundcloud) + '&auto_play=false&single_active=false&visual=false&show_artwork=false&buying=false&sharing=false&download=false&show_comments=false&show_user=false&hide_related=true';
-        document.body.appendChild(f); const w = SC.Widget(f);
+      const cuantos = this.tira ? 1 : 2;
+      for (let k = this.w.length; k < cuantos; k++) {
+        const f = document.createElement('iframe'); f.allow = 'autoplay'; f.title = 'Canal 00 · reproductor de SoundCloud';
+        if (this.tira) { $('tira00f').appendChild(f); } else { f.className = 'sc00'; f.tabIndex = -1; f.setAttribute('aria-hidden', 'true'); document.body.appendChild(f); }
+        f.src = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(this.cola[0].soundcloud) + '&color=%230e0f12&auto_play=false&single_active=false&visual=false&show_artwork=false&buying=false&sharing=false&download=false&show_comments=false&show_user=false&hide_related=true&show_teaser=false';
+        const w = SC.Widget(f);
         await new Promise(ok => { w.bind(SC.Widget.Events.READY, ok); setTimeout(ok, 9000); });
-        w.setVolume(0); this.w.push(w);
+        w.setVolume(0); w.bind(SC.Widget.Events.PLAY, () => this.alSonar(k)); this.w.push(w);
       }
       return true;
     } catch (e) { return false; }
@@ -2077,13 +2093,42 @@ const cat00 = radio.cat = {
   },
   suena(p, id) {
     if (id !== this.id) return;
+    if (this.tira) {                                                                    // un solo reproductor: el resto lo arranca alSonar
+      const w = this.w[0]; this.act = 0; this.ahora = p; this.sonando = false; this.fallo = false; this.vol[0] = 100; w.setVolume(100);
+      w.seekTo(p.ini * 1000); w.play(); pintaCanal();
+      this.luego(() => w.isPaused(pa => { if (pa && id === this.id && this.ahora === p && !this.sonando) { this.bloqueo = true; this.muestraTira(true); pintaCanal(); } }), 2.5);
+      return;
+    }
     const w = this.w[p.k]; this.act = p.k; this.ahora = p; this.bloqueo = false; this.fallo = false;
     w.setVolume(0); w.seekTo(p.ini * 1000); w.play(); setTimeout(() => w.seekTo(p.ini * 1000), 400);
     this.funde(p.k, 100, FUNDE); pintaCanal();
     // algunos navegadores (sobre todo en iPhone) no dejan sonar un reproductor externo sin tocarlo: se avisa
-    this.luego(() => w.isPaused(pa => { if (pa && id === this.id && this.ahora === p) { this.bloqueo = true; pintaCanal(); } }), 5);
+    this.luego(() => w.isPaused(pa => { if (pa && id === this.id && this.ahora === p) this.pasaATira(); }), 5);
     this.luego(async () => { const q = await this.prepara(1 - p.k, this.siguiente()); if (id === this.id) this.prep = q; }, 12);
     this.luego(() => this.cruza(id), Math.max(20, Math.min(FRAG, p.dur - p.ini) - FUNDE));
+  },
+  // empieza a sonar de verdad (por el código o porque se ha tocado ▶ en la tira)
+  alSonar(k) {
+    if (!this.tira || k !== 0 || !this.ahora || this.sonando || !this.vivo) return;
+    const p = this.ahora, id = this.id, w = this.w[0]; this.sonando = true; this.bloqueo = false; this.muestraTira(false); pintaCanal();
+    w.getPosition(ms => { if (ms / 1000 < p.ini - 3) w.seekTo(p.ini * 1000); });
+    this.luego(() => this.cruzaTira(id), Math.max(20, Math.min(FRAG, p.dur - p.ini)));
+  },
+  async cruzaTira(id) {
+    if (id !== this.id) return;
+    radio.estatica(3.2, 0.035); this.w[0].pause(); this.ahora = null; pintaCanal();
+    const q = await this.prepara(0, this.siguiente()); if (id !== this.id) return;
+    if (q) this.suena(q, id); else { this.fallo = true; pintaCanal(); }
+  },
+  // un navegador que no es iPhone pero también bloquea: se pasa al modo tira
+  pasaATira() {
+    if (this.tira) return; this.tira = true; this.w = []; this.act = -1;
+    document.querySelectorAll('iframe.sc00').forEach(f => f.remove()); this.empieza(this.ahora && this.ahora.r);
+  },
+  muestraTira(v) {
+    const t = $('tira00'); if (!t) return;
+    if (v) { const r = document.querySelector('.pletina').getBoundingClientRect(); t.style.bottom = (innerHeight - r.top + 8) + 'px'; t.style.left = r.left + 'px'; t.style.width = r.width + 'px'; }
+    t.classList.toggle('on', v); t.setAttribute('aria-hidden', !v);
   },
   async cruza(id) {
     if (id !== this.id) return;
@@ -2095,29 +2140,31 @@ const cat00 = radio.cat = {
   },
   async empieza(r) {
     if (r) this.pedido = r;
-    const id = ++this.id; this.timers.forEach(clearTimeout); this.timers = []; this.prep = null; this.vivo = true; this.ahora = null; this.fallo = false; this.bloqueo = false; pintaCanal();
+    const id = ++this.id; this.timers.forEach(clearTimeout); this.timers = []; this.prep = null; this.vivo = true; this.ahora = null; this.fallo = false; this.bloqueo = false; this.sonando = false; pintaCanal();
+    if (this.tira && this.w[0]) this.w[0].pause();
     if (!this.cola.length) return;
     if (!(await this.monta())) { if (id === this.id) { this.fallo = true; pintaCanal(); } return; }
     if (id !== this.id) return;
-    const k = this.act >= 0 ? 1 - this.act : 0;
-    if (this.act >= 0) { const s = this.act; this.funde(s, 0, 2.5, () => this.w[s].pause()); }
+    const k = this.tira ? 0 : this.act >= 0 ? 1 - this.act : 0;
+    if (!this.tira && this.act >= 0) { const s = this.act; this.funde(s, 0, 2.5, () => this.w[s].pause()); }
     const p = await this.prepara(k, this.siguiente());
     if (id !== this.id) return;
     if (p) this.suena(p, id); else { this.fallo = true; pintaCanal(); }
   },
   para(s = 2.5) {
-    this.id++; this.vivo = false; this.timers.forEach(clearTimeout); this.timers = []; this.prep = null; this.ahora = null; this.act = -1;
+    this.id++; this.vivo = false; this.timers.forEach(clearTimeout); this.timers = []; this.prep = null; this.ahora = null; this.act = -1; this.sonando = false; this.muestraTira(false);
     this.w.forEach((w, k) => this.funde(k, 0, s, () => w.pause()));
   },
   nivel() {                                                                            // el vúmetro no puede leer el audio de SoundCloud: se aproxima
-    if (!this.ahora || this.bloqueo) return 0; const t = performance.now() / 1000, v = Math.max(...this.vol) / 100;
+    if (!this.ahora || this.bloqueo || (this.tira && !this.sonando)) return 0; const t = performance.now() / 1000, v = Math.max(...this.vol) / 100;
     return v * (0.13 + 0.035 * Math.sin(t * 7.3) + 0.03 * Math.sin(t * 2.1) + 0.035 * Math.random());
   },
   rotulo() {
     const p = this.ahora;
     if (!this.cola.length) return 'Todavía no hay lanzamientos con SoundCloud en el panel';
-    if (p) { const entero = p.r.spotify || p.url, ab = `<a href="${esc(entero)}" target="_blank" rel="noopener">${this.bloqueo ? 'abrir' : 'entero'} ↗</a>`;
-      return (this.bloqueo ? 'Este navegador no deja sonar SoundCloud aquí · ' : `<a href="#${p.r.code}">${esc(p.r.artist)} — ${esc(p.tema)}</a> · `) + ab; }
+    if (p) { const entero = p.r.spotify || p.url, ab = `<a href="${esc(entero)}" target="_blank" rel="noopener">entero ↗</a>`;
+      if (this.bloqueo) return 'Toca ▶ en la tira de arriba';
+      return `<a href="#${p.r.code}">${esc(p.r.artist)} — ${esc(p.tema)}</a> · ` + ab; }
     if (this.fallo) return 'Sin señal de SoundCloud · prueba en un rato u otro canal';
     return radio.on ? 'Sintonizando el catálogo…' : `Fragmentos del catálogo · ${plural(this.cola.length, 'lanzamiento', 'lanzamientos')}`;
   },
