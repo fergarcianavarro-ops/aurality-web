@@ -68,6 +68,11 @@ Si alguien pierde el móvil o el portátil, borra su clave en GitHub y deja de v
   - **Destacar en la portada:** marca la casilla en los lanzamientos que quieras enseñar en la portada. Se ven como mucho 3, los más recientes marcados primero (en el ordenador, apilados como avisos que se cierran con ×; en el móvil, como tarjetas que se deslizan). Para quitar uno, desmárcalo. Si no hay ninguno marcado, sale el último lanzamiento.
 - **Mapa de conexiones** (Roster → *Red*). Se dibuja solo con lo que metes en el panel: quién firma junto (línea continua) y quién produce, mezcla, masteriza o participa en el lanzamiento de otro (línea discontinua). Los créditos de arte, foto o vídeo no cuentan. Para que alguien de fuera salga en el mapa basta con ponerlo en los créditos (varios nombres separados por ` · `).
 - **Artistas.** Rol, biografía, foto (sale en blanco y negro) y redes. El nombre tiene que coincidir con el de los lanzamientos.
+- **Frecuencias ocultas.** Transmisiones escondidas entre los canales del dial. Se sintonizan arrastrando sobre las casillas de la pletina: entre canales hay estática; cerca de una transmisión el piloto azul parpadea y la señal se cuela; encima, se limpia, se fija y sale la tarjeta de escucha (se guarda como imagen y queda en el registro, `tu-web/registro`).
+  - En el panel, *Frecuencias ocultas → Agregar transmisión*: número (TX-01…), frecuencia (p. ej. 7.3; nunca justo en un canal), empieza / termina (hora de Madrid), horario (todo el día o solo de noche, 00:00–06:00), audio mp3 y el texto de la tarjeta.
+  - La web solo entrega una transmisión mientras emite: antes no existe y, al acabar, solo quedan su frecuencia y sus fechas en «Se te escaparon». Cuando termine, borra el audio en el panel para que desaparezca del todo.
+  - TX-00 es la de bienvenida (03.4, siempre activa): enseña que hay más. Cadencia recomendada: una o dos al mes.
+  - Solo funciona publicada en Cloudflare (el portero está en `worker/`); en Netlify, /tx/ queda cerrado.
 - **Señal mensual.** Cada mes, *Agregar edición*: mes, año, portada, temas y destacados. La más reciente sale **En antena** y las anteriores pasan solas a **Archivada**.
 - **Manifiesto y contacto.** Los textos de esas secciones.
 

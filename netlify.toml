@@ -30,6 +30,13 @@
   [headers.values]
     Cache-Control = "public, max-age=86400"
 
+# las frecuencias ocultas solo funcionan con el portero de Cloudflare: en Netlify, /tx/ queda cerrado
+[[redirects]]
+  from = "/tx/*"
+  to = "/"
+  status = 404
+  force = true
+
 # direcciones limpias (/AU0212, /ufisi, /catalogo…): todas abren la web, que enseña la sección que toca
 [[redirects]]
   from = "/*"

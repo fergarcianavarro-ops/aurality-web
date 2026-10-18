@@ -178,6 +178,35 @@ body{background:linear-gradient(180deg,var(--cielo-1) 0%,var(--cielo-2) 72%);col
 .pletina.p-s .transporte .tecla{width:42px;height:40px}
 .pletina.p-s::after{content:"AU-00 · PLETINA"}
 .casillas button:focus-visible{outline:2px solid var(--azul);outline-offset:1px}
+/* sintonía fina: arrastrando sobre las casillas se recorre el dial entero, también lo que hay entre canales */
+.casillas{position:relative;touch-action:none;cursor:ew-resize}
+.casillas .aguja{position:absolute;top:-5px;bottom:-5px;left:0;width:2px;margin-left:-1px;background:var(--rojo);box-shadow:0 0 5px rgba(214,44,44,.65);pointer-events:none;opacity:0;transition:opacity .25s}
+.casillas.fino .aguja{opacity:1}
+.casillas.fino button[aria-pressed="true"]{background:#cfccc4}
+.testigo.azul.cerca,.barra .tm.azul.cerca{animation:parpadea .8s steps(2) infinite}
+.testigo.azul.fijo,.barra .tm.azul.fijo{box-shadow:inset 0 0 0 1px rgba(10,20,70,.55),0 0 1.4cqh rgba(80,130,255,.95),0 0 3cqh rgba(80,130,255,.5)}
+.barra .tm.azul.fijo{box-shadow:0 0 8px rgba(80,130,255,.95),0 0 16px rgba(80,130,255,.5)}
+/* tarjeta de escucha (a la manera de las QSL de los radioaficionados) */
+.qsl-velo{position:fixed;inset:0;z-index:40;display:grid;place-items:center;padding:16px;background:rgba(14,15,18,.5);animation:aparece .3s}
+@keyframes aparece{from{opacity:0}}
+.qsl{width:min(440px,100%);box-sizing:border-box;background:linear-gradient(180deg,#f0efea,#dddbd4);clip-path:var(--chaflan);padding:20px 22px 22px;display:grid;gap:14px;animation:qslEntra .5s cubic-bezier(.2,.7,.2,1)}
+@keyframes qslEntra{from{transform:translateY(18px) rotate(-1.5deg);opacity:0}}
+.qsl .k{display:flex;justify-content:space-between;font:700 9.5px/1.2 var(--f-mono);letter-spacing:.18em;color:#4a5060;text-transform:uppercase}
+.qsl .fq{font:800 64px/1 var(--f-mono);letter-spacing:.02em;color:var(--tinta)}
+.qsl .fq small{font-size:14px;letter-spacing:.14em;margin-left:8px;color:#4a5060}
+.qsl .cap{font:400 15px/1.2 var(--f-display);letter-spacing:.08em}
+.qsl .dat{display:grid;grid-template-columns:repeat(3,auto);justify-content:start;gap:4px 22px;font:500 11px/1.3 var(--f-mono);letter-spacing:.08em;color:#3b4150}
+.qsl .dat b{display:block;font:700 9px/1 var(--f-mono);letter-spacing:.18em;color:#6a6f7b;margin-bottom:4px}
+.qsl p{margin:0;font:400 14px/1.5 var(--f-texto);color:#2b3242}
+.qsl .acciones{display:flex;flex-wrap:wrap;gap:8px}
+/* registro de escucha */
+.registro{display:grid;gap:12px}
+.registro .ent{display:grid;grid-template-columns:auto 1fr auto;gap:4px 18px;align-items:center;padding:14px 16px;background:#e6e4dd;box-shadow:inset 0 1px 0 #fff,0 1px 2px rgba(0,0,0,.12);clip-path:var(--chaflan)}
+.registro .ent .fq{font:800 30px/1 var(--f-mono);grid-row:1/3}
+.registro .ent .id{font:700 10px/1.2 var(--f-mono);letter-spacing:.16em;color:#4a5060}
+.registro .ent .tx{font:400 13px/1.45 var(--f-texto)}
+.registro .ent.perdida{background:transparent;box-shadow:inset 0 0 0 1px #c9c6be;color:#6a6f7b}
+.registro .ent.perdida .fq{font-size:22px;color:#8a8d95}
 
 
 /* ---------- panel de sección (catálogo, ficha) ---------- */
@@ -569,7 +598,7 @@ iframe.sc{width:100%;height:166px;border:0;display:block;background:#d9d6ce}
   <a class="placa" href="#senal" data-s="senal" style="top:50.741%"><span class="n">04</span><span class="t">Señal</span><span class="d">Playlist mensual</span></a>
   <a class="placa" href="#manifiesto" data-s="manifiesto" style="top:60.154%"><span class="n">05</span><span class="t">Manifiesto</span><span class="d">Qué es aurality</span></a>
   <a class="placa" href="#contacto" data-s="contacto" style="top:69.568%"><span class="n">06</span><span class="t">Contacto</span><span class="d">Demos · prensa</span></a>
-  <span class="testigo azul" id="tAzul" title="Testigo azul: radio en directo"></span>
+  <span class="testigo azul" id="tAzul" title="Testigo azul: señal"></span>
   <span class="testigo rojo on" id="tRojo" title="Testigo rojo: lanzamiento destacado"></span>
   <div class="codigo-mes"><span>SEÑAL 10_26</span><small>MES 10/12</small></div>
 </nav>
@@ -666,14 +695,14 @@ const MEZCLA = {
 
 class Ambient {
   constructor() { this.canal = 2; this.amb = 2; this.on = false; this.ctx = null; this.gen = null; this.cat = null; }   // canal -1 = canal 00 (catálogo)
-  init() {
+  init() {   // senal: lo que llega de la emisora sintonizada (se apaga al salir del canal con la sintonía fina)
     const AC = window.AudioContext || window.webkitAudioContext; const c = this.ctx = new AC();
     this.master = c.createGain(); this.master.gain.value = 0;
     this.comp = c.createDynamicsCompressor(); this.comp.threshold.value = -18; this.comp.ratio.value = 3; this.comp.attack.value = 0.02; this.comp.release.value = 0.4;
     this.analyser = c.createAnalyser(); this.analyser.fftSize = 1024; this.buf = new Float32Array(this.analyser.fftSize);
     this.subida = c.createGain(); this.subida.gain.value = 3.6;                    // ganancia de salida (≈ +11 dB) y limitador final
     this.limite = c.createDynamicsCompressor(); this.limite.threshold.value = -4; this.limite.knee.value = 0; this.limite.ratio.value = 20; this.limite.attack.value = 0.002; this.limite.release.value = 0.15;
-    this.master.connect(this.comp); this.comp.connect(this.subida); this.subida.connect(this.limite); this.limite.connect(this.analyser); this.analyser.connect(c.destination);
+    this.senal = c.createGain(); this.master.connect(this.senal); this.senal.connect(this.comp); this.comp.connect(this.subida); this.subida.connect(this.limite); this.limite.connect(this.analyser); this.analyser.connect(c.destination);
     const ir = (seg, caida) => { const len = c.sampleRate * seg, b = c.createBuffer(2, len, c.sampleRate);
       for (let ch = 0; ch < 2; ch++) { const d = b.getChannelData(ch); for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, caida); } return b; };
     this.sala = c.createConvolver(); this.sala.buffer = ir(7, 2.6); this.sala.connect(this.master);
@@ -683,6 +712,33 @@ class Ambient {
     this.eco.connect(ecoLp); ecoLp.connect(fb); fb.connect(this.eco); ecoLp.connect(this.master); ecoLp.connect(this.sala);
     const nb = c.createBuffer(1, c.sampleRate * 3, c.sampleRate), nd = nb.getChannelData(0); for (let i = 0; i < nd.length; i++) nd[i] = Math.random() * 2 - 1;
     this.ruido = nb;
+    // sintonía fina: estática continua entre emisoras y bus propio para las transmisiones ocultas (filtro de radio que se abre al fijarla)
+    this.estFino = c.createGain(); this.estFino.gain.value = 0; this.estBp = c.createBiquadFilter(); this.estBp.type = 'bandpass'; this.estBp.frequency.value = 1700; this.estBp.Q.value = 0.6;
+    const es = c.createBufferSource(); es.buffer = nb; es.loop = true; es.connect(this.estBp); this.estBp.connect(this.estFino); this.estFino.connect(this.comp); es.start();
+    this.txG = c.createGain(); this.txG.gain.value = 0; this.txHp = c.createBiquadFilter(); this.txHp.type = 'highpass'; this.txHp.frequency.value = 600;
+    this.txLp = c.createBiquadFilter(); this.txLp.type = 'lowpass'; this.txLp.frequency.value = 2400; this.txHp.connect(this.txLp); this.txLp.connect(this.txG); this.txG.connect(this.comp);
+  }
+  // un único reproductor para las transmisiones, desbloqueado con un toque (iPhone) y conectado al motor
+  txPrepara() {
+    if (this.txEl || !this.ctx) return; const a = this.txEl = new Audio(); a.loop = true; a.preload = 'auto'; a.setAttribute('playsinline', '');
+    a.src = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA='; const pr = a.play(); if (pr) pr.then(() => a.pause()).catch(() => {});
+    try { this.txSrc = this.ctx.createMediaElementSource(a); this.txSrc.connect(this.txHp); } catch (e) {}
+  }
+  ajustaFino(o) {
+    if (!this.ctx) return; const t = this.ctx.currentTime, on = this.on;
+    this.senal.gain.setTargetAtTime(on ? o.senal : 1, t, 0.05);
+    this.estFino.gain.setTargetAtTime(on ? o.ruido : 0, t, 0.05);
+    this.estBp.frequency.setTargetAtTime(900 + o.f * 160, t, 0.08);                  // el ruido cambia de color al mover el dial
+    if (o.tx && on) {
+      this.txPrepara(); const a = this.txEl; clearTimeout(this.txOff);
+      if (this.txId !== o.tx.id) { this.txId = o.tx.id; a.src = '/tx/a/' + encodeURIComponent(o.tx.id); a.currentTime = 0; }
+      if (a.paused) { const pr = a.play(); if (pr) pr.catch(() => {}); }
+      this.txG.gain.setTargetAtTime(o.txNivel, t, 0.06);
+      this.txHp.frequency.setTargetAtTime(o.claro ? 20 : 650, t, 0.12); this.txLp.frequency.setTargetAtTime(o.claro ? 18000 : 2200, t, 0.12);
+    } else {
+      this.txG.gain.setTargetAtTime(0, t, 0.15);
+      if (this.txEl && !this.txEl.paused) { clearTimeout(this.txOff); this.txOff = setTimeout(() => this.txEl.pause(), 900); }
+    }
   }
   // ---------- generación: un bus propio por canal, para fundir al cambiar ----------
   nuevaGen(estilo) {
@@ -1571,7 +1627,8 @@ class Ambient {
     const m = this.master.gain, t = this.ctx.currentTime; m.cancelScheduledValues(t); m.setValueAtTime(m.value, t); m.linearRampToValueAtTime(0.9, t + 4);
   }
   apagar() {
-    if (!this.ctx) return; this.on = false; this.matarGen(this.gen, 1.2); this.gen = null; if (this.cat) this.cat.para(1.2); if (this.mudo) setTimeout(() => { if (!this.on) this.mudo.pause(); }, 1500);
+    if (!this.ctx) return; this.on = false; this.matarGen(this.gen, 1.2); this.gen = null; if (this.cat) this.cat.para(1.2);
+    this.estFino.gain.setTargetAtTime(0, this.ctx.currentTime, 0.2); this.txG.gain.setTargetAtTime(0, this.ctx.currentTime, 0.2); if (this.txEl) setTimeout(() => { if (!this.on) this.txEl.pause(); }, 1200); if (this.mudo) setTimeout(() => { if (!this.on) this.mudo.pause(); }, 1500);
     const m = this.master.gain, t = this.ctx.currentTime; m.cancelScheduledValues(t); m.setValueAtTime(m.value, t); m.linearRampToValueAtTime(0, t + 1.4);
   }
   sintonizar(i) {                                   // 13 posiciones: 00 (catálogo) y 01–12
@@ -1603,7 +1660,8 @@ const cas = $('casillas');
 { const b = document.createElement('button'); b.id = 'canal0'; b.className = 'c00'; b.title = 'aurality · fragmentos del catálogo'; b.setAttribute('aria-label', 'Canal 00, aurality, fragmentos del catálogo'); b.onclick = () => tune(-1); cas.appendChild(b); }
 CANALES.forEach(([nom, , , est], i) => { const b = document.createElement('button'); b.id = 'canal' + (i + 1); b.title = nom + ' · ' + ESTILOS[est]; b.setAttribute('aria-label', 'Canal ' + String(i + 1).padStart(2, '0') + ', ' + nom + ', ' + ESTILOS[est]); b.onclick = () => tune(i); cas.appendChild(b); });
 function pintaCanal() {
-  [...cas.children].forEach((b, i) => b.setAttribute('aria-pressed', i - 1 === radio.canal ? 'true' : 'false'));
+  cas.querySelectorAll('button').forEach((b, i) => b.setAttribute('aria-pressed', i - 1 === radio.canal ? 'true' : 'false'));
+  if (window.__fino && window.__fino.pinta()) return;
   if (radio.canal < 0) { $('canalK').textContent = 'Radio · catálogo'; $('canalNom').textContent = 'CANAL 00 · aurality'; $('canalNum').textContent = '00 / 12';
     $('canalSub').innerHTML = radio.cat ? radio.cat.rotulo() : 'Fragmentos del catálogo'; return; }
   $('canalK').textContent = 'Radio ambient · en directo';
@@ -1614,13 +1672,128 @@ function pintaCanal() {
 function pintaPlay() {
   const on = radio.on; $('bPlay').setAttribute('aria-pressed', on); $('bPlay').setAttribute('aria-label', on ? 'Pausar' : 'Reproducir');
   $('icoPlay').innerHTML = on ? '<path d="M3 2h3.5v12H3zM9.5 2H13v12H9.5z"/>' : '<path d="M3 1.5v13L14.5 8z"/>';
-  $('led').classList.toggle('on', on); $('tAzul').classList.toggle('on', on); $('tAzulM').classList.toggle('on', on); $('estadoTxt').textContent = on ? 'En directo' : (encendido ? 'En pausa' : 'En espera');
+  $('led').classList.toggle('on', on); testigoSenal(); $('estadoTxt').textContent = on ? 'En directo' : (encendido ? 'En pausa' : 'En espera');
 }
 let encendido = false, tunePulse = 0;
 async function togglePlay() { if (radio.on) radio.apagar(); else await radio.encender(); pintaPlay(); pintaCanal(); }
 const angulo = c => c < 0 ? -Math.PI / 12 : -(c + 1) * Math.PI / 6;       // el 00 cae entre el 12 y el 01 del dial
 function tune(i) { radio.sintonizar(i); pintaCanal(); tunePulse = 1; knobTarget = angulo(radio.canal); }
-$('bPlay').onclick = togglePlay; $('bPrev').onclick = () => tune(radio.canal - 1); $('bNext').onclick = () => tune(radio.canal + 1);
+// ---------- sintonía fina y frecuencias ocultas ----------
+// El dial va de 00.0 a 12.0: los enteros son los canales; entre medias hay estática y, a veces, una transmisión oculta.
+// Cerca de una transmisión el piloto azul parpadea y la señal se cuela entre el ruido; encima, se limpia y queda fijada.
+let TXS = [], frec = null;                                                           // frec = null: sintonizado en un canal exacto
+const aguja = document.createElement('i'); aguja.className = 'aguja'; aguja.setAttribute('aria-hidden', 'true'); cas.appendChild(aguja);
+const centros = () => [...cas.querySelectorAll('button')].map(b => b.offsetLeft + b.offsetWidth / 2);
+const xAf = x => { const c = centros(); if (x <= c[0]) return 0; for (let i = 1; i < c.length; i++) if (x <= c[i]) return i - 1 + (x - c[i - 1]) / (c[i] - c[i - 1]); return 12; };
+const fAx = f => { const c = centros(), i = Math.max(0, Math.min(11, Math.floor(f))); return c[i] + (c[i + 1] - c[i]) * (f - i); };
+async function cargaTX() { if (!DESPLEGADO) return; try { const r = await fetch('/tx/activas', { cache: 'no-store' }); if (r.ok) TXS = await r.json(); } catch (e) {} }
+const estadoFino = f => {
+  const n = Math.round(f), dC = Math.abs(f - n); let tx = null, dT = 9;
+  TXS.forEach(t => { const d = Math.abs(f - t.f); if (d < dT) { dT = d; tx = t; } });
+  return { f, n, dC, tx: dT < 0.45 ? tx : null, dT, fijado: dT <= 0.06, cerca: dT < 0.45 && dT > 0.06 };
+};
+let ultFino = null;
+function finoA(f, soltado) {
+  if (f == null) { frec = null; cas.classList.remove('fino'); ultFino = null; radio.ajustaFino({ f: radio.canal + 1, senal: 1, ruido: 0, tx: null }); testigoSenal(); pintaCanal(); return; }
+  f = Math.round(Math.max(0, Math.min(12, f)) * 100) / 100; let e = estadoFino(f);
+  if (soltado) { if (e.tx && e.dT <= 0.12) f = e.tx.f; else if (e.dC <= 0.12) { finoA(null); if (e.n - 1 !== radio.canal) tune(e.n - 1); return; } e = estadoFino(f); }   // al soltar, encaja
+  frec = f; cas.classList.add('fino'); aguja.style.left = fAx(f) + 'px';
+  if (e.dC <= 0.12 && e.n - 1 !== radio.canal && !e.tx) tune(e.n - 1);           // pasando por un canal, se oye ese canal
+  const senalC = e.dC <= 0.12 ? 1 - e.dC * 2.5 : Math.max(0, 1 - (e.dC - 0.12) / 0.22), cerc = e.tx ? 1 - e.dT / 0.45 : 0;
+  ultFino = e;
+  radio.ajustaFino({ f, senal: senalC * (1 - cerc), ruido: e.fijado ? 0 : Math.min(0.036, (1 - senalC) * 0.032 + cerc * 0.012 + 0.003), tx: e.tx,
+    txNivel: e.fijado ? 0.3 : Math.pow(cerc, 1.6) * 0.2, claro: e.fijado });                // fijada, al nivel de los canales
+  testigoSenal(); pintaCanal();
+  if (e.fijado && soltado) captura(e.tx);
+}
+function testigoSenal() {
+  const e = frec == null ? null : ultFino, on = radio.on && (!e || e.dC <= 0.12 || e.cerca || e.fijado);
+  ['tAzul', 'tAzulM'].forEach(id => { const t = $(id); t.classList.toggle('on', on); t.classList.toggle('cerca', !!(radio.on && e && e.cerca)); t.classList.toggle('fijo', !!(radio.on && e && e.fijado)); });
+}
+window.__fino = { pinta() {
+  if (frec == null || !ultFino) return false; const e = ultFino, f = frec.toFixed(1).padStart(4, '0');
+  $('canalNum').textContent = f; $('canalK').textContent = 'Sintonía fina';
+  if (e.dC <= 0.12 && !e.tx) return false;
+  $('canalNom').textContent = e.fijado ? `${e.tx.id} · TRANSMISIÓN` : e.cerca ? 'SEÑAL DÉBIL…' : 'SIN SEÑAL';
+  $('canalSub').innerHTML = e.fijado ? `Frecuencia ${f} · <a href="#registro">registro de escucha</a>` : `Entre canales · ${f}`;
+  return true;
+} };
+{ // arrastre sobre las casillas (un toque sin arrastrar sigue eligiendo el canal)
+  let x0 = 0, mov = false;
+  cas.addEventListener('pointerdown', e => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return; x0 = e.clientX; mov = false; try { cas.setPointerCapture(e.pointerId); } catch (err) {}
+    if (!radio.on && encendido) togglePlay(); radio.txPrepara();
+  });
+  cas.addEventListener('pointermove', e => { if (!cas.hasPointerCapture || !cas.hasPointerCapture(e.pointerId)) return; if (!mov && Math.abs(e.clientX - x0) < 5) return;
+    mov = true; e.preventDefault(); finoA(xAf(e.clientX - cas.getBoundingClientRect().left)); });
+  const suelta = e => {
+    const x = e.clientX - cas.getBoundingClientRect().left;
+    if (mov) finoA(xAf(x), true);
+    else { const c = centros(), i = c.reduce((m, v, k) => Math.abs(v - x) < Math.abs(c[m] - x) ? k : m, 0); finoA(null); tune(i - 1); }   // un toque: el canal más cercano
+    cas.dataset.arr = '1'; setTimeout(() => delete cas.dataset.arr, 0); mov = false;
+  };
+  cas.addEventListener('pointerup', suelta); cas.addEventListener('pointercancel', () => { mov = false; });
+  cas.addEventListener('click', e => { if (cas.dataset.arr) { e.stopPropagation(); e.preventDefault(); } else if (e.target.closest('button')) finoA(null); }, true);
+  cas.addEventListener('keydown', e => { if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return; e.preventDefault();
+    const f = (frec == null ? radio.canal + 1 : frec) + (e.key === 'ArrowRight' ? 0.1 : -0.1); clearTimeout(cas.tk); finoA(f); cas.tk = setTimeout(() => finoA(frec, true), 700); });
+}
+// ---------- tarjeta de escucha y registro ----------
+const REG_K = 'au-registro';
+const registro = () => { try { return JSON.parse(localStorage.getItem(REG_K) || '[]'); } catch (e) { return []; } };
+async function captura(tx) {
+  const ya = registro().find(r => r.id === tx.id); if (ya) { muestraQSL(ya, true); return; }
+  let info = { id: tx.id, f: tx.f, texto: '' }; try { const r = await fetch('/tx/i/' + encodeURIComponent(tx.id), { cache: 'no-store' }); if (r.ok) info = await r.json(); } catch (e) {}
+  const ent = { id: info.id, f: info.f, texto: info.texto || '', t: Date.now() };
+  try { localStorage.setItem(REG_K, JSON.stringify([ent, ...registro()])); } catch (e) {}
+  muestraQSL(ent, false);
+}
+const fechaHora = t => { const d = new Date(t); return [dos(d.getDate()) + '.' + dos(d.getMonth() + 1) + '.' + String(d.getFullYear()).slice(-2), dos(d.getHours()) + ':' + dos(d.getMinutes())]; };
+function muestraQSL(ent, repetida) {
+  const [fe, ho] = fechaHora(ent.t), V = document.createElement('div'); V.className = 'qsl-velo';
+  V.innerHTML = `<div class="qsl" role="dialog" aria-modal="true" aria-label="Tarjeta de escucha ${esc(ent.id)}">
+    <div class="k"><span>Tarjeta de escucha · AU-00</span><span>${esc(ent.id)}</span></div>
+    <div class="fq">${ent.f.toFixed(1).padStart(4, '0')}<small>DIAL</small></div>
+    <div class="cap">${repetida ? 'YA LA TENÍAS' : 'TRANSMISIÓN CAPTADA'}</div>
+    <div class="dat"><span><b>FECHA</b>${fe}</span><span><b>HORA</b>${ho}</span><span><b>DESDE</b>Elda · 38.48°N</span></div>
+    ${ent.texto ? `<p>${esc(ent.texto)}</p>` : ''}
+    <div class="acciones"><button class="tecla oscura" type="button" data-a="guarda">Guardar tarjeta</button><a class="tecla" href="#registro" data-a="reg">Registro</a><button class="tecla" type="button" data-a="cierra">Seguir escuchando</button></div></div>`;
+  document.body.appendChild(V); const cierra = () => V.remove();
+  V.addEventListener('click', ev => { const a = ev.target.closest('[data-a]'); if (ev.target === V || (a && a.dataset.a !== 'guarda')) cierra(); if (a && a.dataset.a === 'guarda') guardaQSL(ent); });
+  V.addEventListener('keydown', ev => { if (ev.key === 'Escape') cierra(); }); V.querySelector('[data-a="cierra"]').focus();
+}
+// la tarjeta como imagen, para guardarla o compartirla
+function guardaQSL(ent) {
+  const W = 1200, H = 750, c = document.createElement('canvas'); c.width = W; c.height = H; const g = c.getContext('2d'), [fe, ho] = fechaHora(ent.t), M = 'JetBrains Mono, monospace';
+  const ch = 34; g.fillStyle = '#9DAFC5'; g.fillRect(0, 0, W, H);
+  g.beginPath(); [[ch, 0], [W - ch, 0], [W, ch], [W, H - ch], [W - ch, H], [ch, H], [0, H - ch], [0, ch]].forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.closePath();
+  const gr = g.createLinearGradient(0, 0, 0, H); gr.addColorStop(0, '#f0efea'); gr.addColorStop(1, '#dad8d1'); g.fillStyle = gr; g.fill();
+  g.fillStyle = '#4a5060'; g.font = `700 22px ${M}`; g.fillText('TARJETA DE ESCUCHA · AU-00 · RECEPTOR', 70, 96); g.textAlign = 'right'; g.fillText(ent.id, W - 70, 96); g.textAlign = 'left';
+  g.fillStyle = '#0E0F12'; g.font = `800 230px ${M}`; g.fillText(ent.f.toFixed(1).padStart(4, '0'), 62, 330);
+  g.fillStyle = '#D62C2C'; g.fillRect(70, 372, 64, 8);
+  g.fillStyle = '#0E0F12'; g.font = `800 40px ${M}`; g.fillText('TRANSMISIÓN CAPTADA', 70, 450);
+  g.fillStyle = '#3b4150'; g.font = `500 26px ${M}`; g.fillText(`${fe}  ·  ${ho}  ·  ELDA 38.48°N 0.79°O`, 70, 500);
+  if (ent.texto) { g.font = `500 25px ${M}`; let l = '', y = 570; ent.texto.split(' ').forEach(w => { if (g.measureText(l + w).width > W - 140) { g.fillText(l, 70, y); l = ''; y += 36; } l += w + ' '; }); if (y < 680) g.fillText(l, 70, y); }
+  g.fillStyle = '#6F6D68'; g.font = `700 20px ${M}`; g.textAlign = 'right'; g.fillText('aurality · frecuencias ocultas', W - 70, H - 56);
+  c.toBlob(async b => {
+    const nombre = `aurality-${ent.id.toLowerCase()}-${ent.f.toFixed(1)}.png`, file = new File([b], nombre, { type: 'image/png' });
+    try { if (navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: 'aurality · ' + ent.id }); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
+    const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = nombre; document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  }, 'image/png');
+}
+function vistaRegistro(pasadas) {
+  if (pasadas === undefined) { pasadas = []; if (DESPLEGADO) fetch('/tx/registro', { cache: 'no-store' }).then(r => r.ok ? r.json() : []).then(l => { if (seccion === 'registro' && l.length) vistaRegistro(l); }).catch(() => {}); }
+  const P = $('panel'), mias = registro();
+  const perdidas = pasadas.filter(p => !mias.some(m => m.id === p.id)), total = new Set([...mias.map(m => m.id), ...pasadas.map(p => p.id)]).size;
+  const fd = t => t ? t.slice(8, 10) + '.' + t.slice(5, 7) : '';
+  P.innerHTML = `<header class="panel-cab"><div><h2>REGISTRO DE ESCUCHA</h2><div class="sub">Frecuencias ocultas · ${mias.length} de ${total} transmisiones captadas en este aparato</div></div></header>
+    <div class="panel-cuerpo"><div class="registro">
+      ${mias.length ? mias.map(m => { const [fe, ho] = fechaHora(m.t); return `<div class="ent"><span class="fq">${m.f.toFixed(1).padStart(4, '0')}</span><span class="id">${esc(m.id)} · CAPTADA EL ${fe} A LAS ${ho}</span><button class="tecla" type="button" data-id="${esc(m.id)}">Tarjeta</button><span class="tx">${esc(m.texto || '')}</span></div>`; }).join('')
+        : `<p class="bio">Todavía no has captado ninguna transmisión. Hay señales escondidas entre los canales: arrastra sobre las casillas de la pletina para sintonizar fino y vigila el piloto azul.</p>`}
+      ${perdidas.length ? `<div class="sub2">SE TE ESCAPARON</div>${perdidas.map(p => `<div class="ent perdida"><span class="fq">${p.f.toFixed(1).padStart(4, '0')}</span><span class="id">${esc(p.id)} · EMITIDA DEL ${fd(p.desde)} AL ${fd(p.hasta)}${p.noche ? ' · SOLO DE NOCHE' : ''}</span><span></span><span class="tx">No volverá a emitirse.</span></div>`).join('')}` : ''}
+    </div></div>`;
+  P.querySelectorAll('[data-id]').forEach(b => b.onclick = () => muestraQSL(mias.find(m => m.id === b.dataset.id), true));
+}
+$('bPlay').onclick = togglePlay; $('bPrev').onclick = () => { finoA(null); tune(radio.canal - 1); }; $('bNext').onclick = () => { finoA(null); tune(radio.canal + 1); };
 async function encender(conSonido) {
   encendido = true; $('encendido').classList.add('fuera'); powerT0 = performance.now();
   if (conSonido) await radio.encender(); pintaPlay();
@@ -2238,10 +2411,10 @@ function ruta(ev) {
   const h = porHash ? decodeURIComponent(location.hash.slice(1)) : deDireccion(decodeURIComponent(location.pathname.slice(1))), r = REL.find(x => x.code === h.toUpperCase());
   const art = h.startsWith('a-') && ART.find(a => a.s === h.slice(2));
   const sen = h === 'senal' ? SEN[0] : h.startsWith('s-') ? SEN.find(e => e.code === h.slice(2)) : null;
-  seccion = ['catalogo', 'roster', 'manifiesto', 'contacto'].includes(h) ? h : sen ? 'senal' : r ? 'ficha' : art ? 'artista' : 'escucha';
+  seccion = ['catalogo', 'roster', 'manifiesto', 'contacto', 'registro'].includes(h) ? h : sen ? 'senal' : r ? 'ficha' : art ? 'artista' : 'escucha';
   const dir = '/' + (seccion === 'escucha' ? '' : seccion === 'ficha' ? r.code : seccion === 'artista' ? art.s : seccion === 'senal' ? (h === 'senal' ? 'senal' : 'senal-' + sen.code) : h);
   if (location.pathname + location.hash !== dir) try { history.replaceState(history.state, '', dir); } catch (e) {}
-  const navS = seccion === 'ficha' ? 'catalogo' : seccion === 'artista' ? 'roster' : seccion;
+  const navS = seccion === 'ficha' ? 'catalogo' : seccion === 'artista' ? 'roster' : seccion === 'registro' ? 'escucha' : seccion;
   document.querySelectorAll('.placa').forEach(p => p.setAttribute('aria-current', p.dataset.s === navS ? 'page' : 'false')); punta();
   $('menuN').textContent = NOMBRE[navS][0]; $('menuT').textContent = NOMBRE[navS][1];
   const lat = document.querySelector('.lateral'), vuelve = lat.hidden && seccion === 'escucha';
@@ -2249,9 +2422,9 @@ function ruta(ev) {
   document.querySelector('.estado').hidden = seccion !== 'escucha';
   const P = $('panel'); P.hidden = seccion === 'escucha';
   if (radioPorSC) { radioPorSC = false; radio.encender().then(pintaPlay); }
-  if (seccion === 'catalogo') vistaCatalogo(); if (seccion === 'ficha') { vistaFicha(r); montaSC($('panel')); } if (seccion === 'roster') vistaRoster(); if (seccion === 'artista') vistaArtista(art); if (seccion === 'senal') { anioSen = sen.anio; vistaSenal(sen); } if (seccion === 'manifiesto') vistaManifiesto(); if (seccion === 'contacto') vistaContacto();
+  if (seccion === 'catalogo') vistaCatalogo(); if (seccion === 'ficha') { vistaFicha(r); montaSC($('panel')); } if (seccion === 'roster') vistaRoster(); if (seccion === 'artista') vistaArtista(art); if (seccion === 'senal') { anioSen = sen.anio; vistaSenal(sen); } if (seccion === 'manifiesto') vistaManifiesto(); if (seccion === 'contacto') vistaContacto(); if (seccion === 'registro') vistaRegistro();
   if (seccion !== 'escucha') { P.style.animation = 'none'; void P.offsetWidth; P.style.animation = ''; P.querySelector('.panel-cuerpo').scrollTop = 0; }
-  foco = ({ catalogo: 'p4', ficha: 'hero', roster: 'p3', artista: 'p3', senal: 'p2', manifiesto: 'hero', contacto: 'p5' })[seccion] || null;
+  foco = ({ catalogo: 'p4', ficha: 'hero', roster: 'p3', artista: 'p3', senal: 'p2', registro: 'p2', manifiesto: 'hero', contacto: 'p5' })[seccion] || null;
   mesSenal = seccion === 'senal' ? sen.mes : 0; tunePulse = 0.6;
 }
 // ---------- destacados de la portada ----------
@@ -2365,6 +2538,7 @@ function tocaFragmento() {
   audioFrag.play().then(() => { if (b) b.textContent = b.textContent.replace('▶', '■'); }).catch(vuelve);
 }
 pintaProximo(); setInterval(() => { if (seccion === 'escucha' && !document.hidden) pintaProximo(); }, 1000);
+cargaTX(); setInterval(cargaTX, 5 * 60 * 1000);                                    // transmisiones que emiten ahora (frecuencias, nada más)
 pintaAvisos();
 addEventListener('hashchange', ruta);
 addEventListener('popstate', () => { if (!location.hash) ruta(); });   // atrás / adelante entre direcciones limpias

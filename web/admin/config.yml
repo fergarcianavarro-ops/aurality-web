@@ -165,3 +165,24 @@ collections:
               - { name: titular, label: Titular, widget: string }
               - { name: parrafos, label: Párrafos, label_singular: párrafo, widget: list, field: { name: texto, label: Párrafo, widget: text }, hint: "Los de menos de 90 caracteres se destacan como frase corta." }
               - { name: cierre, label: Cierre, widget: string, required: false }
+
+      - name: transmisiones
+        label: Frecuencias ocultas
+        description: "Transmisiones escondidas entre los canales del dial. La web solo las entrega mientras emiten: antes no existen y, al acabar, solo queda su frecuencia y sus fechas en el registro. Cadencia recomendada: una o dos al mes."
+        file: web/tx/transmisiones.json
+        fields:
+          - name: transmisiones
+            label: Transmisiones
+            label_singular: transmisión
+            widget: list
+            add_to_top: true
+            summary: "{{id}} · {{frecuencia}} · {{desde}}"
+            fields:
+              - { name: id, label: Número, widget: string, pattern: ['^TX-\d{2,3}$', 'Formato TX-00, por ejemplo TX-03'], hint: "Siguiente al último. TX-00 es la de bienvenida." }
+              - { name: frecuencia, label: Frecuencia del dial, widget: number, value_type: float, min: 0.2, max: 11.8, step: 0.1, hint: "Entre 00.2 y 11.8, nunca justo en un canal (evita .0, .1 y .9). Es lo que se comparte, p. ej. «07.3»." }
+              - { name: desde, label: Empieza, widget: datetime, required: false, format: YYYY-MM-DDTHH:mm, date_format: YYYY-MM-DD, time_format: HH:mm, hint: "Hora de Madrid." }
+              - { name: hasta, label: Termina, widget: datetime, required: false, format: YYYY-MM-DDTHH:mm, date_format: YYYY-MM-DD, time_format: HH:mm, hint: "Hora de Madrid. Después ya no se puede escuchar." }
+              - { name: horario, label: Horario, widget: select, options: [{ label: "Todo el día", value: siempre }, { label: "Solo de noche (00:00–06:00)", value: noche }], default: siempre }
+              - { name: audio, label: Audio (mp3), widget: file, choose_url: false, media_folder: /web/tx, public_folder: tx, hint: "Solo se puede escuchar mientras emite. Cuando termine, bórralo de aquí para que desaparezca del todo." }
+              - { name: texto, label: Texto de la tarjeta, widget: text, required: false, hint: "Una o dos frases. Sale en la tarjeta de escucha al captarla." }
+              - { name: bienvenida, label: Transmisión de bienvenida, widget: boolean, required: false, default: false, hint: "Siempre activa e ignora las fechas. Solo una: la que enseña que hay más." }

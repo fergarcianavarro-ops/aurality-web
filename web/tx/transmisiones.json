@@ -1,0 +1,14 @@
+{
+  "transmisiones": [
+    {
+      "id": "TX-00",
+      "frecuencia": 3.4,
+      "bienvenida": true,
+      "horario": "siempre",
+      "desde": "",
+      "hasta": "",
+      "audio": "tx/bienvenida-q7w3.mp3",
+      "texto": "Transmisión de bienvenida. Has encontrado la primera: hay más señales escondidas entre los canales, y cada una emite solo unos días."
+    }
+  ]
+}

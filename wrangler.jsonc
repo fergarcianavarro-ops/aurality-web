@@ -1,6 +1,7 @@
 // aurality · configuración de Cloudflare (Workers con archivos estáticos). No hace falta tocarla.
 // Publica solo la carpeta web/; las cabeceras de caché están en web/_headers.
-// worker/index.js solo atiende las páginas (no las imágenes ni el contenido) para poner la vista previa de cada enlace.
+// worker/index.js atiende las páginas (vista previa de cada enlace) y hace de portero de /tx/ (frecuencias ocultas):
+// nada de /tx/ se sirve sin pasar por él. Las imágenes, el contenido y el panel se sirven directamente.
 {
   "name": "aurality-web",
   "compatibility_date": "2026-09-01",
@@ -9,6 +10,6 @@
     "directory": "./web",
     "binding": "ASSETS",
     "not_found_handling": "single-page-application",
-    "run_worker_first": ["/*", "!/*.*", "!/admin/*", "!/contenido/*", "!/covers/*", "!/senal/*", "!/img/*"]
+    "run_worker_first": ["/*", "!/admin/*", "!/contenido/*", "!/covers/*", "!/senal/*", "!/img/*", "!/fragmentos/*", "!/favicon.png", "!/apple-touch-icon.png", "!/og-image.jpg"]
   }
 }
