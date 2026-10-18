@@ -59,6 +59,7 @@ collections:
                   - { name: artista, label: Miembro de aurality, widget: relation, collection: web, file: artistas, search_fields: ["artists.*.name"], value_field: "artists.*.name", display_fields: ["artists.*.name"] }
                   - { name: rol, label: Qué hizo, widget: string, required: false, hint: "En mayúsculas: PRODUCCIÓN · 3 TEMAS, PRODUCCIÓN · 1 TEMA, FEAT., MEZCLA…" }
               - { name: title, label: Título, widget: string, required: false, hint: "Vacío = sin título." }
+              - { name: edicion, label: Edición del sello, widget: boolean, required: false, default: false, hint: "Márcalo si el autor es aurality y no un artista: discos de remixes, recopilatorios curados… Sale con la marca EDICIÓN DEL SELLO y tiene su propio filtro en el catálogo." }
               - { name: format, label: Formato, widget: select, options: [SINGLE, EP, REMIXES, ÁLBUM, EDIT], default: SINGLE }
               - { name: genre, label: Género, widget: string, required: false, hint: "CLUB, RAP, DRILL, EDIT…" }
               - { name: year, label: Año, widget: number, value_type: int, min: 2020, max: 2100 }
@@ -71,6 +72,17 @@ collections:
               - { name: fragmento, label: Inicio del fragmento (canal 00), widget: string, required: false, pattern: ['^\d{1,2}:\d{2}$', 'Formato m:ss, por ejemplo 1:45'], hint: "Opcional. Minuto en el que empieza el trozo que suena en el canal 00 (m:ss). Vacío = hacia la mitad del tema. En los sets se aplica a todos los temas." }
               - { name: spotify, label: Spotify, widget: string, required: false }
               - { name: bandcamp, label: Bandcamp, widget: string, required: false }
+              - { name: historia, label: Historia, widget: text, required: false, hint: "Dos o tres párrafos: por qué existe, dónde se hizo, quién estuvo. Deja una línea en blanco entre párrafos. El primero sale más grande. Vacío = no sale." }
+              - { name: video, label: Vídeo, widget: string, required: false, hint: "Enlace de YouTube o Vimeo. Solo se carga cuando alguien pulsa ▶. Vacío = no sale." }
+              - name: fotos
+                label: Fotos
+                label_singular: foto
+                widget: list
+                required: false
+                hint: "Fotos de la sesión, del estudio, del directo… Se suben tal cual (el panel las reduce). Vacío = no sale."
+                fields:
+                  - { name: imagen, label: Foto, widget: image, choose_url: false }
+                  - { name: pie, label: Pie de foto, widget: string, required: false }
               - name: credits
                 label: Créditos
                 label_singular: crédito

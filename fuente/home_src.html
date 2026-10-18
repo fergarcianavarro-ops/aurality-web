@@ -408,6 +408,26 @@ iframe.sc{width:100%;height:166px;border:0;display:block;background:#d9d6ce}
 .enlaces{display:flex;flex-wrap:wrap;gap:8px}
 .tecla[aria-disabled="true"]{opacity:.45;pointer-events:none}
 .creditos{width:100%;border-collapse:collapse;font:500 12px/1.3 var(--f-mono)}
+/* ficha: historia, vídeo y fotos (solo si los hay) */
+.extra{display:grid;gap:26px;margin-top:30px;padding-top:6px;border-top:1px solid #c9c6be;max-width:860px}
+.extra .sub2{margin-top:16px}
+.historia p{margin:10px 0 0;font:400 15px/1.65 var(--f-texto);max-width:66ch;color:#22262f}
+.historia p:first-of-type{font-size:17px;line-height:1.55;color:var(--tinta)}
+.video{appearance:none;border:0;padding:0;position:relative;display:block;width:100%;aspect-ratio:16/9;margin-top:8px;background:#151922;cursor:pointer;overflow:hidden;clip-path:var(--chaflan)}
+.video img{width:100%;height:100%;object-fit:cover;display:block;opacity:.8;filter:saturate(.8);transition:opacity .3s}
+.video:hover img{opacity:.95}
+.video .pl{position:absolute;inset:0;margin:auto;width:76px;height:54px;display:grid;place-items:center;font:800 20px/1 var(--f-mono);color:var(--tinta);background:linear-gradient(180deg,#f6f5f1,#dddbd4);box-shadow:0 3px 0 #aeaba3,0 6px 14px rgba(0,0,0,.35)}
+iframe.vid{display:block;width:100%;aspect-ratio:16/9;border:0;margin-top:8px;background:#151922}
+.fotos{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px;margin-top:8px}
+.foto{appearance:none;border:0;padding:0;aspect-ratio:1;overflow:hidden;background:#d9d6ce;cursor:zoom-in}
+.foto img{width:100%;height:100%;object-fit:cover;display:block;transition:transform .5s cubic-bezier(.2,.7,.2,1)}
+.foto:hover img{transform:scale(1.04)}
+.foto:focus-visible{outline:2px solid var(--azul);outline-offset:2px}
+.visor{position:fixed;inset:0;z-index:40;display:grid;align-content:center;justify-items:center;gap:12px;padding:20px;background:rgba(14,15,18,.9);animation:aparece .25s}
+.visor img{max-width:100%;max-height:76vh;object-fit:contain;display:block}
+.visor .pie{font:500 11.5px/1.4 var(--f-mono);letter-spacing:.08em;color:#eef1f6;text-align:center}
+.visor .bts{display:flex;gap:8px}
+.ref .marca.sello{background:var(--rojo)}
 .creditos th{text-align:left;font:700 9.5px/1 var(--f-mono);letter-spacing:.16em;color:#6a6f7b;padding:9px 12px 9px 0;width:110px;border-bottom:1px solid #c9c6be;font-weight:700}
 .creditos td{padding:9px 0;border-bottom:1px solid #c9c6be}
 .creditos td.pend{color:#8a8d95}
@@ -1833,7 +1853,8 @@ const DATA = await (async () => {
   const D = Object.assign({}, COPIA, ...partes.filter(Boolean));
   // el panel guarda listas de objetos; la web trabaja con el formato compacto (y acepta ambos)
   if (Array.isArray(D.artists)) D.artists = Object.fromEntries(D.artists.filter(a => a && a.name).map(({ name, ...r }) => [name.trim().toUpperCase(), r]));
-  D.releases = (D.releases || []).filter(r => r && r.code && r.artist).map(r => ({ ...r, artist: r.artist.trim().toUpperCase(), title: r.title || '[ S/T ]', destacado: r.destacado === true || r.destacado === 'true', fecha: /^\d{4}-\d{2}-\d{2}/.test(String(r.fecha || '')) ? String(r.fecha).slice(0, 10) : '', presave: r.presave || '',
+  D.releases = (D.releases || []).filter(r => r && r.code && r.artist).map(r => ({ ...r, artist: r.artist.trim().toUpperCase(), title: r.title || '[ S/T ]', destacado: r.destacado === true || r.destacado === 'true', edicion: r.edicion === true || r.edicion === 'true', historia: String(r.historia || '').trim(), video: String(r.video || '').trim(),
+    fotos: (r.fotos || []).map(f => typeof f === 'string' ? { img: f, pie: '' } : { img: (f && (f.imagen || f.img)) || '', pie: (f && f.pie) || '' }).filter(f => f.img), fecha: /^\d{4}-\d{2}-\d{2}/.test(String(r.fecha || '')) ? String(r.fecha).slice(0, 10) : '', presave: r.presave || '',
     fragmentos: (r.fragmentos || []).map(f => typeof f === 'string' ? f : f && (f.archivo || f.file)).filter(Boolean), format: (r.format || 'SINGLE').toUpperCase(), genre: (r.genre || '—').toUpperCase().trim(), cover: r.cover || '', soundcloud: r.soundcloud || '', spotify: r.spotify || '', bandcamp: r.bandcamp || '', year: +r.year || r.year || '',
     credits: (r.credits || []).map(c => Array.isArray(c) ? c : [c.rol || '', c.nombre || '']).filter(([k]) => k),
     tracks: (r.tracks || []).map(t => typeof t === 'string' ? t : (t && t.titulo) || '').filter(Boolean),
@@ -1857,13 +1878,14 @@ const MIEMBROS = Object.keys(DATA.artists || {}).length ? new Set(Object.keys(DA
 const esMiembro = a => MIEMBROS.has(a);
 const propios = r => artistas(r).filter(esMiembro);                                  // miembros que firman el lanzamiento
 const partic = r => (r.participantes || []).filter(([a]) => esMiembro(a));          // miembros que participan (producción, feat., mezcla…)
-const esPart = r => !propios(r).length && partic(r).length > 0;                      // lanzamiento de otro artista con trabajo de aurality
+const esPart = r => !r.edicion && !propios(r).length && partic(r).length > 0;                      // lanzamiento de otro artista con trabajo de aurality
 const miembros = r => uniq([...propios(r), ...partic(r).map(([a]) => a)]);
 const ARTISTAS = [...MIEMBROS].filter(a => REL.some(r => miembros(r).includes(a)));
-const HAY_PART = REL.some(esPart);
+const HAY_PART = REL.some(esPart), HAY_ED = REL.some(r => r.edicion);
 const FILTROS = [
   { k: 'artist', lbl: 'ARTISTA', ops: ['TODOS', ...ARTISTAS], match: (r, v) => miembros(r).includes(v) },
-  ...(HAY_PART ? [{ k: 'tipo', lbl: 'TIPO', ops: ['TODOS', 'LANZAMIENTOS', 'PARTICIPACIONES'], match: (r, v) => (v === 'PARTICIPACIONES') === esPart(r) }] : []),
+  ...(HAY_PART || HAY_ED ? [{ k: 'tipo', lbl: 'TIPO', ops: ['TODOS', 'LANZAMIENTOS', ...(HAY_PART ? ['PARTICIPACIONES'] : []), ...(HAY_ED ? ['EDICIONES DEL SELLO'] : [])],
+    match: (r, v) => v === 'PARTICIPACIONES' ? esPart(r) : v === 'EDICIONES DEL SELLO' ? r.edicion : !esPart(r) && !r.edicion }] : []),
   { k: 'format', lbl: 'FORMATO', ops: ['TODOS', ...ORDEN_F.filter(f => REL.some(r => r.format === f))] },
   { k: 'year', lbl: 'AÑO', ops: ['TODOS', ...uniq(REL.map(r => r.year)).sort((x, y) => y - x).map(String)] },
   { k: 'genre', lbl: 'GÉNERO', ops: ['TODOS', ...uniq(REL.map(r => r.genre)).sort()] },
@@ -1888,9 +1910,9 @@ function pintaFaders() {
   corredorDesdeSel();
 }
 function corredorDesdeSel() { corredor(['format', 'year', 'genre'].map(k => { const i = FILTROS.findIndex(f => f.k === k); return FILTROS[i].ops.length > 1 ? sel[i] / (FILTROS[i].ops.length - 1) : 0; })); }
-const tarjetaRef = x => `<a class="ref" href="#${x.code}" data-c="${x.code}">${portada(x, 'portada')}${esPart(x) ? '<span class="marca">PARTICIPACIÓN</span>' : ''}
+const tarjetaRef = x => `<a class="ref" href="#${x.code}" data-c="${x.code}">${portada(x, 'portada')}${esPart(x) ? '<span class="marca">PARTICIPACIÓN</span>' : x.edicion ? '<span class="marca sello">EDICIÓN DEL SELLO</span>' : ''}
       <span class="c">${x.code} · ${esc(x.format)} · ${x.year}</span><span class="a">${esc(x.artist)}</span><span class="t">${esc(titulo(x))}</span>${lineaPart(x)}</a>`;
-const filaRef = x => `<a class="fila" href="#${x.code}" data-c="${x.code}"><span class="x">${x.code}</span><span class="a">${esc(x.artist)}${esPart(x) ? '<small>PART.</small>' : ''}</span><span class="t">${esc(titulo(x))}</span><span class="f x">${esc(x.format)}</span><span class="g x">${esc(x.genre)}</span><span class="y x">${x.year}</span><span aria-hidden="true">→</span></a>`;
+const filaRef = x => `<a class="fila" href="#${x.code}" data-c="${x.code}"><span class="x">${x.code}</span><span class="a">${esc(x.artist)}${esPart(x) ? '<small>PART.</small>' : x.edicion ? '<small>SELLO</small>' : ''}</span><span class="t">${esc(titulo(x))}</span><span class="f x">${esc(x.format)}</span><span class="g x">${esc(x.genre)}</span><span class="y x">${x.year}</span><span aria-hidden="true">→</span></a>`;
 const sinMov = matchMedia('(prefers-reduced-motion: reduce)');
 let vistaPintada = null;
 // todas las referencias se pintan una vez; al filtrar, las que salen se desvanecen en su sitio, las que quedan se deslizan
@@ -2153,7 +2175,7 @@ function vistaFicha(r) {
   const i = REL.indexOf(r), ant = REL[i + 1], sig = REL[i - 1], P = $('panel');
   const enl = [['SoundCloud', r.soundcloud], ['Spotify', r.spotify], ['Bandcamp', r.bandcamp]];
   setTimeout(() => P.querySelectorAll('[data-art]').forEach(a => a.addEventListener('click', () => { const i = FILTROS.findIndex(f => f.k === 'artist'); FILTROS.forEach((_, j) => sel[j] = 0); sel[i] = FILTROS[i].ops.indexOf(a.dataset.art); })));
-  P.innerHTML = `<header class="panel-cab"><div><h2>${r.code}</h2><div class="sub">${esPart(r) ? 'Participación' : 'Ficha de lanzamiento'} · ${esc(r.format)} · ${esc(r.genre)} · ${r.year}</div></div>
+  P.innerHTML = `<header class="panel-cab"><div><h2>${r.code}</h2><div class="sub">${esPart(r) ? 'Participación' : r.edicion ? 'Edición del sello' : 'Ficha de lanzamiento'} · ${esc(r.format)} · ${esc(r.genre)} · ${r.year}</div></div>
     <a class="tecla" href="#catalogo">← Catálogo</a></header>
     <div class="panel-cuerpo"><div class="fl">${portada(r, 'portada')}
       <div class="datos"><div class="cod">${r.code} · ${esc(r.format)} · ${r.fecha ? r.fecha.split('-').reverse().join('.') : r.year} · ${esc(r.genre)}</div><h3>${esc(r.artist)}</h3><p class="tit">${esc(titulo(r))}</p>
@@ -2165,8 +2187,34 @@ function vistaFicha(r) {
         <table class="creditos"><tbody>${r.credits.map(([k, v]) => `<tr><th scope="row">${esc(k)}</th>${pend(v) ? '<td class="pend">Por definir</td>' : `<td>${esc(v)}</td>`}</tr>`).join('')}</tbody></table>
         <div class="escala"><span class="k">TRACKLIST</span>${r.tracks && r.tracks.length ? r.tracks.map((t, n) => `<p>${String(n + 1).padStart(2, '0')} · ${esc(t)}</p>`).join('') : '<p>Tracklist por publicar.</p>'}</div>
       </div></div>
+      ${extrasFicha(r)}
       <nav class="pasos" aria-label="Otras referencias">${ant ? `<a class="tecla" href="#${ant.code}">← ${ant.code}</a>` : '<span></span>'}${sig ? `<a class="tecla" href="#${sig.code}">${sig.code} →</a>` : '<span></span>'}</nav></div>`;
   if ($('bRadio00')) $('bRadio00').onclick = () => escucha00(r);
+  const bv = $('bVideo'); if (bv) bv.onclick = () => {                                 // el vídeo solo se carga al pulsar (y la radio se calla)
+    if (radio.on) { radio.apagar(); pintaPlay(); }
+    const f = document.createElement('iframe'); f.className = 'vid'; f.src = bv.dataset.src; f.title = 'Vídeo de ' + r.code; f.allow = 'autoplay; fullscreen; picture-in-picture'; f.allowFullscreen = true; bv.replaceWith(f); };
+  P.querySelectorAll('.foto').forEach(b => b.onclick = () => visor(r.fotos, +b.dataset.i));
+}
+// lo que hace la ficha más rica: historia, vídeo y fotos. Si no hay, no sale nada (ni huecos ni avisos)
+const videoDe = u => { if (!u) return null; let m = u.match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/|live\/))([\w-]{11})/);
+  if (m) return { src: `https://www.youtube-nocookie.com/embed/${m[1]}?autoplay=1&rel=0`, img: `https://i.ytimg.com/vi/${m[1]}/hqdefault.jpg` };
+  m = u.match(/vimeo\.com\/(?:video\/)?(\d+)/); return m ? { src: `https://player.vimeo.com/video/${m[1]}?autoplay=1`, img: '' } : null; };
+function extrasFicha(r) {
+  const ps = r.historia ? r.historia.split(/\n\s*\n/).map(p => p.trim()).filter(Boolean) : [];
+  const hist = ps.length ? `<section class="historia"><div class="sub2">HISTORIA</div>${ps.map(p => `<p>${esc(p).replace(/\n/g, '<br>')}</p>`).join('')}</section>` : '';
+  const v = videoDe(r.video);
+  const vid = v ? `<section><div class="sub2">VÍDEO</div><button class="video" type="button" id="bVideo" data-src="${esc(v.src)}" aria-label="Reproducir el vídeo">${v.img ? `<img src="${esc(v.img)}" alt="" loading="lazy">` : ''}<span class="pl" aria-hidden="true">▶</span></button></section>` : '';
+  const fotos = r.fotos.length ? `<section><div class="sub2">FOTOS · ${r.fotos.length}</div><div class="fotos">${r.fotos.map((f, i) => `<button class="foto" type="button" data-i="${i}" aria-label="Ampliar foto ${i + 1}${f.pie ? ': ' + esc(f.pie) : ''}"><img src="${esc(f.img)}" alt="${esc(f.pie)}" loading="lazy"></button>`).join('')}</div></section>` : '';
+  return hist || vid || fotos ? `<div class="extra">${hist}${vid}${fotos}</div>` : '';
+}
+function visor(fotos, i) {
+  const V = document.createElement('div'); V.className = 'visor'; V.setAttribute('role', 'dialog'); V.setAttribute('aria-modal', 'true'); V.setAttribute('aria-label', 'Fotos');
+  const pinta = () => { const f = fotos[i]; V.innerHTML = `<img src="${esc(f.img)}" alt="${esc(f.pie)}"><div class="pie">${String(i + 1).padStart(2, '0')} / ${String(fotos.length).padStart(2, '0')}${f.pie ? ' · ' + esc(f.pie) : ''}</div>
+    <div class="bts">${fotos.length > 1 ? '<button class="tecla" data-a="-1" aria-label="Anterior">←</button><button class="tecla" data-a="1" aria-label="Siguiente">→</button>' : ''}<button class="tecla oscura" data-a="x">Cerrar</button></div>`; V.querySelector('[data-a="x"]').focus(); };
+  const mueve = d => { i = (i + d + fotos.length) % fotos.length; pinta(); }, cierra = () => { V.remove(); removeEventListener('keydown', tecla); };
+  const tecla = e => { if (e.key === 'Escape') cierra(); if (e.key === 'ArrowRight') mueve(1); if (e.key === 'ArrowLeft') mueve(-1); };
+  V.addEventListener('click', e => { const a = e.target.closest('[data-a]'); if (e.target === V || (a && a.dataset.a === 'x')) cierra(); else if (a) mueve(+a.dataset.a); });
+  addEventListener('keydown', tecla); document.body.appendChild(V); pinta();
 }
 // ---------- roster ----------
 const slug = a => a.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
