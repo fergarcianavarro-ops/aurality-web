@@ -50,8 +50,11 @@ head = f'''<!doctype html>
 <meta property="og:title" content="aurality · aura-of-reality">
 <meta property="og:description" content="{desc}">
 <meta property="og:image" content="og-image.jpg">
+<meta property="og:url" content="">
 <meta property="og:locale" content="es_ES">
 <meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="aurality · aura-of-reality">
+<meta name="twitter:image" content="og-image.jpg">
 <script>window.AU_DEPLOY = true;</script>
 </head><body>
 '''

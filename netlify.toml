@@ -29,3 +29,9 @@
   for = "/senal/*"
   [headers.values]
     Cache-Control = "public, max-age=86400"
+
+# direcciones limpias (/AU0212, /ufisi, /catalogo…): todas abren la web, que enseña la sección que toca
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200

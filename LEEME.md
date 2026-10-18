@@ -18,6 +18,7 @@ web/                lo que se publica
   _headers            cabeceras de Cloudflare (caché y panel fuera de buscadores)
 netlify.toml        configuración de Netlify, por si se vuelve a publicar allí (publica web/)
 wrangler.jsonc      configuración de Cloudflare Workers (publica web/)
+worker/             el portero: pone la vista previa de cada enlace (portada, foto…) al compartir
 fuente/             código de origen de la web (no se publica)
   home_src.html       diseño, escena 3D, radio ambient, secciones
   parts.js, geo.json  piezas 3D AU-01…AU-05
@@ -67,6 +68,8 @@ Si alguien pierde el móvil o el portátil, borra su clave en GitHub y deja de v
 - **Artistas.** Rol, biografía, foto (sale en blanco y negro) y redes. El nombre tiene que coincidir con el de los lanzamientos.
 - **Señal mensual.** Cada mes, *Agregar edición*: mes, año, portada, temas y destacados. La más reciente sale **En antena** y las anteriores pasan solas a **Archivada**.
 - **Manifiesto y contacto.** Los textos de esas secciones.
+
+**Compartir enlaces.** Cada lanzamiento, artista y edición de la Señal tiene su dirección, la que se ve en la barra del navegador: `tu-web/AU0212`, `tu-web/ufisi`, `tu-web/senal`, `tu-web/catalogo`. Al pegarla en WhatsApp, Instagram o X, la vista previa enseña la portada, la foto o la Señal que toca. Las portadas en JPG son las que mejor funcionan en esas vistas previas.
 
 La web se actualiza alrededor de un minuto después de publicar. Cada cambio queda en el historial del repositorio y se puede deshacer.
 

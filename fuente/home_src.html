@@ -1850,11 +1850,18 @@ function vistaContacto() {
 }
 let seccion = 'escucha', foco = null, mesSenal = 0;
 const NOMBRE = { escucha: ['01 · SECCIÓN', 'ESCUCHA'], catalogo: ['02 · SECCIÓN', 'CATÁLOGO'], roster: ['03 · SECCIÓN', 'ROSTER'], senal: ['04 · SECCIÓN', 'SEÑAL'], manifiesto: ['05 · SECCIÓN', 'MANIFIESTO'], contacto: ['06 · SECCIÓN', 'CONTACTO'] };
-function ruta() {
-  const h = decodeURIComponent(location.hash.slice(1)), r = REL.find(x => x.code === h.toUpperCase());
+// direcciones limpias: la barra del navegador enseña /AU0212, /ufisi, /senal-10_26 o /catalogo (lo que se comparte),
+// mientras los enlaces internos siguen siendo #AU0212, #a-ufisi, #s-10_26
+const deDireccion = p => { p = p.replace(/\/+$/, ''); const q = p.toLowerCase();
+  return q.startsWith('senal-') ? 's-' + p.slice(6) : ART.some(a => a.s === q) ? 'a-' + q : p; };
+function ruta(ev) {
+  const porHash = (ev && ev.type === 'hashchange') || location.hash.length > 1;
+  const h = porHash ? decodeURIComponent(location.hash.slice(1)) : deDireccion(decodeURIComponent(location.pathname.slice(1))), r = REL.find(x => x.code === h.toUpperCase());
   const art = h.startsWith('a-') && ART.find(a => a.s === h.slice(2));
   const sen = h === 'senal' ? SEN[0] : h.startsWith('s-') ? SEN.find(e => e.code === h.slice(2)) : null;
   seccion = ['catalogo', 'roster', 'manifiesto', 'contacto'].includes(h) ? h : sen ? 'senal' : r ? 'ficha' : art ? 'artista' : 'escucha';
+  const dir = '/' + (seccion === 'escucha' ? '' : seccion === 'ficha' ? r.code : seccion === 'artista' ? art.s : seccion === 'senal' ? (h === 'senal' ? 'senal' : 'senal-' + sen.code) : h);
+  if (location.pathname + location.hash !== dir) try { history.replaceState(history.state, '', dir); } catch (e) {}
   const navS = seccion === 'ficha' ? 'catalogo' : seccion === 'artista' ? 'roster' : seccion;
   document.querySelectorAll('.placa').forEach(p => p.setAttribute('aria-current', p.dataset.s === navS ? 'page' : 'false')); punta();
   $('menuN').textContent = NOMBRE[navS][0]; $('menuT').textContent = NOMBRE[navS][1];
@@ -1893,6 +1900,7 @@ function apila(saliendo) {
 if (SEN[0]) $('senCod').textContent = SEN[0].code; else document.querySelector('.lateral .senal').remove();
 pintaAvisos();
 addEventListener('hashchange', ruta);
+addEventListener('popstate', () => { if (!location.hash) ruta(); });   // atrás / adelante entre direcciones limpias
 ruta();
 window.__carga?.mark('datos', REL.length + ' REF. · SEÑAL ' + (SEN[0] ? SEN[0].code : '—'));
 addEventListener('resize', punta); requestAnimationFrame(punta);
