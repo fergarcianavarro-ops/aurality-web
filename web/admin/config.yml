@@ -62,6 +62,9 @@ collections:
               - { name: format, label: Formato, widget: select, options: [SINGLE, EP, REMIXES, ÁLBUM, EDIT], default: SINGLE }
               - { name: genre, label: Género, widget: string, required: false, hint: "CLUB, RAP, DRILL, EDIT…" }
               - { name: year, label: Año, widget: number, value_type: int, min: 2020, max: 2100 }
+              - { name: fecha, label: Fecha de salida, widget: datetime, required: false, time_format: false, date_format: YYYY-MM-DD, format: YYYY-MM-DD, hint: "Si es una fecha futura, el lanzamiento no sale en el catálogo hasta ese día: aparece en el aparato AU-06 de la portada con su cuenta atrás (a partir de 30 días antes)." }
+              - { name: presave, label: Enlace de presave, widget: string, required: false, hint: "Opcional. Sale en el AU-06 a partir de 14 días antes de la salida." }
+              - { name: fragmentos, label: Fragmentos de adelanto, widget: list, required: false, max: 3, media_folder: /web/fragmentos, public_folder: fragmentos, field: { name: archivo, label: Audio (mp3), widget: file, choose_url: false }, hint: "Opcional, hasta 3 trozos cortos (mp3). Se desbloquean uno por día en los 3 últimos días antes de la salida." }
               - { name: destacado, label: Destacar en la portada, widget: boolean, required: false, default: false, hint: "Sale en la portada como aviso (en el móvil, como tarjeta deslizable). Como mucho se ven 3: los más recientes que estén marcados. Si no marcas ninguno, sale el último lanzamiento." }
               - { name: cover, label: Portada, widget: image, required: false, choose_url: false, hint: "Cuadrada. Sube la imagen tal cual: el panel la reduce y la optimiza solo. Sin portada la web muestra una placa con el código." }
               - { name: soundcloud, label: SoundCloud, widget: string, required: false, hint: "Enlace al tema o al set. Si lo hay, la ficha muestra el reproductor y el lanzamiento suena en el canal 00 de la radio." }

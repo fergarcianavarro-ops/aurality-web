@@ -23,6 +23,7 @@ async function tarjeta(env, origen, clave) {
   if (SECCIONES[k]) return { titulo: SECCIONES[k][0] + ' · aurality', texto: SECCIONES[k][1] };
   if (/^au\d+$/.test(k)) {
     const r = ((await json(env, origen, 'lanzamientos.json')).releases || []).find(x => x && String(x.code).toLowerCase() === k);
+    if (r && r.fecha && new Date(String(r.fecha).slice(0, 10) + 'T00:00:00Z') > Date.now()) return null;   // lo que aún no ha salido no se destapa al compartir
     if (r) return { titulo: `${String(r.artist).toUpperCase()} — ${titulo(r.title)}`, texto: [r.code, r.format, r.year].filter(Boolean).join(' · ') + ' · aurality', imagen: r.cover };
   }
   if (k === 'senal' || k.startsWith('senal-')) {

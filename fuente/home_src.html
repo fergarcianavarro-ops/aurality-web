@@ -62,6 +62,35 @@ body{background:linear-gradient(180deg,var(--cielo-1) 0%,var(--cielo-2) 72%);col
 
 /* ---------- tarjetas sobre la escena ---------- */
 .lateral{position:fixed;right:28px;bottom:132px;z-index:6;width:min(360px,34vw);display:flex;flex-direction:column;gap:14px}
+/* AU-06 · lo próximo: aparato con cuenta atrás en la parte superior de Escucha */
+.proximo{position:fixed;top:68px;right:28px;z-index:6;width:min(360px,34vw);box-sizing:border-box;background:linear-gradient(180deg,#eceae4,#dddbd4);clip-path:var(--chaflan);
+  padding:14px 16px 16px;display:grid;gap:11px;box-shadow:inset 0 1px 0 #fff;animation:proxEntra .7s cubic-bezier(.2,.7,.2,1) .2s backwards}
+@keyframes proxEntra{from{transform:translateY(-14px);opacity:0}}
+.proximo[hidden]{display:none}
+.proximo .eti{display:flex;justify-content:space-between;align-items:center;font:700 9.5px/1.25 var(--f-mono);letter-spacing:.16em;color:#4a5060;text-transform:uppercase}
+.proximo .eti .der{display:inline-flex;align-items:center;gap:6px;color:#b3261e}
+.proximo .eti .der i{width:7px;height:7px;border-radius:50%;background:var(--rojo);box-shadow:0 0 6px rgba(255,70,50,.7);animation:parpadea 1.1s steps(2) infinite}
+.proximo .eti .der.quieto{color:#4a5060}.proximo .eti .der.quieto i{background:#8f96a6;box-shadow:none;animation:none}
+.proximo .cuerpo{display:grid;grid-template-columns:64px 1fr;gap:12px;align-items:center}
+.proximo .tapa{width:64px;height:64px;position:relative;overflow:hidden;background:#2a2f3b;display:grid;place-items:center}
+.proximo .tapa img{width:100%;height:100%;object-fit:cover;display:block;transition:filter .6s}
+.proximo .tapa.ruido::before{content:"";position:absolute;inset:-50%;background:repeating-linear-gradient(0deg,rgba(255,255,255,.10) 0 1px,transparent 1px 3px),repeating-linear-gradient(90deg,rgba(255,255,255,.05) 0 2px,transparent 2px 5px);animation:ruido .35s steps(3) infinite}
+.proximo .tapa.ruido b{position:relative;font:800 10px/1 var(--f-mono);color:#cfd5e2;letter-spacing:.06em}
+@keyframes ruido{33%{transform:translate(3px,-4px)}66%{transform:translate(-4px,2px)}}
+.proximo .cod{font:500 10.5px/1.3 var(--f-mono);letter-spacing:.08em;color:#4a5060}
+.proximo .art{font:800 15px/1.15 var(--f-mono);margin-top:3px;color:var(--tinta)}
+.proximo .tit{font:500 12px/1.3 var(--f-texto);color:#3b4150;margin-top:2px}
+.proximo .velo{display:inline-block;width:9em;max-width:100%;height:.8em;background:repeating-linear-gradient(90deg,#9aa0ab 0 6px,#b6bbc4 6px 9px);vertical-align:middle}
+.pantalla{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;padding:9px 10px 7px;background:#151922;box-shadow:inset 0 2px 4px rgba(0,0,0,.6),inset 0 0 0 1px #000}
+.pantalla .c{position:relative;text-align:center;font:800 24px/1 var(--f-mono);color:#cfe0ff;text-shadow:0 0 6px rgba(110,150,255,.55);font-variant-numeric:tabular-nums}
+.pantalla .c::before{content:"88";position:absolute;inset:0;color:rgba(160,180,230,.08);text-shadow:none}
+.pantalla .c small{display:block;margin-top:5px;font:700 8px/1 var(--f-mono);letter-spacing:.18em;color:#6f7a93;text-shadow:none}
+.pantalla.dia .c:first-child{color:#ff8a7a;text-shadow:0 0 6px rgba(255,90,70,.5)}
+.pantalla.msg{grid-template-columns:1fr}.pantalla.msg .c{font-size:16px;letter-spacing:.12em;padding:4px 0 2px}.pantalla.msg .c::before{content:none}
+.proximo .acciones{display:flex;gap:8px;flex-wrap:wrap}
+.proximo .tecla{padding:9px 12px 8px}
+@media (min-width:821px) and (max-height:800px){.proximo{gap:8px;padding:10px 14px 12px}.proximo .cuerpo{grid-template-columns:48px 1fr;gap:10px}.proximo .tapa{width:48px;height:48px}
+  .proximo .tit{display:none}.pantalla{padding:6px 8px 5px}.pantalla .c{font-size:19px}.pantalla .c small{margin-top:3px}}
 .ficha{background:linear-gradient(180deg,#59627a,#3f4659);color:var(--letra-relieve);clip-path:var(--chaflan);padding:18px 20px 20px;display:grid;gap:12px;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.18)}
 .ficha .eti{font:700 10px/1 var(--f-mono);letter-spacing:.16em;text-transform:uppercase;opacity:.75;display:flex;justify-content:space-between}
@@ -387,6 +416,13 @@ iframe.sc{width:100%;height:166px;border:0;display:block;background:#d9d6ce}
   .faja.abierta{transform:none}
   .velo{display:block;position:fixed;inset:0;z-index:12;background:rgba(18,24,36,.42);opacity:0;pointer-events:none;transition:opacity .35s}
   .velo.on{opacity:1;pointer-events:auto}
+  .proximo{top:calc(78px + env(safe-area-inset-top,0px));left:max(10px,env(safe-area-inset-left,0px));right:max(10px,env(safe-area-inset-right,0px));width:auto;
+    padding:10px 12px 11px;gap:8px 10px;grid-template-columns:44px 1fr auto;grid-template-areas:"eti eti eti" "tapa txt txt" "pan pan acc";align-items:center}
+  .proximo .eti{grid-area:eti}.proximo .cuerpo{display:contents}.proximo .tapa{grid-area:tapa;width:44px;height:44px}.proximo .cuerpo>div:last-child{grid-area:txt;min-width:0}
+  .proximo .pantalla{grid-area:pan;padding:6px 8px 5px}.proximo .acciones{grid-area:acc}
+  .proximo .art{font-size:13px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.proximo .tit{display:none}.proximo .acciones{flex-direction:column;gap:6px}
+  .pantalla .c{font-size:18px}.pantalla .c small{margin-top:3px;font-size:7px}.pantalla.msg .c{font-size:13px}
+  .proximo .tecla{padding:8px 10px 7px;font-size:10px}
   .lateral{left:0;right:0;width:auto;bottom:calc(150px + env(safe-area-inset-bottom,0px));flex-direction:row;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;
     padding-inline:max(12px,env(safe-area-inset-left,0px)) max(12px,env(safe-area-inset-right,0px));scrollbar-width:none;scroll-padding-inline:12px}
   .lateral::-webkit-scrollbar{display:none}
@@ -521,6 +557,8 @@ iframe.sc{width:100%;height:166px;border:0;display:block;background:#d9d6ce}
   <span>AU-00 · Receptor<br><b id="estadoTxt">En espera</b></span>
   <span>Elda · 38.48°N 0.79°O<br><b id="hora">--:--</b></span>
 </div>
+
+<aside class="proximo" id="proximo" aria-label="AU-06 · lo próximo" aria-live="polite"></aside>
 
 <aside class="lateral">
   <div class="notas" id="notas" aria-label="Lanzamientos destacados"></div>
@@ -1588,7 +1626,8 @@ const DATA = await (async () => {
   const D = Object.assign({}, COPIA, ...partes.filter(Boolean));
   // el panel guarda listas de objetos; la web trabaja con el formato compacto (y acepta ambos)
   if (Array.isArray(D.artists)) D.artists = Object.fromEntries(D.artists.filter(a => a && a.name).map(({ name, ...r }) => [name.trim().toUpperCase(), r]));
-  D.releases = (D.releases || []).filter(r => r && r.code && r.artist).map(r => ({ ...r, artist: r.artist.trim().toUpperCase(), title: r.title || '[ S/T ]', destacado: r.destacado === true || r.destacado === 'true', format: (r.format || 'SINGLE').toUpperCase(), genre: (r.genre || '—').toUpperCase().trim(), cover: r.cover || '', soundcloud: r.soundcloud || '', spotify: r.spotify || '', bandcamp: r.bandcamp || '', year: +r.year || r.year || '',
+  D.releases = (D.releases || []).filter(r => r && r.code && r.artist).map(r => ({ ...r, artist: r.artist.trim().toUpperCase(), title: r.title || '[ S/T ]', destacado: r.destacado === true || r.destacado === 'true', fecha: /^\d{4}-\d{2}-\d{2}/.test(String(r.fecha || '')) ? String(r.fecha).slice(0, 10) : '', presave: r.presave || '',
+    fragmentos: (r.fragmentos || []).map(f => typeof f === 'string' ? f : f && (f.archivo || f.file)).filter(Boolean), format: (r.format || 'SINGLE').toUpperCase(), genre: (r.genre || '—').toUpperCase().trim(), cover: r.cover || '', soundcloud: r.soundcloud || '', spotify: r.spotify || '', bandcamp: r.bandcamp || '', year: +r.year || r.year || '',
     credits: (r.credits || []).map(c => Array.isArray(c) ? c : [c.rol || '', c.nombre || '']).filter(([k]) => k),
     tracks: (r.tracks || []).map(t => typeof t === 'string' ? t : (t && t.titulo) || '').filter(Boolean),
     participantes: (r.participantes || []).map(p => Array.isArray(p) ? p : [(p && p.artista) || '', (p && p.rol) || '']).map(([a, rol]) => [String(a).trim().toUpperCase(), String(rol || '').trim()]).filter(([a]) => a) }))
@@ -1596,6 +1635,9 @@ const DATA = await (async () => {
   D.senal = (D.senal || []).filter(x => x && x.mes && x.anio).map(x => ({ ...x, mes: +x.mes, anio: +x.anio, temas: +x.temas || null,
     code: x.code || String(x.mes).padStart(2, '0') + '_' + String(x.anio).slice(-2),
     destacados: (x.destacados || []).map(d => Array.isArray(d) ? d : [d.artista || '', d.tema || '', d.prod || '']).filter(([a]) => a) }));
+  // un lanzamiento con fecha de salida futura no sale en el catálogo: vive en el AU-06 (lo próximo) hasta su día
+  const fut = r => r.fecha && new Date(r.fecha + 'T00:00:00') > Date.now();
+  D.proximos = D.releases.filter(fut).sort((a, b) => a.fecha.localeCompare(b.fecha)); D.releases = D.releases.filter(r => !fut(r));
   return D;
 })();
 const DESPLEGADO = window.AU_DEPLOY === true;
@@ -1907,7 +1949,7 @@ function vistaFicha(r) {
   P.innerHTML = `<header class="panel-cab"><div><h2>${r.code}</h2><div class="sub">${esPart(r) ? 'Participación' : 'Ficha de lanzamiento'} · ${esc(r.format)} · ${esc(r.genre)} · ${r.year}</div></div>
     <a class="tecla" href="#catalogo">← Catálogo</a></header>
     <div class="panel-cuerpo"><div class="fl">${portada(r, 'portada')}
-      <div class="datos"><div class="cod">${r.code} · ${esc(r.format)} · ${r.year} · ${esc(r.genre)}</div><h3>${esc(r.artist)}</h3><p class="tit">${esc(titulo(r))}</p>
+      <div class="datos"><div class="cod">${r.code} · ${esc(r.format)} · ${r.fecha ? r.fecha.split('-').reverse().join('.') : r.year} · ${esc(r.genre)}</div><h3>${esc(r.artist)}</h3><p class="tit">${esc(titulo(r))}</p>
         ${partic(r).length ? `<div class="aqui"><span class="k">${esPart(r) ? 'AURALITY EN ESTE LANZAMIENTO' : 'TAMBIÉN DE AURALITY'}</span>${lineaPart(r)}</div>` : ''}
         <div class="enlaces mas">${miembros(r).map(a => `<a class="tecla oscura" href="#a-${slug(a)}">${esc(a)} · perfil</a>`).join('')}</div>
         <div class="enlaces">${r.soundcloud ? '<button class="tecla oscura" type="button" id="bRadio00">Escuchar en la radio · canal 00</button>' : ''}${enl.map(([n, u]) => u ? `<a class="tecla" href="${esc(u)}" target="_blank" rel="noopener">${n} ↗</a>` : `<span class="tecla" aria-disabled="true">${n} · sin enlace</span>`).join('')}</div>
@@ -2097,7 +2139,7 @@ function ruta(ev) {
   document.querySelectorAll('.placa').forEach(p => p.setAttribute('aria-current', p.dataset.s === navS ? 'page' : 'false')); punta();
   $('menuN').textContent = NOMBRE[navS][0]; $('menuT').textContent = NOMBRE[navS][1];
   const lat = document.querySelector('.lateral'), vuelve = lat.hidden && seccion === 'escucha';
-  lat.hidden = seccion !== 'escucha'; if (vuelve) lat.scrollLeft = 0;                    // en el móvil, empieza siempre por el primer destacado
+  lat.hidden = seccion !== 'escucha'; $('proximo').hidden = seccion !== 'escucha' || !$('proximo').innerHTML; if (vuelve) lat.scrollLeft = 0;                    // en el móvil, empieza siempre por el primer destacado
   document.querySelector('.estado').hidden = seccion !== 'escucha';
   const P = $('panel'); P.hidden = seccion === 'escucha';
   if (radioPorSC) { radioPorSC = false; radio.encender().then(pintaPlay); }
@@ -2109,7 +2151,8 @@ function ruta(ev) {
 // ---------- destacados de la portada ----------
 // se eligen a mano en el panel (casilla «Destacar en la portada»): como mucho 3, los más recientes primero.
 // Si no hay ninguno marcado, sale el último lanzamiento. En escritorio se apilan como avisos y se cierran con ×.
-const DEST = (() => { const d = REL.filter(r => r.destacado).slice(0, 3); return d.length ? d : REL.slice(0, 1); })();
+const DEST = (() => { const rec = REL.filter(r => r.fecha && Date.now() - new Date(r.fecha + 'T00:00:00') < 7 * 864e5);      // lo recién salido entra solo
+  const d = uniq([...rec, ...REL.filter(r => r.destacado)]).slice(0, 3); return d.length ? d : REL.slice(0, 1); })();
 const cerrados = (() => { try { return JSON.parse(sessionStorage.getItem('au-cerrados') || '[]'); } catch (e) { return []; } })();
 function pintaAvisos() {
   const A = $('notas'), vivos = DEST.filter(r => !cerrados.includes(r.code));
@@ -2129,6 +2172,71 @@ function apila(saliendo) {
   vs.forEach((el, i) => { el.style.setProperty('--i', i); el.classList.toggle('atras', i > 0); });
 }
 if (SEN[0]) $('senCod').textContent = SEN[0].code; else document.querySelector('.lateral .senal').remove();
+// ---------- AU-06 · lo próximo ----------
+// Un lanzamiento con fecha de salida futura pasa por cuatro fases: anuncio (30–15 días: solo código y cuenta atrás),
+// revelado (14–4: artista, título, portada que se destapa y presave), fragmento (3 últimos días: un trozo distinto cada día)
+// y salida (el día: «ya disponible»). Sin nada programado, cuenta hacia la próxima Señal mensual.
+// Para ver cada fase sin datos: ?demo=anuncio | revelado | fragmento | salida | reposo
+const DIA = 864e5, fechaDe = f => new Date(f + 'T00:00:00');
+const DEMO = (() => { try { return new URLSearchParams(location.search).get('demo'); } catch (e) { return null; } })();
+const PROX = (() => {
+  if (!DEMO || !REL[0]) return DATA.proximos || [];
+  const dias = { anuncio: 22.4, revelado: 8.6, fragmento: 1.6 }[DEMO], f = new Date(Date.now() + (dias || 0) * DIA);
+  const iso = `${f.getFullYear()}-${String(f.getMonth() + 1).padStart(2, '0')}-${String(f.getDate()).padStart(2, '0')}`;
+  return dias ? [{ ...REL[0], code: 'AU0213', artist: 'ARTISTA DE PRUEBA', title: 'TÍTULO DE PRUEBA', fecha: iso, presave: '#', fragmentos: REL[0].fragmentos || [] }] : [];
+})();
+function estadoProximo() {
+  const ahora = Date.now(), r = PROX[0];
+  if (r) { const d = (fechaDe(r.fecha) - ahora) / DIA; if (d <= 30) return { fase: d > 14 ? 'anuncio' : d > 3 ? 'revelado' : 'fragmento', r, obj: fechaDe(r.fecha), d }; }
+  const sal = DEMO === 'salida' ? REL[0] : REL.find(x => x.fecha && ahora - fechaDe(x.fecha) >= 0 && ahora - fechaDe(x.fecha) < DIA);
+  if (sal) return { fase: 'salida', r: sal };
+  const s = SEN[0]; if (!s) return null;
+  const m = s.mes % 12 + 1, a = s.anio + (s.mes === 12 ? 1 : 0), obj = new Date(a, m - 1, 1);
+  return { fase: 'reposo', obj: obj > ahora ? obj : null, code: String(m).padStart(2, '0') + '_' + String(a).slice(-2) };
+}
+let faseProx = '', fragProx = null;
+const dos = n => String(n).padStart(2, '0');
+function pantallaProx(e) {
+  if (!e.obj) return `<div class="pantalla msg" id="proxPan"><div class="c">${e.fase === 'salida' ? 'YA DISPONIBLE' : 'EN PREPARACIÓN'}</div></div>`;
+  const t = Math.max(0, e.obj - Date.now()), d = Math.floor(t / DIA), h = Math.floor(t / 36e5) % 24, mi = Math.floor(t / 6e4) % 60, se = Math.floor(t / 1e3) % 60;
+  return `<div class="pantalla${d < 1 ? ' dia' : ''}" id="proxPan" role="timer" aria-label="Faltan ${d} días, ${h} horas y ${mi} minutos">${[[d, 'DÍAS'], [h, 'HRS'], [mi, 'MIN'], [se, 'SEG']].map(([v, k]) => `<div class="c">${dos(v)}<small>${k}</small></div>`).join('')}</div>`;
+}
+function pintaProximo() {
+  const P = $('proximo'), e = estadoProximo();
+  if (!e) { P.innerHTML = ''; P.hidden = true; return; }
+  const clave = e.fase + (e.r ? e.r.code : '') + (e.fase === 'fragmento' ? Math.ceil(e.d) : '');
+  if (clave === faseProx) { const pan = $('proxPan'); if (pan && e.obj) pan.outerHTML = pantallaProx(e); return; }
+  faseProx = clave; const r = e.r;
+  const desv = e.fase === 'revelado' ? Math.max(0, Math.min(1, (e.d - 4) / 10)) : 0;                // 1 = tapada del todo, 0 = destapada
+  const tapa = e.fase === 'reposo' ? (SEN[0] && SEN[0].cover ? `<img src="${esc(SEN[0].cover)}" alt="" style="filter:grayscale(1) brightness(.75)">` : '<b>SEÑAL</b>')
+    : e.fase === 'anuncio' ? `<b>${r.code}</b>` : r.cover ? `<img src="${esc(r.cover)}" alt="Portada de ${esc(titulo(r))}" style="filter:blur(${(desv * 14).toFixed(1)}px) grayscale(${desv.toFixed(2)})">` : `<b>${r.code}</b>`;
+  const n = r && r.fragmentos ? r.fragmentos.length : 0, iFrag = e.fase === 'fragmento' && n ? Math.min(n - 1, e.d > 2 ? 0 : e.d > 1 ? 1 : 2) : -1;
+  fragProx = iFrag >= 0 ? r.fragmentos[iFrag] : null;
+  const textos = e.fase === 'reposo' ? `<div class="cod">SEÑAL MENSUAL · ${e.code}</div><div class="art">PRÓXIMA SEÑAL</div><div class="tit">Lanzamientos, hallazgos y obsesiones del mes.</div>`
+    : e.fase === 'anuncio' ? `<div class="cod">${r.code} · ${r.fecha.split('-').reverse().join('.')}</div><div class="art">SEÑAL ENTRANTE</div><div class="tit"><span class="velo" aria-label="Por revelar"></span></div>`
+    : `<div class="cod">${r.code} · ${esc(r.format)} · ${r.fecha ? r.fecha.split('-').reverse().join('.') : r.year}</div><div class="art">${esc(r.artist)}</div><div class="tit">${esc(titulo(r))}</div>`;
+  const acc = e.fase === 'reposo' ? `<a class="tecla" href="#senal">Señal actual</a>`
+    : e.fase === 'salida' ? `${r.soundcloud || r.spotify ? `<a class="tecla" href="${esc(r.soundcloud || r.spotify)}" target="_blank" rel="noopener">Escuchar ↗</a>` : ''}<a class="tecla oscura" href="#${r.code}">Ficha</a>`
+    : `${fragProx ? `<button class="tecla oscura" type="button" id="bFrag">▶ Fragmento ${iFrag + 1}/${n}</button>` : ''}${e.fase !== 'anuncio' && r.presave ? `<a class="tecla" href="${esc(r.presave)}" target="_blank" rel="noopener">Presave ↗</a>` : ''}`;
+  const eti = { anuncio: 'Lo próximo · anuncio', revelado: 'Lo próximo · revelado', fragmento: 'Lo próximo · fragmento', salida: 'Hoy sale', reposo: 'Sin emisión programada' }[e.fase];
+  P.innerHTML = `<div class="eti"><span>AU-06 · ${eti}</span><span class="der${e.fase === 'reposo' ? ' quieto' : ''}"><i></i>${e.fase === 'reposo' ? 'Reposo' : 'En curso'}</span></div>
+    <div class="cuerpo"><div class="tapa${e.fase === 'anuncio' || (e.fase !== 'reposo' && !r.cover) ? ' ruido' : ''}">${tapa}</div><div>${textos}</div></div>
+    ${pantallaProx(e)}${acc ? `<div class="acciones">${acc}</div>` : ''}`;
+  if ($('bFrag')) $('bFrag').onclick = tocaFragmento;
+  P.hidden = seccion !== 'escucha';
+}
+// el fragmento suena con su propio reproductor; la radio se calla mientras y vuelve al terminar
+let audioFrag = null, radioPorFrag = false;
+function tocaFragmento() {
+  const b = $('bFrag');
+  if (audioFrag && !audioFrag.paused) { audioFrag.pause(); return; }
+  audioFrag = new Audio(fragProx); audioFrag.preload = 'auto';
+  if (radio.on) { radio.apagar(); radioPorFrag = true; pintaPlay(); }
+  const vuelve = () => { if (b) b.textContent = b.textContent.replace('■', '▶'); if (radioPorFrag) { radioPorFrag = false; radio.encender().then(pintaPlay); } };
+  audioFrag.onended = vuelve; audioFrag.onpause = vuelve;
+  audioFrag.play().then(() => { if (b) b.textContent = b.textContent.replace('▶', '■'); }).catch(vuelve);
+}
+pintaProximo(); setInterval(() => { if (seccion === 'escucha' && !document.hidden) pintaProximo(); }, 1000);
 pintaAvisos();
 addEventListener('hashchange', ruta);
 addEventListener('popstate', () => { if (!location.hash) ruta(); });   // atrás / adelante entre direcciones limpias
