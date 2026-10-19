@@ -95,6 +95,7 @@ async function portero(peticion, env, url) {
 export default {
   async fetch(peticion, env) {
     const url = new URL(peticion.url);
+    if (url.pathname === '/admin') return Response.redirect(url.origin + '/admin/', 301);   // el panel, con o sin barra final
     if (url.pathname === '/tx' || url.pathname.startsWith('/tx/')) return portero(peticion, env, url);
     if (/\.[a-z0-9]+$/i.test(url.pathname)) return env.ASSETS.fetch(peticion);            // un archivo que no es página: tal cual
     if (url.pathname.length > 1 && url.pathname.endsWith('/')) return Response.redirect(url.origin + url.pathname.replace(/\/+$/, '') + url.search, 301);
