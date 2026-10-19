@@ -1,8 +1,59 @@
 {
   "releases": [
     {
+      "code": "AU0125",
+      "artist": "AURALITY",
+      "participantes": [],
+      "title": "aurality archives vol. 1",
+      "edicion": true,
+      "format": "REMIXES",
+      "genre": "REMIX",
+      "year": 2025,
+      "fecha": "2025-11-30",
+      "presave": "",
+      "fragmentos": [],
+      "destacado": false,
+      "cover": "/covers/saveclip.app_587700334_18086309051095107_7291393043367421422_n-1.webp",
+      "soundcloud": "https://soundcloud.com/aurality-group/sets/aurality-archives-vol-1",
+      "fragmento": "",
+      "spotify": "",
+      "bandcamp": "",
+      "historia": "aurality archives es un recopilatorio que reúne los remixes y mashups creados por los productores del colectivo a lo largo del último año. Una colección que funciona como bitácora sonora de nuestro laboratorio interno: reinterpretaciones, ejercicios de estilo y relecturas que exploran la frontera entre el reggaetón, el hip-hop y la electrónica contemporánea. Un archivo vivo que refleja cómo dialogamos con la cultura club, el perreo, el sampleo y la energía híbrida que define nuestra identidad creativa.",
+      "video": "",
+      "fotos": [],
+      "credits": [
+        {
+          "rol": "PRODUCCIÓN",
+          "nombre": "PARANOID REALM · UFISI · MXNCHV"
+        },
+        {
+          "rol": "ARTE",
+          "nombre": "CUTEXICO"
+        }
+      ],
+      "tracks": [
+        "do you remember xiyo y fernandezz aurality remix (prod. Paranoid Realm)",
+        "children x toyota aurality remix (prod. Paranoid Realm)",
+        "olympique hoke ébano louis amoeba aurality remix (prod. mxnchv)",
+        "mercadona x sin ti aurality mashup (prod. Ufisi)",
+        "blam blam cosculluela rompediskotekas aurality remix (prod. Ufisi)",
+        "taylor swift i knew you were trouble aurality remix (prod. mxnchv)",
+        "bery jr ski ski aurality remix (prod. Ufisi)",
+        "soniquete aurality remix (prod. Paranoid Realm)",
+        "icy vedo mr bag vedo aurality remix (prod. Ufisi)",
+        "limonada coco aurality remix (prod. Paranoid Realm)",
+        "infierno x more aurality mashup (yung beef x zion x kerry x jory boy) (prod. Ufisi)",
+        "bajo la luna xiyo y fernandezz electro aurality remix (prod. Ufisi)",
+        "mushka habibi x una vaina loca aurality remix (prod. Ufisi)",
+        "justin bieber company aurality remix (prod. Paranoid Realm)",
+        "bad bunny pa que le de reggaeton aurality remix (prod. Ufisi)",
+        "hotline bling aurality remix (prod. mxnchv)",
+        "chulo bad gyal hard techno aurality remix (prod. Paranoid Realm y Chico Liotta)"
+      ]
+    },
+    {
       "code": "AU0342",
-      "artist": "PARANOID REALM",
+      "artist": "AURALITY x PARANOID REALM",
       "participantes": [],
       "title": "do you remember xiyo y fernandezz aurality remix",
       "edicion": true,
@@ -44,7 +95,12 @@
     {
       "code": "AU0123",
       "artist": "941SONE x PARANOID REALM",
-      "participantes": [],
+      "participantes": [
+        {
+          "artista": "PARANOID REALM",
+          "rol": "PRODUCCIÓN"
+        }
+      ],
       "title": "SHORY DE GIMNASIA",
       "edicion": false,
       "format": "SINGLE",
