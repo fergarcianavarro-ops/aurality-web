@@ -191,6 +191,8 @@ body{background:linear-gradient(180deg,var(--cielo-1) 0%,var(--cielo-2) 72%);col
 .casillas button:focus-visible{outline:2px solid var(--azul);outline-offset:1px}
 /* sintonía fina: arrastrando sobre las casillas se recorre el dial entero, también lo que hay entre canales */
 .casillas{position:relative;touch-action:none;cursor:ew-resize}
+.casillas::before{content:"";position:absolute;left:0;right:0;top:-10px;bottom:-10px}   /* zona de agarre más alta que las casillas */
+.casillas button{position:relative;z-index:1}
 .casillas .aguja{position:absolute;top:-5px;bottom:-5px;left:0;width:2px;margin-left:-1px;background:var(--rojo);box-shadow:0 0 5px rgba(214,44,44,.65);pointer-events:none;opacity:0;transition:opacity .25s}
 .casillas.fino .aguja{opacity:1}
 .casillas.fino button[aria-pressed="true"]{background:#cfccc4}
@@ -1683,7 +1685,7 @@ class Ambient {
     });
   }
   arrancar() {
-    if (this.canal < 0) { this.gen = null; this.estatica(2.4, 0.03); if (this.cat) this.cat.empieza(); return; }
+    if (this.canal < 0) { this.gen = null; if (!window.__finoActivo) this.estatica(2.4, 0.03); if (this.cat) this.cat.empieza(); return; }
     this.amb = this.canal; const est = CANALES[this.canal][3], g = this.nuevaGen(est); this.gen = g; this[est](g);
   }
   // estática de radio entre emisoras: ruido filtrado, corto y suave
@@ -1713,10 +1715,10 @@ class Ambient {
     this.estFino.gain.setTargetAtTime(0, this.ctx.currentTime, 0.2); this.txG.gain.setTargetAtTime(0, this.ctx.currentTime, 0.2); if (this.txEl) setTimeout(() => { if (!this.on) this.txEl.pause(); }, 1200); if (this.mudo) setTimeout(() => { if (!this.on) this.mudo.pause(); }, 1500);
     const m = this.master.gain, t = this.ctx.currentTime; m.cancelScheduledValues(t); m.setValueAtTime(m.value, t); m.linearRampToValueAtTime(0, t + 1.4);
   }
-  sintonizar(i) {                                   // 13 posiciones: 00 (catálogo) y 01–12
+  sintonizar(i, fino) {                             // 13 posiciones: 00 (catálogo) y 01–12
     this.canal = ((i + 1) % 13 + 13) % 13 - 1; if (!this.on) return;
     this.matarGen(this.gen, 2.5); this.gen = null; if (this.cat && this.canal >= 0) this.cat.para(2.5);
-    this.estatica(1.8, 0.03); this.arrancar();
+    if (!fino) this.estatica(1.8, 0.03); this.arrancar();                              // con la sintonía fina ya suena su propia estática
   }
   nivel() {
     if (!this.ctx || !this.on) return 0; this.analyser.getFloatTimeDomainData(this.buf); let s = 0; for (const v of this.buf) s += v * v;
@@ -1776,12 +1778,15 @@ const estadoFino = f => {
 };
 let ultFino = null;
 function finoA(f, soltado) {
-  if (f == null) { frec = null; cas.classList.remove('fino'); ultFino = null; radio.ajustaFino({ f: radio.canal + 1, senal: 1, ruido: 0, tx: null }); testigoSenal(); pintaCanal(); return; }
+  if (f == null) { clearTimeout(finoA.t); frec = null; cas.classList.remove('fino'); ultFino = null; radio.ajustaFino({ f: radio.canal + 1, senal: 1, ruido: 0, tx: null }); testigoSenal(); pintaCanal(); return; }
   f = Math.round(Math.max(0, Math.min(12, f)) * 100) / 100; let e = estadoFino(f);
-  if (soltado) { if (e.tx && e.dT <= 0.12) f = e.tx.f; else if (e.dC <= 0.12) { finoA(null); if (e.n - 1 !== radio.canal) tune(e.n - 1); return; } e = estadoFino(f); }   // al soltar, encaja
+  if (soltado) { clearTimeout(finoA.t); if (e.tx && e.dT <= 0.12) f = e.tx.f; else if (e.dC <= 0.12) { finoA(null); if (e.n - 1 !== radio.canal) tune(e.n - 1); return; } e = estadoFino(f); }   // al soltar, encaja
   frec = f; cas.classList.add('fino'); aguja.style.left = fAx(f) + 'px';
-  if (e.dC <= 0.12 && e.n - 1 !== radio.canal && !e.tx) tune(e.n - 1);           // pasando por un canal, se oye ese canal
-  const senalC = e.dC <= 0.12 ? 1 - e.dC * 2.5 : Math.max(0, 1 - (e.dC - 0.12) / 0.22), cerc = e.tx ? 1 - e.dT / 0.45 : 0;
+  // pasar por encima de un canal no lo sintoniza: solo si la aguja se queda quieta en él un momento (barrer el dial no arranca 13 emisoras)
+  clearTimeout(finoA.t);
+  const otro = e.dC <= 0.12 && e.n - 1 !== radio.canal && !e.tx;
+  if (otro) finoA.t = setTimeout(() => { if (frec != null && Math.abs(frec - e.n) <= 0.12) { window.__finoActivo = true; radio.sintonizar(e.n - 1, true); window.__finoActivo = false; knobTarget = angulo(radio.canal); tunePulse = 0.6; finoA(frec); } }, 300);
+  const senalC = otro ? 0 : e.dC <= 0.12 ? 1 - e.dC * 2.5 : Math.max(0, 1 - (e.dC - 0.12) / 0.22), cerc = e.tx ? 1 - e.dT / 0.45 : 0;
   ultFino = e;
   radio.ajustaFino({ f, senal: senalC * (1 - cerc), ruido: e.fijado ? 0 : Math.min(0.036, (1 - senalC) * 0.032 + cerc * 0.012 + 0.003), tx: e.tx,
     txNivel: e.fijado ? 0.3 : Math.pow(cerc, 1.6) * 0.2, claro: e.fijado });                // fijada, al nivel de los canales
@@ -1795,22 +1800,28 @@ function testigoSenal() {
 window.__fino = { pinta() {
   if (frec == null || !ultFino) return false; const e = ultFino, f = frec.toFixed(1).padStart(4, '0');
   $('canalNum').textContent = f; $('canalK').textContent = 'Sintonía fina';
-  if (e.dC <= 0.12 && !e.tx) return false;
+  if (e.dC <= 0.12 && !e.tx && e.n - 1 === radio.canal) return false;
+  if (e.dC <= 0.12 && !e.tx) { $('canalNom').textContent = 'SINTONIZANDO · ' + dos(e.n); $('canalSub').textContent = 'Canal ' + dos(e.n) + ' · ' + f; return true; }
   $('canalNom').textContent = e.fijado ? `${e.tx.id} · TRANSMISIÓN` : e.cerca ? 'SEÑAL DÉBIL…' : 'SIN SEÑAL';
   $('canalSub').innerHTML = e.fijado ? `Frecuencia ${f} · <a href="#registro">registro de escucha</a>` : `Entre canales · ${f}`;
   return true;
 } };
 { // arrastre sobre las casillas (un toque sin arrastrar sigue eligiendo el canal)
-  let x0 = 0, mov = false;
+  // mando fino: la aguja va más despacio que el dedo (×1/3 con ratón, ×1/2 con el dedo), como el vernier de una radio;
+  // para saltar lejos, se toca un canal y desde ahí se afina
+  let x0 = 0, f0 = 0, red = 3, mov = false;
+  const fDe = ev => { const c = centros(), pxU = (c[c.length - 1] - c[0]) / 12; return Math.max(0, Math.min(12, f0 + (ev.clientX - x0) / pxU / red)); };
   cas.addEventListener('pointerdown', e => {
-    if (e.pointerType === 'mouse' && e.button !== 0) return; x0 = e.clientX; mov = false; try { cas.setPointerCapture(e.pointerId); } catch (err) {}
+    if (e.pointerType === 'mouse' && e.button !== 0) return; x0 = e.clientX; f0 = frec == null ? radio.canal + 1 : frec; red = e.pointerType === 'mouse' ? 3 : 2; mov = false;
+    try { cas.setPointerCapture(e.pointerId); } catch (err) {}
     if (!radio.on && encendido) togglePlay(); radio.txPrepara();
   });
   cas.addEventListener('pointermove', e => { if (!cas.hasPointerCapture || !cas.hasPointerCapture(e.pointerId)) return; if (!mov && Math.abs(e.clientX - x0) < 5) return;
-    mov = true; e.preventDefault(); finoA(xAf(e.clientX - cas.getBoundingClientRect().left)); });
+    if (!mov) x0 += Math.sign(e.clientX - x0) * 5;                                    // el umbral no cuenta como movimiento
+    mov = true; e.preventDefault(); finoA(fDe(e)); });
   const suelta = e => {
     const x = e.clientX - cas.getBoundingClientRect().left;
-    if (mov) finoA(xAf(x), true);
+    if (mov) finoA(fDe(e), true);
     else { const c = centros(), i = c.reduce((m, v, k) => Math.abs(v - x) < Math.abs(c[m] - x) ? k : m, 0); finoA(null); tune(i - 1); }   // un toque: el canal más cercano
     cas.dataset.arr = '1'; setTimeout(() => delete cas.dataset.arr, 0); mov = false;
   };
