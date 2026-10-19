@@ -1,51 +1,118 @@
 {
   "releases": [
     {
-      "genre": "CLUB",
-      "soundcloud": "https://soundcloud.com/paranoidrealm/sets/estiu-2026-edicio-saint-tropez",
+      "code": "AU0111",
       "artist": "PARANOID REALM",
+      "participantes": [],
+      "title": "LA ESPAÑA VACIADA",
+      "edicion": false,
+      "format": "REMIXES",
+      "genre": "REMIXES",
+      "year": 2026,
+      "fecha": "2026-05-04",
+      "presave": "",
+      "fragmentos": [],
+      "destacado": false,
+      "cover": "/covers/1-levportada.webp",
+      "soundcloud": "https://soundcloud.com/paranoidrealm/sets/la-espana-vaciada",
+      "fragmento": "",
+      "spotify": "",
+      "bandcamp": "",
+      "historia": "La España Vaciada es un EP de remixes que toma la idea del éxodo rural y la traslada a la música. Mientras gran parte de la escena urbana tiende a concentrarse en fórmulas que funcionan y sonidos cada vez más parecidos entre sí, este proyecto se sitúa fuera de ese flujo. Parte de la decisión de no seguir ese camino y trabajar desde otro lugar: más lento, más técnico y más centrado en el sonido y la identidad propia.",
+      "video": "",
+      "fotos": [],
+      "credits": [
+        {
+          "rol": "PRODUCCIÓN",
+          "nombre": "PARANOID REALM"
+        },
+        {
+          "rol": "MEZCLA",
+          "nombre": "PARANOID REALM"
+        },
+        {
+          "rol": "MÁSTER",
+          "nombre": "PARANOID REALM"
+        },
+        {
+          "rol": "ARTE",
+          "nombre": "FER GARCÍA"
+        }
+      ],
+      "tracks": [
+        "Diego 900 - Dam (Paranoid Realm Remix)",
+        "mvrk - YOTMB (Paranoid Realm Remix)",
+        "Juicy Bae, TAICHU, PMP - Rojo Sangre (Paranoid Realm & mxnchv Remix)",
+        "Claudio Montana - 55 Rayuelas (Paranoid Realm Remix)"
+      ]
+    },
+    {
+      "code": "AU0212",
+      "artist": "PARANOID REALM",
+      "participantes": [],
+      "title": "ESTIU 2026: EDICIÓ SAINT-TROPEZ",
+      "edicion": false,
+      "format": "REMIXES",
+      "genre": "CLUB",
+      "year": 2026,
+      "fecha": "2026-08-05",
+      "presave": "",
+      "fragmentos": [],
+      "destacado": false,
+      "cover": "covers/AU0212.jpg",
+      "soundcloud": "https://soundcloud.com/paranoidrealm/sets/estiu-2026-edicio-saint-tropez",
+      "fragmento": "",
+      "spotify": "",
+      "bandcamp": "",
+      "historia": "ESTIU es una mixtape anual de remixes concebida como un viaje sonoro a un territorio concreto. Cada edición se traslada a un lugar con una identidad musical propia —una ciudad, una región o un enclave cultural— para investigar cómo la música electrónica ha dialogado con su historia, su cultura popular y sus clubes. Los vinilos se convierten en la materia prima de cuatro remixes originales, compuestos exclusivamente a partir de samples extraídos de esos discos.\n\nEn la edición 2026 viajamos a Francia, cuna del French Touch: una corriente surgida a finales de los 90 que mezcla house y disco con producción basada en samples y filtros; sus referentes clave incluyen a Daft Punk, Air, Étienne de Crécy, Cassius, DJ Mehdi, Justice y Busy P (Pedro Winter) — s/o Ed Banger — mientras el imaginario visual recorre la Riviera, el cine, el deporte, la moda y el patrimonio cultural del país. El resultado no pretende representar Francia, sino reinterpretar una de sus identidades sonoras más influyentes desde el lenguaje del sample y la cultura del remix.",
+      "video": "",
+      "fotos": [],
+      "credits": [
+        {
+          "rol": "PRODUCCIÓN",
+          "nombre": "PARANOID REALM"
+        },
+        {
+          "rol": "MEZCLA",
+          "nombre": "PARANOID REALM"
+        },
+        {
+          "rol": "MÁSTER",
+          "nombre": "PARANOID REALM"
+        },
+        {
+          "rol": "ARTE",
+          "nombre": "FER GARCÍA"
+        }
+      ],
       "tracks": [
         "Nico Miseria, alba calva - EL CORAZÓN MANDA (Paranoid Realm Remix)",
         "Guxo - CEO (Paranoid Realm Remix)",
         "caos! - kim k (Paranoid Realm Remix)",
         "Ralphie Choo, Barry B, DRUMMIE - ROOKIES (Paranoid Realm Remix)"
-      ],
-      "code": "AU0212",
-      "bandcamp": "",
-      "cover": "covers/AU0212.jpg",
-      "format": "REMIXES",
-      "title": "ESTIU 2026: EDICIÓ SAINT-TROPEZ",
-      "credits": [
-        {
-          "rol": "PRODUCCIÓN",
-          "nombre": "PARANOID REALM"
-        },
-        {
-          "rol": "MEZCLA",
-          "nombre": "PARANOID REALM"
-        },
-        {
-          "rol": "MÁSTER",
-          "nombre": "PARANOID REALM"
-        },
-        {
-          "rol": "ARTE",
-          "nombre": "FER GARCÍA"
-        }
-      ],
-      "spotify": "",
-      "year": 2026
+      ]
     },
     {
-      "genre": "RAP",
-      "soundcloud": "",
-      "artist": "TRANKILOTE EL KILATE x PARANOID REALM",
-      "tracks": [],
       "code": "AU0211",
-      "bandcamp": "",
-      "cover": "covers/vayviene-portada.jpg",
-      "format": "SINGLE",
+      "artist": "TRANKILOTE EL KILATE x PARANOID REALM",
+      "participantes": [],
       "title": "VAYVIENE",
+      "edicion": false,
+      "format": "SINGLE",
+      "genre": "RAP",
+      "year": 2026,
+      "fecha": "",
+      "presave": "",
+      "fragmentos": [],
+      "destacado": false,
+      "cover": "covers/vayviene-portada.jpg",
+      "soundcloud": "",
+      "fragmento": "",
+      "spotify": "https://open.spotify.com/intl-es/track/0GEkQXoWJTEJToBNLqSdHN?si=54344f43d01241a0",
+      "bandcamp": "",
+      "historia": "",
+      "video": "",
+      "fotos": [],
       "credits": [
         {
           "rol": "PRODUCCIÓN",
@@ -64,13 +131,47 @@
           "nombre": "FER GARCÍA"
         }
       ],
-      "spotify": "https://open.spotify.com/intl-es/track/0GEkQXoWJTEJToBNLqSdHN?si=54344f43d01241a0",
-      "year": 2026
+      "tracks": []
     },
     {
-      "genre": "JERK",
-      "soundcloud": "",
+      "code": "AU0210",
       "artist": "PARANOID REALM",
+      "participantes": [],
+      "title": "NEW JERK",
+      "edicion": false,
+      "format": "EP",
+      "genre": "JERK",
+      "year": 2025,
+      "fecha": "",
+      "presave": "",
+      "fragmentos": [],
+      "destacado": false,
+      "cover": "covers/newjerk-portada.jpg",
+      "soundcloud": "",
+      "fragmento": "",
+      "spotify": "https://open.spotify.com/intl-es/album/1PeJBkR4vvxYp1i0GM8RB6?si=UwCN7MlaRq6_rAnpQMlSyw",
+      "bandcamp": "",
+      "historia": "",
+      "video": "",
+      "fotos": [],
+      "credits": [
+        {
+          "rol": "PRODUCCIÓN",
+          "nombre": "PARANOID REALM"
+        },
+        {
+          "rol": "MEZCLA",
+          "nombre": "PARANOID REALM"
+        },
+        {
+          "rol": "MÁSTER",
+          "nombre": "PARANOID REALM"
+        },
+        {
+          "rol": "ARTE",
+          "nombre": "FER GARCÍA"
+        }
+      ],
       "tracks": [
         "PARANOID REALM, UNOMAEL - TENGO TODO",
         "PARANOID REALM, UFISI - TELAS DE DISEÑADOR",
@@ -78,43 +179,29 @@
         "PARANOID REALM, SHAY B - HYPERACID",
         "PARANOID REALM, UFISI - DEO JUVANTE",
         "PARANOID REALM, SHAY B - BBQ"
-      ],
-      "code": "AU0210",
-      "bandcamp": "",
-      "cover": "covers/newjerk-portada.jpg",
-      "format": "EP",
-      "title": "NEW JERK",
-      "credits": [
-        {
-          "rol": "PRODUCCIÓN",
-          "nombre": "PARANOID REALM"
-        },
-        {
-          "rol": "MEZCLA",
-          "nombre": "PARANOID REALM"
-        },
-        {
-          "rol": "MÁSTER",
-          "nombre": "PARANOID REALM"
-        },
-        {
-          "rol": "ARTE",
-          "nombre": "FER GARCÍA"
-        }
-      ],
-      "spotify": "https://open.spotify.com/intl-es/album/1PeJBkR4vvxYp1i0GM8RB6?si=UwCN7MlaRq6_rAnpQMlSyw",
-      "year": 2025
+      ]
     },
     {
-      "genre": "LOGOBI",
-      "soundcloud": "",
-      "artist": "ANY1N3 x UFISI",
-      "tracks": [],
       "code": "AU0209",
-      "bandcamp": "",
-      "cover": "covers/portada_3000x3000.jpg.jpeg",
-      "format": "SINGLE",
+      "artist": "ANY1N3 x UFISI",
+      "participantes": [],
       "title": "EL CIELO QUE NOS QUEDA",
+      "edicion": false,
+      "format": "SINGLE",
+      "genre": "LOGOBI",
+      "year": 2026,
+      "fecha": "",
+      "presave": "",
+      "fragmentos": [],
+      "destacado": false,
+      "cover": "covers/portada_3000x3000.jpg.jpeg",
+      "soundcloud": "",
+      "fragmento": "",
+      "spotify": "https://open.spotify.com/intl-es/album/3i9pZTYe7QaxsdXWBb9Yha?si=f07fd7a20cdc4eb1",
+      "bandcamp": "",
+      "historia": "",
+      "video": "",
+      "fotos": [],
       "credits": [
         {
           "rol": "PRODUCCIÓN",
@@ -133,84 +220,113 @@
           "nombre": ""
         }
       ],
-      "spotify": "https://open.spotify.com/intl-es/album/3i9pZTYe7QaxsdXWBb9Yha?si=f07fd7a20cdc4eb1",
-      "year": 2026
+      "tracks": []
     },
     {
-      "genre": "DUBSTEP",
-      "soundcloud": "",
+      "code": "AU0205",
       "artist": "ANY1N3 × PARANOID REALM",
+      "participantes": [],
+      "title": "ROTOR BRAKE RELEASE",
+      "edicion": false,
+      "format": "EP",
+      "genre": "DUBSTEP",
+      "year": 2026,
+      "fecha": "",
+      "presave": "",
+      "fragmentos": [],
+      "destacado": false,
+      "cover": "covers/rbr-portada.jpg",
+      "soundcloud": "",
+      "fragmento": "",
+      "spotify": "https://open.spotify.com/intl-es/album/12asQkQ16JdNEZzbEXS5iq?si=ZxGrrLFpSTy0f4NcakFcMA",
+      "bandcamp": "",
+      "historia": "",
+      "video": "",
+      "fotos": [],
+      "credits": [
+        {
+          "rol": "PRODUCCIÓN",
+          "nombre": "PARANOID REALM"
+        },
+        {
+          "rol": "MEZCLA",
+          "nombre": "PARANOID REALM"
+        },
+        {
+          "rol": "MÁSTER",
+          "nombre": "PARANOID REALM"
+        },
+        {
+          "rol": "ARTE",
+          "nombre": ""
+        }
+      ],
       "tracks": [
         "ANY1N3, PARANOID REALM - ANY",
         "ANY1N3, PARANOID REALM - DURANKI",
         "ANY1N3, PARANOID REALM - EOLIC DUB",
         "ANY1N3, PARANOID REALM - GLITCH IN THE NACELLE"
-      ],
-      "code": "AU0205",
-      "bandcamp": "",
-      "cover": "covers/rbr-portada.jpg",
-      "format": "EP",
-      "title": "ROTOR BRAKE RELEASE",
-      "credits": [
-        {
-          "rol": "PRODUCCIÓN",
-          "nombre": "PARANOID REALM"
-        },
-        {
-          "rol": "MEZCLA",
-          "nombre": "PARANOID REALM"
-        },
-        {
-          "rol": "MÁSTER",
-          "nombre": "PARANOID REALM"
-        },
-        {
-          "rol": "ARTE",
-          "nombre": ""
-        }
-      ],
-      "spotify": "https://open.spotify.com/intl-es/album/12asQkQ16JdNEZzbEXS5iq?si=ZxGrrLFpSTy0f4NcakFcMA",
-      "year": 2026
+      ]
     },
     {
-      "genre": "SEXY DRILL",
-      "soundcloud": "",
-      "artist": "C.EME",
-      "tracks": [
-        "C.EME, SHODA MONKAS - CLOSEFRIENDS☆",
-        "C.EME, SARA VERA - PETER PARKER",
-        "C.EME - UBER"
-      ],
       "code": "AU0204",
-      "bandcamp": "",
-      "cover": "covers/delete.jpeg",
-      "format": "EP",
+      "artist": "C.EME",
+      "participantes": [
+        {
+          "artista": "UFISI",
+          "rol": "PRODUCCIÓN · CLOSEFRIENDS☆, PETER PARKER Y UBER"
+        }
+      ],
       "title": "SUPERSEXYDRILL",
+      "edicion": false,
+      "format": "EP",
+      "genre": "SEXY DRILL",
+      "year": 2026,
+      "fecha": "",
+      "presave": "",
+      "fragmentos": [],
+      "destacado": false,
+      "cover": "covers/delete.jpeg",
+      "soundcloud": "",
+      "fragmento": "",
+      "spotify": "https://open.spotify.com/intl-es/album/4tJx2RpRQPpbg3bO3XkTqN?si=qHIT0-ymSDW5hZ6JIcJnnA",
+      "bandcamp": "",
+      "historia": "",
+      "video": "",
+      "fotos": [],
       "credits": [
         {
           "rol": "PRODUCCIÓN",
           "nombre": "UFISI"
         }
       ],
-      "spotify": "https://open.spotify.com/intl-es/album/4tJx2RpRQPpbg3bO3XkTqN?si=qHIT0-ymSDW5hZ6JIcJnnA",
-      "year": 2026,
-      "participantes": [
-        {
-          "artista": "UFISI",
-          "rol": "PRODUCCIÓN · 3 TEMAS"
-        }
+      "tracks": [
+        "C.EME, SHODA MONKAS - CLOSEFRIENDS☆",
+        "C.EME, SARA VERA - PETER PARKER",
+        "C.EME - UBER"
       ]
     },
     {
-      "genre": "PLUGGNB",
-      "soundcloud": "",
-      "artist": "ANY1N3",
-      "tracks": [],
       "code": "AU0202",
-      "bandcamp": "",
-      "cover": "covers/otra-lagrima-definitivojpg.jpg",
-      "format": "SINGLE",
+      "artist": "ANY1N3",
+      "participantes": [],
       "title": "OTRA LÁGRIMA",
+      "edicion": false,
+      "format": "SINGLE",
+      "genre": "PLUGGNB",
+      "year": 2025,
+      "fecha": "",
+      "presave": "",
+      "fragmentos": [],
+      "destacado": false,
+      "cover": "covers/otra-lagrima-definitivojpg.jpg",
+      "soundcloud": "",
+      "fragmento": "",
+      "spotify": "https://open.spotify.com/intl-es/track/0upi8DNB3ElXbbljzPfNl9?si=81afb9f6f6e3467a",
+      "bandcamp": "",
+      "historia": "",
+      "video": "",
+      "fotos": [],
       "credits": [
         {
           "rol": "PRODUCCIÓN",
@@ -229,25 +345,29 @@
           "nombre": "CUTEXICO"
         }
       ],
-      "spotify": "https://open.spotify.com/intl-es/track/0upi8DNB3ElXbbljzPfNl9?si=81afb9f6f6e3467a",
-      "year": 2025
+      "tracks": []
     },
     {
-      "genre": "RAP",
-      "soundcloud": "",
-      "artist": "TRANKILOTE EL KILATE x PARANOID REALM",
-      "tracks": [
-        "PARANOID REALM, ALBA CALVA - ADOLIN",
-        "TRANKILOTE EL KILATE, PARANOID REALM - KRAINT SAINT",
-        "TRANKILOTE EL KILATE, PARANOID REALM - BENDICE MI NOMBRE",
-        "TRANKILOTE EL KILATE, PARANOID REALM - LAYLA Y MAJNÚN",
-        "PARANOID REALM, WAX - DONDE MUERE LA LUZ"
-      ],
       "code": "AU0201",
-      "bandcamp": "",
-      "cover": "covers/palaciomemoria2.jpg",
-      "format": "ÁLBUM",
+      "artist": "TRANKILOTE EL KILATE x PARANOID REALM",
+      "participantes": [],
       "title": "EL PALACIO DE LA MEMORIA",
+      "edicion": false,
+      "format": "ÁLBUM",
+      "genre": "RAP",
+      "year": 2026,
+      "fecha": "",
+      "presave": "",
+      "fragmentos": [],
+      "destacado": false,
+      "cover": "covers/palaciomemoria2.jpg",
+      "soundcloud": "",
+      "fragmento": "",
+      "spotify": "https://open.spotify.com/intl-es/album/4kQ2nMyoE94xDQdr5OiEYn?si=Fq36lBzjSN69oypH__Bxlg",
+      "bandcamp": "",
+      "historia": "",
+      "video": "",
+      "fotos": [],
       "credits": [
         {
           "rol": "PRODUCCIÓN",
@@ -266,27 +386,42 @@
           "nombre": "FER GARCÍA"
         }
       ],
-      "spotify": "https://open.spotify.com/intl-es/album/4kQ2nMyoE94xDQdr5OiEYn?si=Fq36lBzjSN69oypH__Bxlg",
-      "year": 2026
+      "tracks": [
+        "PARANOID REALM, ALBA CALVA - ADOLIN",
+        "TRANKILOTE EL KILATE, PARANOID REALM - KRAINT SAINT",
+        "TRANKILOTE EL KILATE, PARANOID REALM - BENDICE MI NOMBRE",
+        "TRANKILOTE EL KILATE, PARANOID REALM - LAYLA Y MAJNÚN",
+        "PARANOID REALM, WAX - DONDE MUERE LA LUZ"
+      ]
     },
     {
-      "genre": "REGGAETON",
-      "soundcloud": "",
-      "artist": "UFISI",
-      "tracks": [],
       "code": "AU0200",
-      "bandcamp": "",
-      "cover": "covers/delete2.jpeg",
-      "format": "SINGLE",
+      "artist": "UFISI",
+      "participantes": [],
       "title": "INTENSITAT",
+      "edicion": false,
+      "format": "SINGLE",
+      "genre": "REGGAETON",
+      "year": 2024,
+      "fecha": "",
+      "presave": "",
+      "fragmentos": [],
+      "destacado": false,
+      "cover": "covers/delete2.jpeg",
+      "soundcloud": "",
+      "fragmento": "",
+      "spotify": "https://open.spotify.com/intl-es/album/0ht07dk2jiuSZOckxxFzuq?si=Ta0dL8m4RrmvhC-S2wWuHw",
+      "bandcamp": "",
+      "historia": "",
+      "video": "",
+      "fotos": [],
       "credits": [
         {
           "rol": "PRODUCCIÓN",
           "nombre": "UFISI"
         }
       ],
-      "spotify": "https://open.spotify.com/intl-es/album/0ht07dk2jiuSZOckxxFzuq?si=Ta0dL8m4RrmvhC-S2wWuHw",
-      "year": 2024
+      "tracks": []
     }
   ]
 }
