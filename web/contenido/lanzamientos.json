@@ -1,6 +1,47 @@
 {
   "releases": [
     {
+      "code": "AU0342",
+      "artist": "PARANOID REALM",
+      "participantes": [],
+      "title": "do you remember xiyo y fernandezz aurality remix",
+      "edicion": true,
+      "format": "SINGLE",
+      "genre": "",
+      "year": 2025,
+      "fecha": "2025-11-18",
+      "presave": "",
+      "fragmentos": [],
+      "destacado": false,
+      "cover": "/covers/do-you-remember-xiyo-y-fernandezz-aurality-remix-prod.-paranoid-realm-cover.webp",
+      "soundcloud": "https://soundcloud.com/aurality-group/do-you-remember-xiyo-y-fernandezz-aurality-remix-prod-paranoid-realm-85bpm-emin",
+      "fragmento": "",
+      "spotify": "",
+      "bandcamp": "",
+      "historia": "",
+      "video": "",
+      "fotos": [],
+      "credits": [
+        {
+          "rol": "PRODUCCIÓN",
+          "nombre": "PARANOID REALM"
+        },
+        {
+          "rol": "MEZCLA",
+          "nombre": "PARANOID REALM"
+        },
+        {
+          "rol": "MÁSTER",
+          "nombre": "PARANOID REALM"
+        },
+        {
+          "rol": "ARTE",
+          "nombre": "FER GARCÍA"
+        }
+      ],
+      "tracks": []
+    },
+    {
       "code": "AU0123",
       "artist": "941SONE x PARANOID REALM",
       "participantes": [],
