@@ -3,6 +3,59 @@
     {
       "code": "AU0111",
       "artist": "PARANOID REALM",
+      "participantes": [
+        {
+          "artista": "UFISI",
+          "rol": "CO-PRODUCCIÓN · TIEMPOS Y ALL ALONE WITH YOU"
+        }
+      ],
+      "title": "ESTIU 2025: EDICIÓ COSTA BRAVA",
+      "edicion": false,
+      "format": "REMIXES",
+      "genre": "REMIXES",
+      "year": 2025,
+      "fecha": "2025-08-18",
+      "presave": "",
+      "fragmentos": [],
+      "destacado": false,
+      "cover": "/covers/saveclip.app_532661953_18302911807221429_400752346296299478_n-1.webp",
+      "soundcloud": "https://soundcloud.com/paranoidrealm/sets/estiu-2025-edicio-costa-brava",
+      "fragmento": "",
+      "spotify": "",
+      "bandcamp": "",
+      "historia": "De pequeño mis veranos eran siempre los mismos: coche hasta Tossa de Mar, CD del Caribe Mix 2004 rayado en la guantera y yo mirando por la ventana las luces de Lloret.\n\nAños después he querido transformar todos esos recuerdos en música. Así nace esta mixtape de remixes: un homenaje a la Costa Brava y a todo lo que marcó nuestra infancia.\n\nEstos remixes traen sonidos, ritmos, texturas y colores actuales y vanguardistas, pero manteniendo la vibra de viajes en coche con el aire a tope, olor a salitre y a crema solar y noches que duran hasta que alguien dice “va, el último y nos vamos”.",
+      "video": "",
+      "fotos": [],
+      "credits": [
+        {
+          "rol": "PRODUCCIÓN",
+          "nombre": "PARANOID REALM"
+        },
+        {
+          "rol": "MEZCLA",
+          "nombre": "PARANOID REALM"
+        },
+        {
+          "rol": "MÁSTER",
+          "nombre": "PARANOID REALM"
+        },
+        {
+          "rol": "ARTE",
+          "nombre": "FER GARCÍA"
+        }
+      ],
+      "tracks": [
+        "Farruko, Musicólogo, Menes - Tiempos (Paranoid Realm & Ufisi Remix)",
+        "ladiferencia2006, Juanma! - encima (Paranoid Realm Remix)",
+        "Daddy Yankee - La Despedida (Paranoid Realm Remix)",
+        "EGOIST- All Alone With You (Paranoid Realm & Ufisi Remix)",
+        "LOWLIGHT, Bad Gyal, Demaro Small - Commotion (Paranoid Realm Remix)",
+        "Diego 900 - T4 Barajas (Paranoid Realm Remix)"
+      ]
+    },
+    {
+      "code": "AU0111",
+      "artist": "PARANOID REALM",
       "participantes": [],
       "title": "LA ESPAÑA VACIADA",
       "edicion": false,
