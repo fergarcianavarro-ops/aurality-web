@@ -2,15 +2,20 @@
   "contacto": {
     "email": "auralitygroup@gmail.com",
     "instagram": "https://www.instagram.com/aurality/",
-    "nota": "Para demos, mejor un enlace privado que un archivo adjunto."
+    "nota": "Para demos, mejor un enlace privado que un archivo adjunto.",
+    "intro_demo": "",
+    "intro_contratacion": "",
+    "intro_prensa": ""
   },
+  "editorial": null,
+  "kit": null,
   "manifiesto": {
     "titular": "Un sello no es un sonido. Es un criterio.",
     "parrafos": [
       "aurality no es un catálogo de artistas: es una línea editorial. Lo que une a los proyectos que pasan por aquí no es un género ni una estética común, sino una misma manera de entender la creación.",
       "Por eso el nombre funciona como un aval. Aspiramos a que «editado por aurality» diga algo antes incluso de darle al play: que ahí hay una decisión, un punto de vista, alguien que se ha jugado algo. No prometemos un sonido; prometemos un estándar.",
-      "La vanguardia casi nunca nace dentro de una escena. Nace cuando dos se tocan.",
-      "Por eso aspiramos a ser el lugar donde se juntan artistas que nadie más sabría juntar: la mano que tiende puentes entre escenas que hablan idiomas distintos pero comparten códigos y están condenadas a entenderse. Poner en la misma mesa a quien hace rap y a quien hace club no es una mezcla: es una apuesta.",
+      "La vanguardia rara vez nace dentro de una escena; nace en los bordes, cuando dos que se ignoraban se tocan. La mayoría de las estructuras de la industria trabajan hacia dentro de un nicho, porque es más cómodo y más medible. aurality se define por lo contrario: por su capacidad de juntar lo que nadie más sabría juntar. Existen escenas que hablan idiomas distintos pero comparten códigos subterráneos —la misma relación con el riesgo, con la imagen, con lo digital, con la calle— y El sello actúa ahí como traductor y como celestina: identifica esos parentescos invisibles y los pone en la misma habitación.",
+      "Por eso aspiramos a ser el lugar donde se juntan artistas que nadie más sabría juntar: la mano que tiende puentes entre escenas que hablan idiomas distintos pero comparten códigos y están condenadas a entenderse aunque todavía no se hayan cruzado. Ese cruce no es una anécdota de reparto; es la tesis. La marca no colecciona artistas: provoca encuentros.",
       "Cuando un artista entra en aurality, entra en una conversación más amplia que su propia música. No acumulamos referencias: construimos un contexto. Cada lanzamiento es una frase dentro de un discurso más largo, el de un sello que entiende la realidad como material y el aura como firma."
     ],
     "cierre": "La realidad como materia prima. El aura como identidad."
