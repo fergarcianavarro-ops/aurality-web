@@ -1,6 +1,47 @@
 {
   "releases": [
     {
+      "code": "AU0123",
+      "artist": "941SONE x PARANOID REALM",
+      "participantes": [],
+      "title": "SHORY DE GIMNASIA",
+      "edicion": false,
+      "format": "SINGLE",
+      "genre": "JERK",
+      "year": 2026,
+      "fecha": "2026-07-30",
+      "presave": "",
+      "fragmentos": [],
+      "destacado": false,
+      "cover": "/covers/saveclip.app_760147604_18607201774028034_1024075395652998516_n.webp",
+      "soundcloud": "",
+      "fragmento": "",
+      "spotify": "https://open.spotify.com/intl-es/album/7F4zyae5oT4OrsaCQK8p0L?si=chkvMg9DTbOih7-no4NzQQ",
+      "bandcamp": "",
+      "historia": "",
+      "video": "",
+      "fotos": [],
+      "credits": [
+        {
+          "rol": "PRODUCCIÓN",
+          "nombre": "PARANOID REALM"
+        },
+        {
+          "rol": "MEZCLA",
+          "nombre": ""
+        },
+        {
+          "rol": "MÁSTER",
+          "nombre": ""
+        },
+        {
+          "rol": "ARTE",
+          "nombre": ""
+        }
+      ],
+      "tracks": []
+    },
+    {
       "code": "AU0111",
       "artist": "PARANOID REALM",
       "participantes": [
