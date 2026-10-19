@@ -8,6 +8,7 @@ const SECCIONES = {
   roster: ['Roster', 'Los artistas de aurality.'],
   manifiesto: ['Manifiesto', 'Un sello no es un sonido. Es un criterio.'],
   contacto: ['Contacto', 'Demos, contratación y prensa.'],
+  editorial: ['Línea editorial', 'Lo que firma el sello: ediciones curadas y la Señal mensual.'],
   kit: ['Kit de prensa', 'El sello, el roster, los logos y el contacto de prensa de aurality.'],
 };
 const slug = a => String(a).toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');

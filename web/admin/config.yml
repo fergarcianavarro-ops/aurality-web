@@ -186,6 +186,12 @@ collections:
               - { name: intro_demo, label: "Texto de «Demos»", widget: text, required: false, hint: "Qué esperáis recibir y qué pasa después. Vacío = el texto de serie." }
               - { name: intro_contratacion, label: "Texto de «Contratación»", widget: text, required: false, hint: "Para promotores y festivales. Vacío = el texto de serie." }
               - { name: intro_prensa, label: "Texto de «Prensa»", widget: text, required: false, hint: "Para medios. Vacío = el texto de serie." }
+          - name: editorial
+            label: Línea editorial
+            widget: object
+            required: false
+            fields:
+              - { name: texto, label: Texto de presentación, widget: text, required: false, hint: "Qué es una edición del sello y qué significa la curaduría de aurality. Línea en blanco entre párrafos; el primero sale más grande. Vacío = el texto de serie." }
           - name: kit
             label: Kit de prensa del sello
             widget: object

@@ -422,6 +422,20 @@ img.retrato{aspect-ratio:1;width:100%;object-fit:cover;filter:grayscale(1) contr
   .kit a{text-decoration:none;color:#000}
   .kit .enlaces a.tecla::after{content:" · " attr(href);font-weight:400;letter-spacing:0;text-transform:none}
 }
+.editorial{display:grid;gap:30px;max-width:900px}
+.ed-intro p{margin:12px 0 0;font:400 15px/1.65 var(--f-texto);max-width:66ch;color:#22262f}
+.ed-intro p.lead{margin-top:0;font-size:18px;line-height:1.55;color:var(--tinta)}
+.editorial .sub2{margin-top:0;margin-bottom:12px}
+.ed-vacio{display:flex;align-items:center;gap:16px;padding:22px 20px;box-shadow:inset 0 0 0 1px #c9c6be;clip-path:var(--chaflan);font:500 12.5px/1.45 var(--f-mono);color:#4a5060}
+.ed-vacio .c{flex:none;font:800 11px/1 var(--f-mono);letter-spacing:.12em;color:var(--tinta);padding:8px 10px;background:#e3e1da}
+.ed-senal{display:grid;grid-template-columns:150px minmax(0,1fr);gap:20px;align-items:center;padding:16px;background:#e6e4dd;box-shadow:inset 0 1px 0 #fff,0 1px 2px rgba(0,0,0,.12);clip-path:var(--chaflan);color:inherit;text-decoration:none}
+.ed-senal img{width:150px;height:150px;object-fit:cover;display:block}
+.ed-senal .txt{display:grid;gap:8px;justify-items:start}
+.ed-senal .k{font:700 9.5px/1.2 var(--f-mono);letter-spacing:.16em;color:#4a5060}
+.ed-senal .nom{font:400 16px/1.1 var(--f-display);letter-spacing:.04em}.ed-senal .nom b{font:800 18px/1 var(--f-mono);margin-left:6px}
+.ed-senal .des{font:400 13.5px/1.5 var(--f-texto);color:#3b4150;max-width:56ch}
+.ed-senal:hover .tecla{background:#fff}
+@media (max-width:560px){.ed-senal{grid-template-columns:96px minmax(0,1fr);gap:14px}.ed-senal img{width:96px;height:96px}}
 .caminos{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;max-width:640px}
 .camino{appearance:none;border:0;cursor:pointer;text-align:left;display:grid;gap:6px;padding:14px 14px 13px;background:linear-gradient(180deg,#f4f3ef,#dfddd6);box-shadow:0 2px 0 #b3b0a8,0 3px 6px rgba(0,0,0,.12),inset 0 1px 0 #fff;color:var(--tinta);clip-path:var(--chaflan)}
 .camino .n{font:800 12px/1.2 var(--f-mono);letter-spacing:.08em;text-transform:uppercase}
@@ -562,7 +576,7 @@ iframe.vid{display:block;width:100%;aspect-ratio:16/9;border:0;margin-top:8px;ba
   .velo.on{opacity:1;pointer-events:auto}
   .proximo{position:relative;top:auto;right:auto;width:auto;order:1;animation:none;align-self:stretch;align-content:start}
   .lema{top:calc(84px + env(safe-area-inset-top,0px));left:18px;right:18px;max-width:none;gap:6px}.lema .k{font-size:9px}.lema .t{font-size:13px}
-  .proximo.activo{order:-1}.lateral .senal{order:2}
+  .proximo.activo{order:-1}
   .lateral{left:0;right:0;width:auto;bottom:calc(150px + env(safe-area-inset-bottom,0px));flex-direction:row;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;
     padding-inline:max(12px,env(safe-area-inset-left,0px)) max(12px,env(safe-area-inset-right,0px));scrollbar-width:none;scroll-padding-inline:12px}
   .lateral::-webkit-scrollbar{display:none}
@@ -685,7 +699,7 @@ iframe.vid{display:block;width:100%;aspect-ratio:16/9;border:0;margin-top:8px;ba
   <a class="placa" href="#escucha" data-s="escucha" style="top:22.5%" aria-current="page"><span class="n">01 · AU-00</span><span class="t">Escucha</span><span class="d">Radio · último lanzamiento</span></a>
   <a class="placa" href="#catalogo" data-s="catalogo" style="top:31.914%"><span class="n">02</span><span class="t">Catálogo</span><span class="d" id="nRefs">13 referencias</span></a>
   <a class="placa" href="#roster" data-s="roster" style="top:41.327%"><span class="n">03</span><span class="t">Roster</span><span class="d" id="nArt">4 artistas</span></a>
-  <a class="placa" href="#senal" data-s="senal" style="top:50.741%"><span class="n">04</span><span class="t">Señal</span><span class="d">Playlist mensual</span></a>
+  <a class="placa" href="#editorial" data-s="editorial" style="top:50.741%"><span class="n">04</span><span class="t">Editorial</span><span class="d">Señal · ediciones</span></a>
   <a class="placa" href="#manifiesto" data-s="manifiesto" style="top:60.154%"><span class="n">05</span><span class="t">Manifiesto</span><span class="d">Qué es aurality</span></a>
   <a class="placa" href="#contacto" data-s="contacto" style="top:69.568%"><span class="n">06</span><span class="t">Contacto</span><span class="d">Demos · prensa</span></a>
   <span class="testigo azul" id="tAzul" title="Testigo azul: señal"></span>
@@ -703,12 +717,6 @@ iframe.vid{display:block;width:100%;aspect-ratio:16/9;border:0;margin-top:8px;ba
 <aside class="lateral">
   <div class="proximo" id="proximo" role="region" aria-label="AU-06 · lo próximo"></div>
   <div class="notas" id="notas" aria-label="Lanzamientos destacados"></div>
-  <article class="senal" aria-label="Señal mensual">
-    <span class="eti">Playlist mensual</span>
-    <span class="nom">SEÑAL MENSUAL<b id="senCod">—</b></span>
-    <span class="des">Lanzamientos, hallazgos y obsesiones del mes.</span>
-    <a class="tecla" href="#senal">Abrir</a>
-  </article>
 </aside>
 
 <section class="pletina" aria-label="Radio">
@@ -2668,6 +2676,25 @@ const SEN = (DATA.senal || []).slice().sort((a, b) => b.anio - a.anio || b.mes -
 // la playlist es siempre la misma y se sobrescribe cada mes: solo la edición más reciente está en antena; las anteriores quedan como registro
 const MESES = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
 let anioSen = SEN.length ? SEN[0].anio : 2026;
+// ---------- línea editorial ----------
+// Lo que firma el propio sello: las ediciones (remixes, recopilatorios, encargos) y la Señal mensual.
+const EDITORIAL_TXT = 'Además de los discos de sus artistas, aurality publica con su propio nombre. Son las ediciones del sello: discos de remixes, recopilatorios y encargos en los que el autor no es un artista, sino el criterio que los junta.\n\nAquí el trabajo del sello es la curaduría: elegir a quién invitar, qué poner al lado de qué y en qué orden. Es nuestra manera de hacer un disco sin firmar ningún tema, y la forma más directa de enseñar qué entendemos por aurality.\n\nLa Señal mensual nace del mismo sitio: cada mes, una playlist con lo que nos ha mirado de cerca, sea nuestro o no.';
+function vistaEditorial() {
+  const P = $('panel'), E = DATA.editorial || {}, ED = REL.filter(r => r.edicion), PE = (DATA.proximos || []).filter(r => r.edicion), s0 = SEN[0];
+  const ps = String((E.texto || '').trim() || EDITORIAL_TXT).split(/\n\s*\n/).map(x => x.trim()).filter(Boolean);
+  P.innerHTML = `<header class="panel-cab"><div><h2>LÍNEA EDITORIAL</h2><div class="sub">Lo que firma el sello · ediciones y Señal mensual</div></div></header>
+    <div class="panel-cuerpo"><div class="editorial">
+      <section class="ed-intro">${ps.map((x, i) => `<p${i ? '' : ' class="lead"'}>${esc(x).replace(/\n/g, '<br>')}</p>`).join('')}</section>
+      <section><div class="sub2">EDICIONES DEL SELLO${ED.length ? ' · ' + ED.length : ''}</div>
+        ${ED.length ? `<div class="rejilla">${ED.map(tarjetaRef).join('')}</div>`
+          : `<div class="ed-vacio"><span class="c">AU-ED · 01</span><span>La primera edición del sello está en preparación.${PE.length ? ' La cuenta atrás está en la portada.' : ''}</span></div>`}</section>
+      ${s0 ? `<section><div class="sub2">SEÑAL MENSUAL · ${plural(SEN.length, 'edición', 'ediciones')}</div>
+        <a class="ed-senal" href="#senal">${s0.cover ? `<img src="${esc(s0.cover)}" alt="Portada de la Señal ${esc(s0.code)}" loading="lazy">` : ''}
+          <span class="txt"><span class="k">EN ANTENA · ${esc(MESES[s0.mes - 1])} ${s0.anio}</span><span class="nom">SEÑAL MENSUAL <b>${esc(s0.code)}</b></span><span class="des">${esc(s0.descripcion || 'Lanzamientos, hallazgos y obsesiones del mes.')}</span><span class="tecla">Abrir la Señal y el archivo →</span></span></a>
+        ${casillaAlta('altaE')}</section>` : ''}
+    </div></div>`;
+  montaAlta('altaE');
+}
 function vistaSenal(x) {
   const P = $('panel'), anios = uniq(SEN.map(e => e.anio)).sort();
   const de = n => SEN.find(e => e.anio === anioSen && e.mes === n);
@@ -2847,7 +2874,7 @@ function vistaContacto() {
   };
 }
 let seccion = 'escucha', foco = null, mesSenal = 0;
-const NOMBRE = { escucha: ['01 · SECCIÓN', 'ESCUCHA'], catalogo: ['02 · SECCIÓN', 'CATÁLOGO'], roster: ['03 · SECCIÓN', 'ROSTER'], senal: ['04 · SECCIÓN', 'SEÑAL'], manifiesto: ['05 · SECCIÓN', 'MANIFIESTO'], contacto: ['06 · SECCIÓN', 'CONTACTO'] };
+const NOMBRE = { escucha: ['01 · SECCIÓN', 'ESCUCHA'], catalogo: ['02 · SECCIÓN', 'CATÁLOGO'], roster: ['03 · SECCIÓN', 'ROSTER'], senal: ['04 · SECCIÓN', 'SEÑAL'], editorial: ['04 · SECCIÓN', 'EDITORIAL'], manifiesto: ['05 · SECCIÓN', 'MANIFIESTO'], contacto: ['06 · SECCIÓN', 'CONTACTO'] };
 // direcciones limpias: la barra del navegador enseña /AU0212, /ufisi, /senal-10_26 o /catalogo (lo que se comparte),
 // mientras los enlaces internos siguen siendo #AU0212, #a-ufisi, #s-10_26
 const deDireccion = p => { p = p.replace(/\/+$/, ''); const q = p.toLowerCase();
@@ -2858,10 +2885,10 @@ function ruta(ev) {
   const art = h.startsWith('a-') && ART.find(a => a.s === h.slice(2));
   const sen = h === 'senal' ? SEN[0] : h.startsWith('s-') ? SEN.find(e => e.code === h.slice(2)) : null;
   const kitA = h.startsWith('kit-') ? ART.find(a => a.s === h.slice(4)) : null;
-  seccion = ['catalogo', 'roster', 'manifiesto', 'contacto', 'registro', 'kit'].includes(h) || kitA ? (kitA ? 'kit' : h) : sen ? 'senal' : r ? 'ficha' : art ? 'artista' : 'escucha';
+  seccion = ['catalogo', 'roster', 'manifiesto', 'contacto', 'registro', 'kit', 'editorial'].includes(h) || kitA ? (kitA ? 'kit' : h) : sen ? 'senal' : r ? 'ficha' : art ? 'artista' : 'escucha';
   const dir = '/' + (seccion === 'escucha' ? '' : seccion === 'ficha' ? r.code : seccion === 'artista' ? art.s : seccion === 'senal' ? (h === 'senal' ? 'senal' : 'senal-' + sen.code) : seccion === 'kit' ? (kitA ? 'kit-' + kitA.s : 'kit') : h);
   if (location.pathname + location.hash !== dir) try { history.replaceState(history.state, '', dir); } catch (e) {}
-  const navS = seccion === 'ficha' ? 'catalogo' : seccion === 'artista' ? 'roster' : seccion === 'registro' ? 'escucha' : seccion === 'kit' ? (kitA ? 'roster' : 'contacto') : seccion;
+  const navS = seccion === 'ficha' ? 'catalogo' : seccion === 'artista' ? 'roster' : seccion === 'registro' ? 'escucha' : seccion === 'kit' ? (kitA ? 'roster' : 'contacto') : seccion === 'senal' ? 'editorial' : seccion;
   document.querySelectorAll('.placa').forEach(p => p.setAttribute('aria-current', p.dataset.s === navS ? 'page' : 'false')); punta();
   $('menuN').textContent = NOMBRE[navS][0]; $('menuT').textContent = NOMBRE[navS][1];
   const lat = document.querySelector('.lateral'), vuelve = lat.hidden && seccion === 'escucha';
@@ -2869,9 +2896,9 @@ function ruta(ev) {
   document.querySelector('.estado').hidden = seccion !== 'escucha'; $('lema').hidden = seccion !== 'escucha';
   const P = $('panel'); P.hidden = seccion === 'escucha';
   if (radioPorSC) { radioPorSC = false; radio.encender().then(pintaPlay); }
-  if (seccion === 'catalogo') vistaCatalogo(); if (seccion === 'ficha') { vistaFicha(r); montaSC($('panel')); } if (seccion === 'roster') vistaRoster(); if (seccion === 'artista') vistaArtista(art); if (seccion === 'senal') { anioSen = sen.anio; vistaSenal(sen); } if (seccion === 'manifiesto') vistaManifiesto(); if (seccion === 'contacto') vistaContacto(); if (seccion === 'registro') vistaRegistro(); if (seccion === 'kit') vistaKit(kitA);
+  if (seccion === 'catalogo') vistaCatalogo(); if (seccion === 'ficha') { vistaFicha(r); montaSC($('panel')); } if (seccion === 'roster') vistaRoster(); if (seccion === 'artista') vistaArtista(art); if (seccion === 'senal') { anioSen = sen.anio; vistaSenal(sen); } if (seccion === 'manifiesto') vistaManifiesto(); if (seccion === 'contacto') vistaContacto(); if (seccion === 'registro') vistaRegistro(); if (seccion === 'editorial') vistaEditorial(); if (seccion === 'kit') vistaKit(kitA);
   if (seccion !== 'escucha') { P.style.animation = 'none'; void P.offsetWidth; P.style.animation = ''; P.querySelector('.panel-cuerpo').scrollTop = 0; }
-  foco = ({ catalogo: 'p4', ficha: 'hero', roster: 'p3', artista: 'p3', senal: 'p2', registro: 'p2', kit: 'hero', manifiesto: 'hero', contacto: 'p5' })[seccion] || null;
+  foco = ({ catalogo: 'p4', ficha: 'hero', roster: 'p3', artista: 'p3', senal: 'p2', registro: 'p2', kit: 'hero', editorial: 'p2', manifiesto: 'hero', contacto: 'p5' })[seccion] || null;
   mesSenal = seccion === 'senal' ? sen.mes : 0; tunePulse = 0.6;
 }
 // ---------- destacados de la portada ----------
@@ -2934,7 +2961,6 @@ function apila(saliendo) {
   A.style.setProperty('--n', vs.length || 1);
   vs.forEach((el, i) => { el.style.setProperty('--i', i); el.classList.toggle('atras', i > 0); });
 }
-if (SEN[0]) $('senCod').textContent = SEN[0].code; else document.querySelector('.lateral .senal').remove();
 // ---------- AU-06 · lo próximo ----------
 // Un lanzamiento con fecha de salida futura pasa por cuatro fases: anuncio (30–15 días: solo código y cuenta atrás),
 // revelado (14–4: artista, título, portada que se destapa y presave), fragmento (3 últimos días: un trozo distinto cada día)
