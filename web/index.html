@@ -2090,7 +2090,7 @@ const escala = $('escalaDial'), escAguja = $('escAguja'), escLect = $('escLect')
 $('escMarcas').innerHTML = Array.from({ length: 121 }, (_, i) => `<i class="${i % 10 ? (i % 5 ? '' : 'm') : 'c'}" style="left:${(i / 120 * 100).toFixed(3)}%"></i>${i % 10 ? '' : `<b style="left:${(i / 120 * 100).toFixed(3)}%">${String(i / 10).padStart(2, '0')}</b>`}`).join('');
 const escalaVe = v => {
   if (v) { const pl = document.querySelector('.pletina').getBoundingClientRect(), m = innerWidth < 821 ? 10 : 20;
-    Object.assign(escala.style, { left: (pl.left + m) + 'px', width: (pl.width - 2 * m) + 'px', bottom: (innerHeight - pl.top + 10) + 'px', top: 'auto' }); }
+    const pe = document.querySelector('.pletina'); Object.assign(escala.style, { left: (pl.left + m) + 'px', width: (pl.width - 2 * m) + 'px', bottom: `calc(${getComputedStyle(pe).bottom} + ${pe.offsetHeight + 10}px)`, top: 'auto' }); }
   else { escala.classList.remove('desliza'); escMarcas.style.left = escMarcas.style.width = ''; }
   escala.classList.toggle('on', v);
 };
@@ -2440,6 +2440,11 @@ function cargaSC() { return scApi || (scApi = new Promise((ok, ko) => { const t 
 // Dos reproductores ocultos se turnan: mientras suena uno, el otro prepara el siguiente fragmento, y entran cruzados
 // con la estática de la radio por encima. Suena todo lanzamiento con enlace de SoundCloud en el panel;
 // el fragmento empieza hacia la mitad del tema, o en el minuto que diga el panel («Inicio del fragmento»).
+const DIAG = /[?&]diag\b/.test(location.search), diagL = [];
+const diag = m => { const t = new Date().toTimeString().slice(3, 8); diagL.push(t + ' ' + m); if (diagL.length > 40) diagL.shift();
+  if (!DIAG) return; let d = $('diag00'); if (!d) { d = document.createElement('pre'); d.id = 'diag00'; d.style.cssText = 'position:fixed;left:6px;right:6px;top:6px;z-index:99;max-height:38vh;overflow:auto;margin:0;padding:6px 8px;background:rgba(14,15,18,.88);color:#cfe0ff;font:10px/1.35 monospace;white-space:pre-wrap;pointer-events:none'; document.body.appendChild(d); }
+  d.textContent = diagL.join('\n'); d.scrollTop = 1e6; };
+window.__diag00 = diagL;
 const FRAG = 75, FUNDE = 7;                                                          // segundos de cada fragmento y de cada cruce
 const aSeg = v => { const m = String(v || '').trim().match(/^(\d+):(\d{1,2})$/); return m ? +m[1] * 60 + +m[2] : null; };
 addEventListener('resize', () => { if ($('tira00').classList.contains('on')) cat00.muestraTira(true); });
@@ -2454,18 +2459,37 @@ const cat00 = radio.cat = {
   async monta() {
     if (this.w.length === (this.tira ? 1 : 2)) return true;
     try {
+      diag('monta · modo ' + (this.tira ? 'tira' : 'oculto') + ' · ' + (navigator.userAgent.match(/(CriOS|GSA|FxiOS|EdgiOS|Version)\/[\d.]+/) || ['?'])[0]);
       const SC = this.SC = await Promise.race([cargaSC(), new Promise((_, ko) => setTimeout(() => ko(new Error('sin respuesta')), 9000))]);
+      diag('api de soundcloud cargada');
       const cuantos = this.tira ? 1 : 2;
       for (let k = this.w.length; k < cuantos; k++) {
         const f = document.createElement('iframe'); f.allow = 'autoplay'; f.title = 'Canal 00 · reproductor de SoundCloud';
         if (this.tira) { $('tira00f').appendChild(f); } else { f.className = 'sc00'; f.tabIndex = -1; f.setAttribute('aria-hidden', 'true'); document.body.appendChild(f); }
         f.src = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(this.cola[0].soundcloud) + '&color=%230e0f12&auto_play=false&single_active=false&visual=false&show_artwork=false&buying=false&sharing=false&download=false&show_comments=false&show_user=false&hide_related=true&show_teaser=false';
         const w = SC.Widget(f);
-        await new Promise(ok => { w.bind(SC.Widget.Events.READY, ok); setTimeout(ok, 9000); });
-        w.setVolume(0); w.bind(SC.Widget.Events.PLAY, () => this.alSonar(k)); this.w.push(w);
+        await new Promise(ok => { let listo = false; w.bind(SC.Widget.Events.READY, () => { listo = true; diag('reproductor listo'); ok(); }); setTimeout(() => { if (!listo) diag('reproductor: sin READY en 9 s'); ok(); }, 9000); });
+        w.setVolume(0); this.w.push(w);
+        // en la tira solo cuenta como «sonando» si la posición avanza de verdad (el aviso PLAY llega aunque Safari no deje sonar)
+        w.bind(SC.Widget.Events.PLAY, () => diag('aviso PLAY'));
+        w.bind(SC.Widget.Events.PLAY_PROGRESS, e => this.progreso(k, e && e.currentPosition));
+        w.bind(SC.Widget.Events.PAUSE, () => { diag('aviso PAUSE'); this.pausado(k); });
       }
       return true;
-    } catch (e) { return false; }
+    } catch (e) { diag('fallo al montar: ' + (e && e.message)); return false; }
+  },
+  // progreso real del reproductor de la tira: dos avisos con la posición avanzando = suena
+  progreso(k, ms) {
+    if (!this.tira || k !== 0) return; const ahora = performance.now();
+    if (this.sonando) { this.vistoProg = ahora; return; }
+    if (!this.ahora || !this.vivo || typeof ms !== 'number') return;
+    const pr = this.prog; this.prog = { ms, t: ahora };
+    if (pr && ms > pr.ms + 150 && ahora - pr.t < 3000) { diag('suena de verdad · ' + Math.round(ms / 1000) + ' s'); this.alSonar(0); }
+  },
+  pausado(k) {
+    if (!this.tira || k !== 0 || !this.sonando || !this.ahora || !this.vivo) return;
+    this.sonando = false; this.bloqueo = true; this.prog = null; this.timers.forEach(clearTimeout); this.timers = [];
+    this.rotuloTira('CANAL 00 · TOCA ▶ PARA SEGUIR'); this.muestraTira(true); pintaCanal();
   },
   siguiente() {
     if (this.pedido) { const r = this.pedido; this.pedido = null; return r; }
@@ -2476,7 +2500,7 @@ const cat00 = radio.cat = {
   prepara(k, r) {
     const w = this.w[k];
     return new Promise(ok => {
-      let hecho = false; const fin = v => { if (!hecho) { hecho = true; ok(v); } }; setTimeout(() => fin(null), 12000);
+      let hecho = false; const fin = v => { if (!hecho) { hecho = true; ok(v); } }; setTimeout(() => { if (!hecho) diag('preparar ' + r.code + ': sin respuesta en 12 s'); fin(null); }, 12000);
       w.setVolume(0);
       w.load(r.soundcloud, { auto_play: false, single_active: false, visual: false, show_artwork: false, buying: false, sharing: false, download: false, show_comments: false, show_user: false, hide_related: true,
         callback: () => w.getSounds(ss => {
@@ -2484,6 +2508,7 @@ const cat00 = radio.cat = {
           const datos = () => w.getCurrentSound(snd => w.getDuration(ms => {
             const dur = (ms || 0) / 1000; let ini = aSeg(r.fragmento); if (ini == null || ini > dur - 30) ini = dur * 0.42;
             ini = Math.max(0, Math.min(ini, dur - FRAG - FUNDE));
+            diag('preparado ' + r.code + ' · ' + Math.round(dur) + ' s, desde ' + Math.round(ini));
             fin({ r, k, ini, dur, tema: (snd && snd.title) || titulo(r), url: (snd && snd.permalink_url) || r.soundcloud });
           }));
           if (n > 1) { w.setVolume(0); w.skip(i); setTimeout(() => { w.pause(); datos(); }, 700); } else datos();
@@ -2501,7 +2526,7 @@ const cat00 = radio.cat = {
   suena(p, id) {
     if (id !== this.id) return;
     if (this.tira) {                                                                    // un solo reproductor: el resto lo arranca alSonar
-      const w = this.w[0]; this.act = 0; this.ahora = p; this.sonando = false; this.fallo = false; this.vol[0] = 100; w.setVolume(100);
+      const w = this.w[0]; this.act = 0; this.ahora = p; this.sonando = false; this.prog = null; this.fallo = false; this.vol[0] = 100; w.setVolume(100); diag('play (por código)');
       w.seekTo(p.ini * 1000); w.play(); pintaCanal();
       if ($('tira00').classList.contains('on')) this.rotuloTira('CANAL 00 · TOCA ▶ PARA SINTONIZAR');
       this.luego(() => { if (id === this.id && this.ahora === p && !this.sonando) { this.bloqueo = true; this.rotuloTira('CANAL 00 · TOCA ▶ PARA SINTONIZAR'); this.muestraTira(true); pintaCanal(); } }, 1.5);
@@ -2521,6 +2546,10 @@ const cat00 = radio.cat = {
     const p = this.ahora, id = this.id, w = this.w[0]; this.sonando = true; this.bloqueo = false; this.muestraTira(false); pintaCanal();
     w.getPosition(ms => { if (ms / 1000 < p.ini - 3) w.seekTo(p.ini * 1000); });
     this.luego(() => this.cruzaTira(id), Math.max(20, Math.min(FRAG, p.dur - p.ini)));
+    this.vistoProg = performance.now();
+    const vigila = () => { if (id !== this.id || this.ahora !== p || !this.sonando) return;
+      if (performance.now() - this.vistoProg > 4000) { diag('sin progreso 4 s → tira'); this.pausado(0); } else this.luego(vigila, 1); };
+    this.luego(vigila, 1);
   },
   async cruzaTira(id) {
     if (id !== this.id) return;
@@ -2536,7 +2565,8 @@ const cat00 = radio.cat = {
   rotuloTira(t) { const k = $('tira00k'); if (k) k.textContent = t; },
   muestraTira(v) {
     const t = $('tira00'); if (!t) return;
-    if (v) { const r = document.querySelector('.pletina').getBoundingClientRect(); t.style.bottom = (innerHeight - r.top + 8) + 'px'; t.style.left = r.left + 'px'; t.style.width = r.width + 'px'; }
+    if (v) { const pl = document.querySelector('.pletina'), r = pl.getBoundingClientRect(); t.style.bottom = `calc(${getComputedStyle(pl).bottom} + ${pl.offsetHeight + 8}px)`; t.style.left = r.left + 'px'; t.style.width = r.width + 'px'; }
+    if (t.classList.contains('on') !== v) diag(v ? 'tira a la vista' : 'tira recogida');
     t.classList.toggle('on', v); t.setAttribute('aria-hidden', !v);
   },
   async cruza(id) {
@@ -2552,6 +2582,7 @@ const cat00 = radio.cat = {
     const id = ++this.id; this.timers.forEach(clearTimeout); this.timers = []; this.prep = null; this.vivo = true; this.ahora = null; this.fallo = false; this.bloqueo = false; this.sonando = false; pintaCanal();
     if (this.tira && this.w[0]) this.w[0].pause();
     if (!this.cola.length) return;
+    diag('canal 00 · empieza');
     if (this.tira && !this.w.length) { this.rotuloTira('CANAL 00 · CARGANDO SOUNDCLOUD…'); this.muestraTira(true); }
     if (!(await this.monta())) { if (id === this.id) { this.fallo = true; this.muestraTira(false); pintaCanal(); } return; }
     if (id !== this.id) return;
