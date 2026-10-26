@@ -55,6 +55,13 @@ body{background:linear-gradient(180deg,var(--cielo-1) 0%,var(--cielo-2) 72%);col
 .codigo-mes{position:absolute;left:10%;top:85.463%;width:70%;height:3.889%;display:flex;align-items:center;justify-content:space-between;
   padding:0 6%;color:var(--letra-relieve);font:800 1.3cqh/1 var(--f-mono);letter-spacing:.02em;box-sizing:border-box}
 .codigo-mes small{font:500 .85cqh/1 var(--f-mono);opacity:.75;letter-spacing:.1em}
+/* tecla de Instagram en la placa baja de la faja: se ilumina al pasar y se hunde al pulsar */
+.codigo-mes.ig{text-decoration:none;cursor:pointer;transition:background .2s,box-shadow .2s,transform .08s}
+.codigo-mes.ig:hover,.codigo-mes.ig:focus-visible{background:rgba(255,255,255,.1);box-shadow:inset 0 0 0 1px rgba(238,241,246,.35);outline:none}
+.codigo-mes.ig:active{transform:translateY(1px);background:rgba(0,0,0,.18)}
+.codigo-mes.ig{flex-direction:column;align-items:flex-start;justify-content:center;gap:.35cqh;padding:0 7%}
+.codigo-mes.ig span{font:800 1.02cqh/1 var(--f-mono);letter-spacing:.14em}
+.codigo-mes.ig small{font:500 .82cqh/1 var(--f-mono);opacity:.85;letter-spacing:.06em;white-space:nowrap}
 
 /* ---------- cabecera de estado ---------- */
 .estado{position:fixed;top:20px;right:28px;z-index:6;display:flex;gap:22px;font:500 11px/1.4 var(--f-mono);letter-spacing:.08em;text-transform:uppercase;color:#2b3242;text-align:right}
@@ -688,7 +695,7 @@ iframe.vid{display:block;width:100%;aspect-ratio:16/9;border:0;margin-top:8px;ba
   <a class="placa" href="#contacto" data-s="contacto" style="top:69.568%"><span class="n">06</span><span class="t">Contacto</span><span class="d">Demos · prensa</span></a>
   <span class="testigo azul" id="tAzul" title="Testigo azul: señal"></span>
   <span class="testigo rojo on" id="tRojo" title="Testigo rojo: lanzamiento destacado"></span>
-  <div class="codigo-mes"><span>SEÑAL 10_26</span><small>MES 10/12</small></div>
+  <a class="codigo-mes ig" id="bIG" href="https://www.instagram.com/aurality/" target="_blank" rel="noopener" aria-label="Instagram de aurality (se abre aparte)"><span>INSTAGRAM</span><small>@aurality ↗</small></a>
 </nav>
 
 <div class="lema" id="lema"><span class="k">Sello y plataforma creativa · Elda</span><span class="t" id="lemaT">Un sello no es un sonido. Es un criterio.</span></div>
@@ -1898,10 +1905,6 @@ reloj(); setInterval(reloj, 15000);
 // navegación: punta y secciones
 const avisar = txt => { const a = $('aviso'); a.textContent = txt; a.classList.add('on'); clearTimeout(avisar.t); avisar.t = setTimeout(() => a.classList.remove('on'), 2600); };
 function punta() { const act = document.querySelector('.placa[aria-current="page"]'); if (!act) return; const p = $('punta'); p.style.top = `calc(${parseFloat(act.style.top) + 8.673 / 2}% - ${p.offsetHeight / 2}px)`; }
-document.querySelectorAll('[data-s]').forEach(a => a.addEventListener('click', e => {
-  const s = a.dataset.s; if (['escucha', 'catalogo', 'roster', 'senal', 'manifiesto', 'contacto'].includes(s)) return; e.preventDefault();
-  avisar('La sección ' + ({roster:'ROSTER',senal:'SEÑAL',manifiesto:'MANIFIESTO',contacto:'CONTACTO'})[s] + ' llega en la siguiente fase');
-}));
 
 // ======================= catálogo y fichas =======================
 // el contenido vive en contenido/*.json (lo edita el panel privado /admin); lo que no se pueda leer sale de la copia interna
@@ -2323,8 +2326,11 @@ function redConexiones() {
     (r.participantes || []).forEach(([p, rol]) => firman.forEach(f => une(p, f, r, 'trabajo', rol || 'participación')));
     (r.credits || []).forEach(([rol, v]) => { if (ROL_MUSICA(rol)) nombresDe(v).forEach(n => firman.forEach(f => une(n, f, r, 'trabajo', rol))); });
   });
-  const aristas = [...E.values()].map(e => ({ ...e, peso: e.obras.size, firma: [...e.obras.values()].some(v => v.tipos.has('firma')) }));
-  return { nodos: [...N.values()], aristas };
+  // aurality no es un artista del mapa: fuera su nodo, sus líneas y quien solo estaba unido a aurality
+  const SELLO = 'AURALITY', aristas = [...E.values()].filter(e => e.a !== SELLO && e.b !== SELLO)
+    .map(e => ({ ...e, peso: e.obras.size, firma: [...e.obras.values()].some(v => v.tipos.has('firma')) }));
+  const conLinea = new Set(aristas.flatMap(e => [e.a, e.b]));
+  return { nodos: [...N.values()].filter(d => d.n !== SELLO && (d.m || conLinea.has(d.n))), aristas };
 }
 function mapaRed(C) {
   const { nodos, aristas } = redConexiones(), W = Math.max(300, C.clientWidth - 2), H = Math.round(Math.min(560, Math.max(340, innerHeight * 0.52, W < 500 ? W * 1.15 : 0)));
@@ -2778,6 +2784,10 @@ function tocaFragmento() {
 pintaProximo(); setInterval(() => { if (seccion === 'escucha' && !document.hidden) pintaProximo(); }, 1000);
 cargaTX().then(novedadesTX); setInterval(cargaTX, 5 * 60 * 1000);                                    // transmisiones que emiten ahora (frecuencias, nada más)
 pintaAvisos();
+{ const ig = $('bIG'), url = (DATA.contacto || {}).instagram || ig.href, user = url.replace(/\/+$/, '').split('/').pop();
+  ig.href = url; ig.querySelector('small').textContent = '@' + user + ' ↗';
+  if (/Android/i.test(navigator.userAgent)) ig.addEventListener('click', e => { e.preventDefault();
+    location.href = `intent://instagram.com/_u/${user}/#Intent;package=com.instagram.android;scheme=https;S.browser_fallback_url=${encodeURIComponent(url)};end`; }); }
 if ((DATA.manifiesto || {}).titular) $('lemaT').textContent = DATA.manifiesto.titular;
 addEventListener('hashchange', ruta);
 addEventListener('popstate', () => { if (!location.hash) ruta(); });   // atrás / adelante entre direcciones limpias
@@ -2837,6 +2847,9 @@ if (cat00.cola.length >= 3 && !radio.on) { radio.canal = -1; knobTarget = angulo
   for (const [, [obj, pos, rot, sc]] of Object.entries(parts)) { obj.position.set(...pos); obj.rotation.set(rad(rot[0]), rad(rot[1]), rad(rot[2])); obj.scale.setScalar(sc); scene.add(obj); }
   window.__carga?.mark('piezas', '5 · OK');
   const knob = parts.p2[0].children.find(c => c.isGroup); if (knob) knob.rotation.z = knobTarget;
+  // membrana del altavoz AU-03: la placa hundida y su rejilla de agujeros
+  let au3 = null; parts.p3[0].traverse(c => { if (!au3 && c.userData && c.userData.Rp) au3 = c; });
+  const membrana = au3 ? [1, 2].map(i => au3.children[i]).filter(Boolean).map(m => [m, m.position.z]) : [];
   // corredor AU-04: sus cursores siguen a los filtros del catálogo
   const CU = parts.p4[0].userData; let curT = [4, 9, 7].map(v => v / 12);
   corredor = lv => { curT = lv; };
@@ -2924,11 +2937,11 @@ if (cat00.cola.length >= 3 && !radio.on) { radio.canal = -1; knobTarget = angulo
       const tun = n === 'p2' || n === 'hero' ? Math.sin(tunePulse * Math.PI) * (n === 'hero' ? 0.35 : 0.6) : 0;
       if (tun) { qm.setFromAxisAngle(new THREE.Vector3(0, 1, 0), tun); o.quaternion.multiply(qm); }
       o.position.set(b.p.x, b.p.y + m.bob * (Math.sin(TAU * m.bk * uu + m.bp) - Math.sin(m.bp)) - (n === 'p5' ? press * 10 : 0), b.p.z);
-      if (n === 'p3') o.scale.setScalar(b.s * (1 + Math.min(0.06, lvl * 0.5)));
       const F = FOCO[n], conFoco = foco && modo === 'ancho';
       fb[n] = THREE.MathUtils.clamp(fb[n] + ((conFoco && foco === n ? 1 : 0) - fb[n]) * Math.min(1, dt * 2.2), 0, 1);
       if (fb[n] > 0.001 && F) { o.position.lerp(F.p, fb[n]); if (F.q) o.quaternion.slerp(F.q, fb[n]); o.scale.setScalar(THREE.MathUtils.lerp(b.s, F.s, fb[n])); }
       else if (conFoco && foco !== n) o.position.z -= 1300 * rf;
+      if (n === 'p3') { const k = Math.min(1, lvl * 6); membrana.forEach(([m, z0]) => { m.position.z = z0 + k * 9; }); o.scale.multiplyScalar(1 + k * 0.025); }
     }
     rf = THREE.MathUtils.clamp(rf + ((foco && modo === 'ancho' ? 1 : 0) - rf) * Math.min(1, dt * 1.8), 0, 1);
     if (CU.cursores) CU.cursores.forEach(([cap, ix], k) => { const y = CU.TR0 + Math.round(curT[k] * 12) * CU.STEP; cap.position.y += (y - cap.position.y) * Math.min(1, dt * 6); ix.position.y = cap.position.y; });
