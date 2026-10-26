@@ -218,6 +218,19 @@ body{background:linear-gradient(180deg,var(--cielo-1) 0%,var(--cielo-2) 72%);col
 .casillas{position:relative;touch-action:none;cursor:ew-resize}
 .casillas::before{content:"";position:absolute;left:0;right:0;top:-10px;bottom:-10px}   /* zona de agarre más alta que las casillas */
 .casillas button{position:relative;z-index:1}
+/* escala de sintonía ampliada: aparece encima de la pletina mientras se arrastra (en el ordenador, la aguja va pegada al cursor) */
+.escala-dial{position:fixed;z-index:9;height:74px;box-sizing:border-box;background:#10141c;clip-path:var(--chaflan);box-shadow:inset 0 2px 6px rgba(0,0,0,.7);
+  opacity:0;transform:translateY(10px);pointer-events:none;transition:opacity .18s,transform .18s;left:-9999px;width:600px}
+.escala-dial.on{opacity:1;transform:none}
+.escala-dial::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.2) 0 1px,transparent 1px 3px);pointer-events:none}
+.escala-dial .marcas{position:absolute;left:28px;right:28px;top:0;bottom:0}
+.escala-dial .marcas i{position:absolute;bottom:14px;width:1px;height:7px;background:rgba(160,180,230,.35);transform:translateX(-.5px)}
+.escala-dial .marcas i.m{height:12px;background:rgba(160,180,230,.55)}
+.escala-dial .marcas i.c{height:20px;background:#cfe0ff}
+.escala-dial .marcas b{position:absolute;bottom:38px;transform:translateX(-50%);font:800 11px/1 var(--f-mono);color:#9fb6e6;letter-spacing:.04em}
+.escala-dial.desliza .marcas{right:auto;transition:none}
+.escala-dial .aguja-e{position:absolute;top:8px;bottom:8px;width:2px;margin-left:-1px;background:#ff5a48;box-shadow:0 0 8px rgba(255,90,70,.8)}
+.escala-dial .aguja-e b{position:absolute;top:-5px;left:50%;transform:translateX(-50%);padding:2px 5px;font:800 12px/1 var(--f-mono);color:#10141c;background:#ffb0a3;white-space:nowrap;font-variant-numeric:tabular-nums}
 .casillas .aguja{position:absolute;top:-5px;bottom:-5px;left:0;width:2px;margin-left:-1px;background:var(--rojo);box-shadow:0 0 5px rgba(214,44,44,.65);pointer-events:none;opacity:0;transition:opacity .25s}
 .casillas.fino .aguja{opacity:1}
 .casillas.fino button[aria-pressed="true"]{background:#cfccc4}
@@ -762,6 +775,8 @@ iframe.vid{display:block;width:100%;aspect-ratio:16/9;border:0;margin-top:8px;ba
     <div class="casillas" id="casillas" role="group" aria-label="Elegir canal"></div>
   </div>
 </section>
+
+<div class="escala-dial" id="escalaDial" aria-hidden="true"><div class="marcas" id="escMarcas"></div><div class="aguja-e" id="escAguja"><b id="escLect">03.0</b></div></div>
 
 <div class="tira00" id="tira00" aria-hidden="true" role="region" aria-label="Canal 00 · SoundCloud"><div class="k"><i></i>CANAL 00 · TOCA ▶ PARA SINTONIZAR</div><div class="f" id="tira00f"></div></div>
 
@@ -2071,6 +2086,22 @@ function tune(i) { radio.sintonizar(i); pintaCanal(); tunePulse = 1; knobTarget 
 // ---------- sintonía fina y frecuencias ocultas ----------
 // El dial va de 00.0 a 12.0: los enteros son los canales; entre medias hay estática y, a veces, una transmisión oculta.
 // Cerca de una transmisión el piloto azul parpadea y la señal se cuela entre el ruido; encima, se limpia y queda fijada.
+const escala = $('escalaDial'), escAguja = $('escAguja'), escLect = $('escLect');
+$('escMarcas').innerHTML = Array.from({ length: 121 }, (_, i) => `<i class="${i % 10 ? (i % 5 ? '' : 'm') : 'c'}" style="left:${(i / 120 * 100).toFixed(3)}%"></i>${i % 10 ? '' : `<b style="left:${(i / 120 * 100).toFixed(3)}%">${String(i / 10).padStart(2, '0')}</b>`}`).join('');
+const escalaVe = v => {
+  if (v) { const pl = document.querySelector('.pletina').getBoundingClientRect(), m = innerWidth < 821 ? 10 : 20;
+    Object.assign(escala.style, { left: (pl.left + m) + 'px', width: (pl.width - 2 * m) + 'px', bottom: (innerHeight - pl.top + 10) + 'px', top: 'auto' }); }
+  else { escala.classList.remove('desliza'); escMarcas.style.left = escMarcas.style.width = ''; }
+  escala.classList.toggle('on', v);
+};
+// con ratón la escala está quieta y la aguja va pegada al cursor; con el dedo la aguja queda en el centro y la escala corre debajo (U px por unidad, 1:1 con el dedo)
+const U_DEDO = 64, escMarcas = $('escMarcas');
+const fEscala = ev => { const r = escMarcas.getBoundingClientRect(); return Math.max(0, Math.min(12, (ev.clientX - r.left) / r.width * 12)); };
+const pintaEscala = f => {
+  if (escala.classList.contains('desliza')) { const c = escala.clientWidth / 2; escMarcas.style.width = 12 * U_DEDO + 'px'; escMarcas.style.left = (c - f * U_DEDO) + 'px'; escAguja.style.left = c + 'px'; }
+  else escAguja.style.left = (escMarcas.offsetLeft + f / 12 * escMarcas.offsetWidth) + 'px';
+  escLect.textContent = f.toFixed(1).padStart(4, '0');
+};
 let TXS = [], frec = null;                                                           // frec = null: sintonizado en un canal exacto
 const aguja = document.createElement('i'); aguja.className = 'aguja'; aguja.setAttribute('aria-hidden', 'true'); cas.appendChild(aguja);
 const centros = () => [...cas.querySelectorAll('button')].map(b => b.offsetLeft + b.offsetWidth / 2);
@@ -2087,7 +2118,7 @@ function finoA(f, soltado) {
   if (f == null) { clearTimeout(finoA.t); frec = null; cas.classList.remove('fino'); ultFino = null; radio.ajustaFino({ f: radio.canal + 1, senal: 1, ruido: 0, tx: null }); testigoSenal(); pintaCanal(); return; }
   f = Math.round(Math.max(0, Math.min(12, f)) * 100) / 100; let e = estadoFino(f);
   if (soltado) { clearTimeout(finoA.t); if (e.tx && e.dT <= 0.12) f = e.tx.f; else if (e.dC <= 0.12) { finoA(null); if (e.n - 1 !== radio.canal) tune(e.n - 1); return; } e = estadoFino(f); }   // al soltar, encaja
-  frec = f; cas.classList.add('fino'); aguja.style.left = fAx(f) + 'px';
+  frec = f; cas.classList.add('fino'); aguja.style.left = fAx(f) + 'px'; pintaEscala(f);
   // pasar por encima de un canal no lo sintoniza: solo si la aguja se queda quieta en él un momento (barrer el dial no arranca 13 emisoras)
   clearTimeout(finoA.t);
   const otro = e.dC <= 0.12 && e.n - 1 !== radio.canal && !e.tx;
@@ -2115,10 +2146,11 @@ window.__fino = { pinta() {
 { // arrastre sobre las casillas (un toque sin arrastrar sigue eligiendo el canal)
   // mando fino: la aguja va más despacio que el dedo (×1/3 con ratón, ×1/2 con el dedo), como el vernier de una radio;
   // para saltar lejos, se toca un canal y desde ahí se afina
-  let x0 = 0, f0 = 0, red = 3, mov = false;
-  const fDe = ev => { const c = centros(), pxU = (c[c.length - 1] - c[0]) / 12; return Math.max(0, Math.min(12, f0 + (ev.clientX - x0) / pxU / red)); };
+  let x0 = 0, f0 = 0, mov = false, raton = false;
+  const fDe = ev => raton ? fEscala(ev) : Math.max(0, Math.min(12, f0 + (ev.clientX - x0) / U_DEDO));
   cas.addEventListener('pointerdown', e => {
-    if (e.pointerType === 'mouse' && e.button !== 0) return; x0 = e.clientX; f0 = frec == null ? radio.canal + 1 : frec; red = e.pointerType === 'mouse' ? 3 : 2; mov = false;
+    if (e.pointerType === 'mouse' && e.button !== 0) return; x0 = e.clientX; f0 = frec == null ? radio.canal + 1 : frec; raton = e.pointerType !== 'touch'; mov = false;
+    escalaVe(true); escala.classList.toggle('desliza', !raton); pintaEscala(f0);
     try { cas.setPointerCapture(e.pointerId); } catch (err) {}
     if (!radio.on && encendido) togglePlay(); radio.txPrepara();
   });
@@ -2129,9 +2161,9 @@ window.__fino = { pinta() {
     const x = e.clientX - cas.getBoundingClientRect().left;
     if (mov) finoA(fDe(e), true);
     else { const c = centros(), i = c.reduce((m, v, k) => Math.abs(v - x) < Math.abs(c[m] - x) ? k : m, 0); finoA(null); tune(i - 1); }   // un toque: el canal más cercano
-    cas.dataset.arr = '1'; setTimeout(() => delete cas.dataset.arr, 0); mov = false;
+    cas.dataset.arr = '1'; setTimeout(() => delete cas.dataset.arr, 0); mov = false; escalaVe(false);
   };
-  cas.addEventListener('pointerup', suelta); cas.addEventListener('pointercancel', () => { mov = false; });
+  cas.addEventListener('pointerup', suelta); cas.addEventListener('pointercancel', () => { mov = false; escalaVe(false); });
   cas.addEventListener('click', e => { if (cas.dataset.arr) { e.stopPropagation(); e.preventDefault(); } else if (e.target.closest('button')) finoA(null); }, true);
   cas.addEventListener('keydown', e => { if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return; e.preventDefault();
     const f = (frec == null ? radio.canal + 1 : frec) + (e.key === 'ArrowRight' ? 0.1 : -0.1); clearTimeout(cas.tk); finoA(f); cas.tk = setTimeout(() => finoA(frec, true), 700); });
