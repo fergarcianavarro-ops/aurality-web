@@ -279,6 +279,22 @@ body{background:linear-gradient(180deg,var(--cielo-1) 0%,var(--cielo-2) 72%);col
 .desp li.cero{opacity:.45}
 .desp li.nada{cursor:default;color:#6a6f7b;font-weight:500}
 .fader{display:grid;grid-template-columns:76px 1fr;align-items:center;gap:14px}
+.llaves{display:flex;flex-wrap:wrap;gap:8px}
+.llave{appearance:none;border:0;cursor:pointer;display:inline-flex;align-items:center;gap:8px;padding:9px 11px 8px;font:700 10px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:var(--tinta);
+  background:linear-gradient(180deg,#f6f5f1,#dddbd4);box-shadow:0 2px 0 #aeaba3,0 3px 5px rgba(0,0,0,.14),inset 0 1px 0 #fff;transition:transform .08s,box-shadow .12s}
+.llave i{width:7px;height:7px;border-radius:50%;background:#1b2236;box-shadow:inset 0 0 0 1px rgba(0,0,0,.45);flex:none}
+.llave .n{font-weight:500;color:#6a6f7b;letter-spacing:.04em}
+.llave[aria-pressed="true"]{transform:translateY(1px);box-shadow:0 1px 0 #aeaba3,inset 0 1px 2px rgba(0,0,0,.12)}
+.llave[aria-pressed="true"] i{background:radial-gradient(circle at 36% 30%,#b9ccff 0 8%,#4d78ff 30%,#2346d8 70%,#1a2f9e 100%);box-shadow:0 0 6px rgba(80,130,255,.7)}
+.llave.cero:not([aria-pressed="true"]){opacity:.5}
+.llave:focus-visible{outline:2px solid var(--azul);outline-offset:2px}
+.desp li .caja{display:inline-block;width:10px;height:10px;margin-right:9px;vertical-align:-1px;box-shadow:inset 0 0 0 1.5px currentColor}
+.desp li[aria-selected="true"] .caja{background:currentColor;box-shadow:inset 0 0 0 1.5px currentColor,inset 0 0 0 3px var(--tinta)}
+.orden{display:inline-flex;align-items:center;gap:6px}
+.orden button{appearance:none;border:0;cursor:pointer;padding:6px 8px 5px;font:700 9.5px/1 var(--f-mono);letter-spacing:.1em;text-transform:uppercase;color:#4a5060;background:none;box-shadow:inset 0 0 0 1px #c9c6be}
+.orden button[aria-pressed="true"]{background:var(--tinta);color:#fff;box-shadow:none}
+.lista .fila.cab{order:-1}
+@media (max-width:520px){.conteo{flex-wrap:wrap;gap:8px}.fader{grid-template-columns:1fr;gap:8px}}
 .fader .lbl{font:700 10px/1 var(--f-mono);letter-spacing:.16em;color:#3b4150}
 .riel{position:relative;display:grid;grid-auto-flow:column;grid-auto-columns:1fr;padding-top:18px;touch-action:none;user-select:none;-webkit-user-select:none;cursor:grab}
 .riel.arrastra{cursor:grabbing}.riel.arrastra .cursor{transition:none;cursor:grabbing}
@@ -2227,14 +2243,23 @@ const esPart = r => !r.edicion && !propios(r).length && partic(r).length > 0;   
 const miembros = r => uniq([...propios(r), ...partic(r).map(([a]) => a)]);
 const ARTISTAS = [...MIEMBROS].filter(a => REL.some(r => miembros(r).includes(a)));
 const HAY_PART = REL.some(esPart), HAY_ED = REL.some(r => r.edicion);
+// tipo y artista: teclas encendibles (varias a la vez); formato y año: faders; género: buscador de casillas (varios a la vez)
+const TIPOS_C = [['art', 'Catálogo de artistas'], ...(HAY_PART ? [['part', 'Participaciones']] : []), ...(HAY_ED ? [['ed', 'Ediciones del sello']] : [])];
+const tipoDe = r => esPart(r) ? 'part' : r.edicion ? 'ed' : 'art';
+const TIPO_ON = new Set(TIPOS_C.map(([k]) => k)), ART_ON = new Set(), GEN_ON = new Set();
+const GENEROS = uniq(REL.map(r => r.genre)).sort();
 const FILTROS = [
-  { k: 'artist', lbl: 'ARTISTA', ops: ['TODOS', ...ARTISTAS], match: (r, v) => miembros(r).includes(v) },
-  ...(HAY_PART || HAY_ED ? [{ k: 'tipo', lbl: 'TIPO', ops: ['TODOS', 'LANZAMIENTOS', ...(HAY_PART ? ['PARTICIPACIONES'] : []), ...(HAY_ED ? ['EDICIONES DEL SELLO'] : [])],
-    match: (r, v) => v === 'PARTICIPACIONES' ? esPart(r) : v === 'EDICIONES DEL SELLO' ? r.edicion : !esPart(r) && !r.edicion }] : []),
   { k: 'format', lbl: 'FORMATO', ops: ['TODOS', ...ORDEN_F.filter(f => REL.some(r => r.format === f))] },
   { k: 'year', lbl: 'AÑO', ops: ['TODOS', ...uniq(REL.map(r => r.year)).sort((x, y) => y - x).map(String)] },
-  { k: 'genre', lbl: 'GÉNERO', ops: ['TODOS', ...uniq(REL.map(r => r.genre)).sort()] },
 ];
+let ordenC = (() => { try { return localStorage.getItem('au-orden') || 'recientes'; } catch (e) { return 'recientes'; } })();
+const fechaK = r => r.fecha ? Date.parse(r.fecha) : Date.UTC(+r.year || 0, 0, 1);
+const ORDENES = { recientes: (a, b) => fechaK(b) - fechaK(a) || b.code.localeCompare(a.code, 'es', { numeric: true }),
+  antiguos: (a, b) => fechaK(a) - fechaK(b) || a.code.localeCompare(b.code, 'es', { numeric: true }),
+  az: (a, b) => titulo(a).replace(/^[^\p{L}\p{N}]+/u, '').localeCompare(titulo(b).replace(/^[^\p{L}\p{N}]+/u, ''), 'es', { sensitivity: 'base', numeric: true }) };
+const filtraSin = (r, sin) => (sin === 'tipo' || TIPO_ON.has(tipoDe(r))) && (sin === 'art' || !ART_ON.size || miembros(r).some(a => ART_ON.has(a)))
+  && (sin === 'gen' || !GEN_ON.size || GEN_ON.has(r.genre)) && FILTROS.every((f, i) => sel[i] === 0 || String(r[f.k]) === f.ops[sel[i]]);
+const limpiaFiltros = () => { sel.fill(0); ART_ON.clear(); GEN_ON.clear(); TIPOS_C.forEach(([k]) => TIPO_ON.add(k)); };
 const sel = FILTROS.map(() => 0); let vista = 'rejilla';
 try { vista = localStorage.getItem('au-vista') || 'rejilla'; } catch (e) {}
 $('nRefs').textContent = REL.length + ' referencias';
@@ -2244,17 +2269,23 @@ const portada = (r, cls) => r.cover ? `<img class="${cls}" src="${esc(r.cover)}"
   : `<div class="${cls} sinp" role="img" aria-label="Sin portada todavía"><b>${r.code}</b><span>SIN PORTADA</span></div>`;
 const titulo = r => /S\/T/.test(r.title) ? 'Sin título' : r.title;
 const lineaPart = x => partic(x).map(([a, rol]) => `<span class="part"><i aria-hidden="true"></i><span>${esc(a)}${rol ? ' · ' + esc(rol) : ''}</span></span>`).join('');
-function filtrados() { return REL.filter(r => FILTROS.every((f, i) => sel[i] === 0 || (f.match ? f.match(r, f.ops[sel[i]]) : String(r[f.k]) === f.ops[sel[i]]))); }
+function filtrados() { return REL.filter(r => filtraSin(r, null)); }
 let corredor = () => {};                                     // la escena la sustituye para mover los cursores 3D
 function pintaFaders() {
   document.querySelectorAll('.selector').forEach(pintaSelector);
+  document.querySelectorAll('.llave').forEach(b => { const on = b.dataset.t ? TIPO_ON.has(b.dataset.t) : ART_ON.has(b.dataset.a);
+    b.setAttribute('aria-pressed', on);
+    const n = REL.filter(r => filtraSin(r, b.dataset.t ? 'tipo' : 'art') && (b.dataset.t ? tipoDe(r) === b.dataset.t : miembros(r).includes(b.dataset.a))).length;
+    b.querySelector('.n').textContent = n; b.classList.toggle('cero', !n); });
+  document.querySelectorAll('.orden button').forEach(b => b.setAttribute('aria-pressed', b.dataset.o === ordenC));
   document.querySelectorAll('.riel').forEach(riel => {
     const i = +riel.dataset.i, bs = riel.querySelectorAll('button'); bs.forEach((b, j) => b.setAttribute('aria-pressed', j === sel[i]));
     const b = bs[sel[i]]; riel.querySelector('.cursor').style.left = (b.offsetLeft + b.offsetWidth / 2) + 'px';
   });
   corredorDesdeSel();
 }
-function corredorDesdeSel() { corredor(['format', 'year', 'genre'].map(k => { const i = FILTROS.findIndex(f => f.k === k); return FILTROS[i].ops.length > 1 ? sel[i] / (FILTROS[i].ops.length - 1) : 0; })); }
+function corredorDesdeSel() { const g = GEN_ON.size ? GENEROS.indexOf([...GEN_ON][0]) + 1 : 0;
+  corredor([...['format', 'year'].map(k => { const i = FILTROS.findIndex(f => f.k === k); return FILTROS[i].ops.length > 1 ? sel[i] / (FILTROS[i].ops.length - 1) : 0; }), GENEROS.length ? g / GENEROS.length : 0]); }
 const tarjetaRef = x => `<a class="ref" href="#${x.code}" data-c="${x.code}">${portada(x, 'portada')}${esPart(x) ? '<span class="marca">PARTICIPACIÓN</span>' : x.edicion ? '<span class="marca sello">EDICIÓN DEL SELLO</span>' : ''}
       <span class="c">${x.code} · ${esc(x.format)} · ${x.year}</span><span class="a">${esc(x.artist)}</span><span class="t">${esc(titulo(x))}</span>${lineaPart(x)}</a>`;
 const filaRef = x => `<a class="fila" href="#${x.code}" data-c="${x.code}"><span class="x">${x.code}</span><span class="a">${esc(x.artist)}${esPart(x) ? '<small>PART.</small>' : x.edicion ? '<small>SELLO</small>' : ''}</span><span class="t">${esc(titulo(x))}</span><span class="f x">${esc(x.format)}</span><span class="g x">${esc(x.genre)}</span><span class="y x">${x.year}</span><span aria-hidden="true">→</span></a>`;
@@ -2264,13 +2295,15 @@ let vistaPintada = null;
 // a su nueva posición y las que entran aparecen escalonadas
 function pintaResultados() {
   const r = filtrados(), codes = new Set(r.map(x => x.code)), cont = $('resultados'); $('conteo').textContent = `Mostrando ${r.length} de ${REL.length}`;
+  const pos = new Map([...REL].sort(ORDENES[ordenC] || ORDENES.recientes).map((x, n) => [x.code, n]));
+  const ordena = () => cont.querySelectorAll('[data-c]').forEach(el => { el.style.order = pos.get(el.dataset.c); });
   const q = vista === 'rejilla' ? '.ref' : '.fila[data-c]';
   if (vistaPintada !== vista || !cont.querySelector(q)) {
     cont.innerHTML = (vista === 'rejilla' ? `<div class="rejilla">${REL.map(tarjetaRef).join('')}</div>`
       : `<div class="lista"><div class="fila cab" aria-hidden="true"><span>CÓDIGO</span><span>ARTISTA</span><span class="t">TÍTULO</span><span class="f">FORMATO</span><span class="g">GÉNERO</span><span class="y">AÑO</span><span></span></div>${REL.map(filaRef).join('')}</div>`)
       + `<div class="vacio" id="vacioC" hidden>Ninguna referencia con estos filtros.<button class="tecla" id="bLimpiar">Quitar filtros</button></div>`;
-    $('bLimpiar').onclick = () => { sel.fill(0); pintaFaders(); pintaResultados(); };
-    vistaPintada = vista; cont.querySelectorAll(q).forEach(el => { el.hidden = !codes.has(el.dataset.c); }); $('vacioC').hidden = r.length > 0; return;
+    $('bLimpiar').onclick = () => { limpiaFiltros(); pintaFaders(); pintaResultados(); };
+    vistaPintada = vista; cont.querySelectorAll(q).forEach(el => { el.hidden = !codes.has(el.dataset.c); }); ordena(); $('vacioC').hidden = r.length > 0; return;
   }
   const els = [...cont.querySelectorAll(q)];
   cont.querySelectorAll('.fantasma').forEach(f => f.remove()); els.forEach(el => el.getAnimations().forEach(a => a.cancel()));
@@ -2281,47 +2314,46 @@ function pintaResultados() {
       Object.assign(f.style, { position: 'absolute', left: b.left - caja.left + 'px', top: b.top - caja.top + 'px', width: b.width + 'px', height: b.height + 'px', margin: 0, pointerEvents: 'none' });
       cont.appendChild(f); f.animate([{ opacity: 1, transform: 'scale(1)' }, { opacity: 0, transform: 'scale(.9)' }], { duration: 240, easing: 'cubic-bezier(.4,0,.2,1)' }).onfinish = () => f.remove(); }
     el.hidden = fuera; });
-  $('vacioC').hidden = r.length > 0;
+  ordena(); $('vacioC').hidden = r.length > 0;
   if (sinMov.matches) return;
   let k = 0;
   els.forEach(el => { if (el.hidden) return; const b0 = antes.get(el), b1 = el.getBoundingClientRect();
     if (b0) { const dx = b0.left - b1.left, dy = b0.top - b1.top; if (dx || dy) el.animate([{ transform: `translate(${dx}px,${dy}px)` }, { transform: 'none' }], { duration: 420, easing: 'cubic-bezier(.2,.7,.2,1)' }); }
     else el.animate([{ opacity: 0, transform: 'translateY(12px) scale(.95)' }, { opacity: 1, transform: 'none' }], { duration: 380, delay: Math.min(k++, 10) * 28, easing: 'cubic-bezier(.2,.7,.2,1)', fill: 'backwards' }); });
 }
-// filtros con muchas opciones (más de 6): visor con buscador en lugar de fader. Escala a cualquier número de artistas o géneros.
-const MAXF = 6, esSel = f => f.ops.length - 1 > MAXF;
-const casa = (r, g, v) => v === 0 || (g.match ? g.match(r, g.ops[v]) : String(r[g.k]) === g.ops[v]);
-const cuenta = (i, j) => REL.filter(r => FILTROS.every((g, k) => casa(r, g, k === i ? j : sel[k]))).length;
-const selectorHTML = (f, i) => `<div class="fader"><span class="lbl">${f.lbl}</span><div class="selector" data-i="${i}">
-  <button class="visor" id="vis${i}" aria-haspopup="listbox" aria-expanded="false"><span class="v"></span><span class="nn"></span><span class="tri" aria-hidden="true"></span></button>
-  <div class="desp" hidden><input id="bus${i}" type="search" placeholder="Buscar ${f.lbl.toLowerCase()}…" autocomplete="off" aria-label="Buscar ${f.lbl.toLowerCase()}"><ul role="listbox" aria-label="${f.lbl}"></ul></div></div></div>`;
+// géneros: visor con buscador y casillas (se pueden marcar varios). Escala a cualquier número de géneros.
+const cuentaGen = g => REL.filter(r => filtraSin(r, 'gen') && r.genre === g).length;
+const selectorHTML = () => `<div class="fader"><span class="lbl">GÉNERO</span><div class="selector">
+  <button class="visor" id="visG" aria-haspopup="listbox" aria-expanded="false"><span class="v"></span><span class="nn"></span><span class="tri" aria-hidden="true"></span></button>
+  <div class="desp" hidden><input id="busG" type="search" placeholder="Buscar género…" autocomplete="off" aria-label="Buscar género"><ul role="listbox" aria-multiselectable="true" aria-label="Géneros"></ul></div></div></div>`;
 function pintaSelector(el) {
-  const i = +el.dataset.i, f = FILTROS[i];
-  el.querySelector('.v').textContent = f.ops[sel[i]];
-  el.querySelector('.nn').textContent = sel[i] ? cuenta(i, sel[i]) + ' ref.' : (f.ops.length - 1) + ' en total';
+  const v = [...GEN_ON];
+  el.querySelector('.v').textContent = !v.length ? 'TODOS' : v.length <= 2 ? v.join(' + ') : v.length + ' GÉNEROS';
+  el.querySelector('.nn').textContent = v.length ? filtrados().length + ' ref.' : GENEROS.length + ' en total';
 }
 function montaSelector(el) {
-  const i = +el.dataset.i, f = FILTROS[i], vis = el.querySelector('.visor'), desp = el.querySelector('.desp'), inp = el.querySelector('input'), ul = el.querySelector('ul');
+  const vis = el.querySelector('.visor'), desp = el.querySelector('.desp'), inp = el.querySelector('input'), ul = el.querySelector('ul');
   let act = 0, items = [];
   const lista = () => {
     const q = inp.value.trim().toLowerCase();
-    items = f.ops.map((o, j) => ({ o, j })).filter(({ o, j }) => j === 0 ? !q : o.toLowerCase().includes(q));
+    items = [null, ...GENEROS].filter(g => g === null ? !q : g.toLowerCase().includes(q));
     act = Math.min(act, Math.max(0, items.length - 1));
-    ul.innerHTML = items.length ? items.map(({ o, j }, n) => { const c = cuenta(i, j); return `<li role="option" data-j="${j}" aria-selected="${j === sel[i]}" class="${c ? '' : 'cero'}${n === act ? ' act' : ''}"><span>${esc(o)}</span><span>${c}</span></li>`; }).join('')
+    ul.innerHTML = items.length ? items.map((g, n) => { const on = g === null ? !GEN_ON.size : GEN_ON.has(g), c = g === null ? REL.filter(r => filtraSin(r, 'gen')).length : cuentaGen(g);
+      return `<li role="option" data-g="${g === null ? '' : esc(g)}" aria-selected="${on}" class="${c || on ? '' : 'cero'}${n === act ? ' act' : ''}"><span><i class="caja" aria-hidden="true"></i>${g === null ? 'TODOS' : esc(g)}</span><span>${c}</span></li>`; }).join('')
       : '<li class="nada">Sin resultados</li>';
     ul.querySelector('.act')?.scrollIntoView({ block: 'nearest' });
   };
   const abrir = v => { desp.hidden = !v; vis.setAttribute('aria-expanded', v); if (v) { inp.value = ''; act = 0; lista(); inp.focus({ preventScroll: true });
     requestAnimationFrame(() => desp.scrollIntoView({ block: 'nearest', behavior: sinMov.matches ? 'auto' : 'smooth' })); } };   // que la lista entera quede a la vista dentro del panel
-  const elegir = j => { sel[i] = j; abrir(false); vis.focus(); pintaFaders(); pintaResultados(); };
+  const marca = g => { if (g === null) GEN_ON.clear(); else if (GEN_ON.has(g)) GEN_ON.delete(g); else GEN_ON.add(g); lista(); pintaFaders(); pintaResultados(); };   // la lista sigue abierta para marcar más
   vis.onclick = () => abrir(desp.hidden);
   inp.oninput = () => { act = 0; lista(); };
   inp.onkeydown = e => {
     if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); act = Math.max(0, Math.min(items.length - 1, act + (e.key === 'ArrowDown' ? 1 : -1))); lista(); }
-    else if (e.key === 'Enter') { e.preventDefault(); if (items[act]) elegir(items[act].j); }
+    else if (e.key === 'Enter') { e.preventDefault(); if (act < items.length) marca(items[act]); }
     else if (e.key === 'Escape') { abrir(false); vis.focus(); }
   };
-  ul.onclick = e => { const li = e.target.closest('li[data-j]'); if (li) elegir(+li.dataset.j); };
+  ul.onclick = e => { const li = e.target.closest('li[data-g]'); if (li) marca(li.dataset.g || null); };
   el._cierra && document.removeEventListener('pointerdown', el._cierra);
   el._cierra = e => { if (!el.isConnected) return document.removeEventListener('pointerdown', el._cierra); if (!desp.hidden && !el.contains(e.target)) abrir(false); };
   document.addEventListener('pointerdown', el._cierra);
@@ -2331,10 +2363,19 @@ function vistaCatalogo() {
   const P = $('panel');
   P.innerHTML = `<header class="panel-cab"><div><h2>CATÁLOGO</h2><div class="sub">${REL.length} referencias · ${REL[REL.length - 1].code}–${REL[0].code} · Broadcasted from Elda</div></div>
     <div class="vista" role="group" aria-label="Vista"><button class="tecla" id="vRej" aria-pressed="${vista === 'rejilla'}">Rejilla</button><button class="tecla" id="vLis" aria-pressed="${vista === 'lista'}">Lista</button></div></header>
-    <div class="panel-cuerpo"><div class="faders" aria-label="Filtros · corredor AU-04">${FILTROS.map((f, i) => esSel(f) ? selectorHTML(f, i) : `<div class="fader"><span class="lbl">${f.lbl}</span>
-      <div class="riel" data-i="${i}" role="group" aria-label="${f.lbl}">${f.ops.map((o, j) => `<button id="f${i}_${j}" aria-pressed="false" aria-label="${o}"><span class="l">${o}</span><span class="s" aria-hidden="true">${corto(o, Math.max(5, Math.floor(60 / f.ops.length)))}</span></button>`).join('')}<span class="cursor" aria-hidden="true"></span></div></div>`).join('')}</div>
-      <p class="conteo"><span id="conteo"></span><span>Formato · año · género en el corredor AU-04</span></p><div id="resultados"></div></div>`;
+    <div class="panel-cuerpo"><div class="faders" aria-label="Filtros · corredor AU-04">
+      ${TIPOS_C.length > 1 ? `<div class="fader"><span class="lbl">TIPO</span><div class="llaves" role="group" aria-label="Tipo">${TIPOS_C.map(([k, n]) => `<button class="llave" type="button" data-t="${k}" aria-pressed="true"><i aria-hidden="true"></i>${n}<span class="n"></span></button>`).join('')}</div></div>` : ''}
+      <div class="fader"><span class="lbl">ARTISTA</span><div class="llaves" role="group" aria-label="Artistas (varios a la vez; ninguno = todos)">${ARTISTAS.map(a => `<button class="llave" type="button" data-a="${esc(a)}" aria-pressed="false"><i aria-hidden="true"></i>${esc(a)}<span class="n"></span></button>`).join('')}</div></div>
+      ${FILTROS.map((f, i) => `<div class="fader"><span class="lbl">${f.lbl}</span>
+      <div class="riel" data-i="${i}" role="group" aria-label="${f.lbl}">${f.ops.map((o, j) => `<button id="f${i}_${j}" aria-pressed="false" aria-label="${o}"><span class="l">${o}</span><span class="s" aria-hidden="true">${corto(o, Math.max(5, Math.floor(60 / f.ops.length)))}</span></button>`).join('')}<span class="cursor" aria-hidden="true"></span></div></div>`).join('')}
+      ${GENEROS.length > 1 ? selectorHTML() : ''}</div>
+      <p class="conteo"><span id="conteo"></span><span class="orden" role="group" aria-label="Orden">ORDEN<button type="button" data-o="recientes">Recientes</button><button type="button" data-o="antiguos">Antiguos</button><button type="button" data-o="az">A–Z</button></span></p><div id="resultados"></div></div>`;
   P.querySelectorAll('.selector').forEach(montaSelector);
+  P.querySelectorAll('.llave').forEach(b => b.onclick = () => {
+    if (b.dataset.t) { const k = b.dataset.t; TIPO_ON.has(k) ? TIPO_ON.delete(k) : TIPO_ON.add(k); }
+    else { const a = b.dataset.a; ART_ON.has(a) ? ART_ON.delete(a) : ART_ON.add(a); }
+    pintaFaders(); pintaResultados(); });
+  P.querySelectorAll('.orden button').forEach(b => b.onclick = () => { ordenC = b.dataset.o; try { localStorage.setItem('au-orden', ordenC); } catch (e) {} pintaFaders(); pintaResultados(); });
   P.querySelectorAll('.riel').forEach(riel => {
     const i = +riel.dataset.i;
     riel.querySelectorAll('button').forEach((b, j) => b.onclick = () => { if (riel.dataset.arr) return; sel[i] = j; pintaFaders(); pintaResultados(); });
@@ -2520,7 +2561,7 @@ function montaSC(P) {
 function vistaFicha(r) {
   const i = REL.indexOf(r), ant = REL[i + 1], sig = REL[i - 1], P = $('panel');
   const enl = [['SoundCloud', r.soundcloud], ['Spotify', r.spotify], ['Bandcamp', r.bandcamp]];
-  setTimeout(() => P.querySelectorAll('[data-art]').forEach(a => a.addEventListener('click', () => { const i = FILTROS.findIndex(f => f.k === 'artist'); FILTROS.forEach((_, j) => sel[j] = 0); sel[i] = FILTROS[i].ops.indexOf(a.dataset.art); })));
+  setTimeout(() => P.querySelectorAll('[data-art]').forEach(a => a.addEventListener('click', () => { limpiaFiltros(); ART_ON.add(a.dataset.art); })));
   P.innerHTML = `<header class="panel-cab"><div><h2>${r.code}</h2><div class="sub">${esPart(r) ? 'Participación' : r.edicion ? 'Edición del sello' : 'Ficha de lanzamiento'} · ${esc(r.format)} · ${esc(r.genre)} · ${r.year}</div></div>
     <a class="tecla" href="#catalogo">← Catálogo</a></header>
     <div class="panel-cuerpo"><div class="fl">${portada(r, 'portada')}
@@ -2531,7 +2572,7 @@ function vistaFicha(r) {
         ${DESPLEGADO && r.soundcloud ? `<iframe class="sc" title="Reproductor de SoundCloud: ${esc(r.title)}" allow="autoplay" loading="lazy"
           src="https://w.soundcloud.com/player/?url=${encodeURIComponent(r.soundcloud)}&color=%230e0f12&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=false"></iframe>` : ''}
         <table class="creditos"><tbody>${r.credits.map(([k, v]) => `<tr><th scope="row">${esc(k)}</th>${pend(v) ? '<td class="pend">Por definir</td>' : `<td>${esc(v)}</td>`}</tr>`).join('')}</tbody></table>
-        <div class="escala"><span class="k">TRACKLIST</span>${r.tracks && r.tracks.length ? r.tracks.map((t, n) => `<p>${String(n + 1).padStart(2, '0')} · ${esc(t)}</p>`).join('') : '<p>Tracklist por publicar.</p>'}</div>
+        ${r.tracks && r.tracks.length ? `<div class="escala"><span class="k">TRACKLIST</span>${r.tracks.map((t, n) => `<p>${String(n + 1).padStart(2, '0')} · ${esc(t)}</p>`).join('')}</div>` : r.format === 'SINGLE' ? '' : '<div class="escala"><span class="k">TRACKLIST</span><p>Tracklist por publicar.</p></div>'}
       </div></div>
       ${extrasFicha(r)}
       <nav class="pasos" aria-label="Otras referencias">${ant ? `<a class="tecla" href="#${ant.code}">← ${ant.code}</a>` : '<span></span>'}${sig ? `<a class="tecla" href="#${sig.code}">${sig.code} →</a>` : '<span></span>'}</nav></div>`;
@@ -2686,7 +2727,7 @@ function vistaArtista(a) {
     </div></div>
     ${a.rs.length ? `<div class="sub2">LANZAMIENTOS</div><div class="lista">${a.rs.map(x => fila(x)).join('')}</div>` : ''}
     ${a.ps.length ? `<div class="sub2">PARTICIPACIONES</div><div class="lista">${a.ps.map(x => fila(x, titulo(x) + ' — ' + (partic(x).filter(([n]) => n === a.n).map(([, rol]) => rol).filter(Boolean).join(', ') || 'participación'))).join('')}</div>` : ''}</div>`;
-  $('verCat').addEventListener('click', () => { const i = FILTROS.findIndex(f => f.k === 'artist'); sel.fill(0); sel[i] = FILTROS[i].ops.indexOf(a.n); });
+  $('verCat').addEventListener('click', () => { limpiaFiltros(); ART_ON.add(a.n); });
 }
 // ---------- señal mensual: archivo por meses ----------
 const SEN = (DATA.senal || []).slice().sort((a, b) => b.anio - a.anio || b.mes - a.mes), PLAYLIST = DATA.senal_playlist || '';
