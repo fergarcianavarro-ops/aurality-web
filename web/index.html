@@ -778,7 +778,7 @@ iframe.vid{display:block;width:100%;aspect-ratio:16/9;border:0;margin-top:8px;ba
 
 <div class="escala-dial" id="escalaDial" aria-hidden="true"><div class="marcas" id="escMarcas"></div><div class="aguja-e" id="escAguja"><b id="escLect">03.0</b></div></div>
 
-<div class="tira00" id="tira00" aria-hidden="true" role="region" aria-label="Canal 00 · SoundCloud"><div class="k"><i></i>CANAL 00 · TOCA ▶ PARA SINTONIZAR</div><div class="f" id="tira00f"></div></div>
+<div class="tira00" id="tira00" aria-hidden="true" role="region" aria-label="Canal 00 · SoundCloud"><div class="k"><i></i><span id="tira00k">CANAL 00 · TOCA ▶ PARA SINTONIZAR</span></div><div class="f" id="tira00f"></div></div>
 
 <div class="encendido" id="encendido">
   <div class="mando">
@@ -2503,7 +2503,8 @@ const cat00 = radio.cat = {
     if (this.tira) {                                                                    // un solo reproductor: el resto lo arranca alSonar
       const w = this.w[0]; this.act = 0; this.ahora = p; this.sonando = false; this.fallo = false; this.vol[0] = 100; w.setVolume(100);
       w.seekTo(p.ini * 1000); w.play(); pintaCanal();
-      this.luego(() => w.isPaused(pa => { if (pa && id === this.id && this.ahora === p && !this.sonando) { this.bloqueo = true; this.muestraTira(true); pintaCanal(); } }), 2.5);
+      if ($('tira00').classList.contains('on')) this.rotuloTira('CANAL 00 · TOCA ▶ PARA SINTONIZAR');
+      this.luego(() => { if (id === this.id && this.ahora === p && !this.sonando) { this.bloqueo = true; this.rotuloTira('CANAL 00 · TOCA ▶ PARA SINTONIZAR'); this.muestraTira(true); pintaCanal(); } }, 1.5);
       return;
     }
     const w = this.w[p.k]; this.act = p.k; this.ahora = p; this.bloqueo = false; this.fallo = false;
@@ -2532,6 +2533,7 @@ const cat00 = radio.cat = {
     if (this.tira) return; this.tira = true; this.w = []; this.act = -1;
     document.querySelectorAll('iframe.sc00').forEach(f => f.remove()); this.empieza(this.ahora && this.ahora.r);
   },
+  rotuloTira(t) { const k = $('tira00k'); if (k) k.textContent = t; },
   muestraTira(v) {
     const t = $('tira00'); if (!t) return;
     if (v) { const r = document.querySelector('.pletina').getBoundingClientRect(); t.style.bottom = (innerHeight - r.top + 8) + 'px'; t.style.left = r.left + 'px'; t.style.width = r.width + 'px'; }
@@ -2550,13 +2552,14 @@ const cat00 = radio.cat = {
     const id = ++this.id; this.timers.forEach(clearTimeout); this.timers = []; this.prep = null; this.vivo = true; this.ahora = null; this.fallo = false; this.bloqueo = false; this.sonando = false; pintaCanal();
     if (this.tira && this.w[0]) this.w[0].pause();
     if (!this.cola.length) return;
-    if (!(await this.monta())) { if (id === this.id) { this.fallo = true; pintaCanal(); } return; }
+    if (this.tira && !this.w.length) { this.rotuloTira('CANAL 00 · CARGANDO SOUNDCLOUD…'); this.muestraTira(true); }
+    if (!(await this.monta())) { if (id === this.id) { this.fallo = true; this.muestraTira(false); pintaCanal(); } return; }
     if (id !== this.id) return;
     const k = this.tira ? 0 : this.act >= 0 ? 1 - this.act : 0;
     if (!this.tira && this.act >= 0) { const s = this.act; this.funde(s, 0, 2.5, () => this.w[s].pause()); }
     const p = await this.prepara(k, this.siguiente());
     if (id !== this.id) return;
-    if (p) this.suena(p, id); else { this.fallo = true; pintaCanal(); }
+    if (p) this.suena(p, id); else { this.fallo = true; this.muestraTira(false); pintaCanal(); }
   },
   para(s = 2.5) {
     this.id++; this.vivo = false; this.timers.forEach(clearTimeout); this.timers = []; this.prep = null; this.ahora = null; this.act = -1; this.sonando = false; this.muestraTira(false);
@@ -3297,7 +3300,7 @@ if (cat00.cola.length >= 3 && !radio.on) { radio.canal = -1; knobTarget = angulo
       fb[n] = THREE.MathUtils.clamp(fb[n] + ((conFoco && foco === n ? 1 : 0) - fb[n]) * Math.min(1, dt * 2.2), 0, 1);
       if (fb[n] > 0.001 && F) { o.position.lerp(F.p, fb[n]); if (F.q) o.quaternion.slerp(F.q, fb[n]); o.scale.setScalar(THREE.MathUtils.lerp(b.s, F.s, fb[n])); }
       else if (conFoco && foco !== n) o.position.z -= 1300 * rf;
-      if (n === 'p3') { const k = Math.min(1, lvl * 6); membrana.forEach(([m, z0]) => { m.position.z = z0 + k * 9; }); o.scale.multiplyScalar(1 + k * 0.025); }
+      if (n === 'p3') { const k = Math.min(1, lvl * 6), s0 = fb[n] > 0.001 && F ? THREE.MathUtils.lerp(b.s, F.s, fb[n]) : b.s; membrana.forEach(([m, z0]) => { m.position.z = z0 + k * 9; }); o.scale.setScalar(s0 * (1 + k * 0.025)); }
     }
     rf = THREE.MathUtils.clamp(rf + ((foco && modo === 'ancho' ? 1 : 0) - rf) * Math.min(1, dt * 1.8), 0, 1);
     if (CU.cursores) CU.cursores.forEach(([cap, ix], k) => { const y = CU.TR0 + Math.round(curT[k] * 12) * CU.STEP; cap.position.y += (y - cap.position.y) * Math.min(1, dt * 6); ix.position.y = cap.position.y; });
