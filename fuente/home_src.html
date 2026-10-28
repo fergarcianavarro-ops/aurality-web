@@ -815,6 +815,9 @@ const MEZCLA = {
   triphop:    { seco: 0.75, sala: 0.14, cuarto: 0.3,  eco: 0.0,  tono: 8000, nivel: 0.33 },
 };
 
+// en el móvil (iPhone, iPad y pantallas táctiles sin ratón) el canal 00 no existe por ahora: SoundCloud no deja sonar su
+// reproductor sin tocarlo dentro y la tira es incómoda. Se retomará con audio propio (ver docs en la hoja de ruta)
+const SIN00 = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) || matchMedia('(pointer: coarse) and (hover: none)').matches;
 class Ambient {
   constructor() { this.canal = 2; this.amb = 2; this.on = false; this.ctx = null; this.gen = null; this.cat = null; }   // canal -1 = canal 00 (catálogo)
   init() {   // senal: lo que llega de la emisora sintonizada (se apaga al salir del canal con la sintonía fina)
@@ -1754,7 +1757,9 @@ class Ambient {
     const m = this.master.gain, t = this.ctx.currentTime; m.cancelScheduledValues(t); m.setValueAtTime(m.value, t); m.linearRampToValueAtTime(0, t + 1.4);
   }
   sintonizar(i, fino) {                             // 13 posiciones: 00 (catálogo) y 01–12
-    this.canal = ((i + 1) % 13 + 13) % 13 - 1; if (!this.on) return;
+    const ant = this.canal; this.canal = ((i + 1) % 13 + 13) % 13 - 1;
+    if (SIN00 && this.canal < 0) this.canal = ant === 0 ? 11 : 0;                       // sin canal 00: del 01 hacia atrás va al 12 y del 12 hacia delante al 01
+    if (!this.on) return;
     this.matarGen(this.gen, 2.5); this.gen = null; if (this.cat && this.canal >= 0) this.cat.para(2.5);
     if (!fino) this.estatica(1.8, 0.03); this.arrancar();                              // con la sintonía fina ya suena su propia estática
   }
@@ -1779,7 +1784,7 @@ const cas = $('casillas');
   const ajusta = () => { const w = pl.getBoundingClientRect().width, m = movil.matches;
     pl.classList.toggle('p-m', !m && w < 1000); pl.classList.toggle('p-s', !m && w < 760); };
   new ResizeObserver(ajusta).observe(pl); movil.addEventListener('change', ajusta); ajusta(); }
-{ const b = document.createElement('button'); b.id = 'canal0'; b.className = 'c00'; b.title = 'aurality · fragmentos del catálogo'; b.setAttribute('aria-label', 'Canal 00, aurality, fragmentos del catálogo'); b.onclick = () => tune(-1); cas.appendChild(b); }
+{ const b = document.createElement('button'); b.id = 'canal0'; b.className = 'c00'; b.title = 'aurality · fragmentos del catálogo'; b.setAttribute('aria-label', 'Canal 00, aurality, fragmentos del catálogo'); b.onclick = () => tune(-1); if (SIN00) { b.disabled = true; b.style.visibility = 'hidden'; b.setAttribute('aria-hidden', 'true'); } cas.appendChild(b); }
 CANALES.forEach(([nom, , , est], i) => { const b = document.createElement('button'); b.id = 'canal' + (i + 1); b.title = nom + ' · ' + ESTILOS[est]; b.setAttribute('aria-label', 'Canal ' + String(i + 1).padStart(2, '0') + ', ' + nom + ', ' + ESTILOS[est]); b.onclick = () => tune(i); cas.appendChild(b); });
 function pintaCanal() {
   cas.querySelectorAll('button').forEach((b, i) => b.setAttribute('aria-pressed', i - 1 === radio.canal ? 'true' : 'false'));
@@ -1813,7 +1818,8 @@ const escalaVe = v => {
 };
 // con ratón la escala está quieta y la aguja va pegada al cursor; con el dedo la aguja queda en el centro y la escala corre debajo (U px por unidad, 1:1 con el dedo)
 const U_DEDO = 64, escMarcas = $('escMarcas');
-const fEscala = ev => { const r = escMarcas.getBoundingClientRect(); return Math.max(0, Math.min(12, (ev.clientX - r.left) / r.width * 12)); };
+const F_MIN = SIN00 ? 1 : 0;
+const fEscala = ev => { const r = escMarcas.getBoundingClientRect(); return Math.max(F_MIN, Math.min(12, (ev.clientX - r.left) / r.width * 12)); };
 const pintaEscala = f => {
   if (escala.classList.contains('desliza')) { const c = escala.clientWidth / 2; escMarcas.style.width = 12 * U_DEDO + 'px'; escMarcas.style.left = (c - f * U_DEDO) + 'px'; escAguja.style.left = c + 'px'; }
   else escAguja.style.left = (escMarcas.offsetLeft + f / 12 * escMarcas.offsetWidth) + 'px';
@@ -1833,7 +1839,7 @@ const estadoFino = f => {
 let ultFino = null;
 function finoA(f, soltado) {
   if (f == null) { clearTimeout(finoA.t); frec = null; cas.classList.remove('fino'); ultFino = null; radio.ajustaFino({ f: radio.canal + 1, senal: 1, ruido: 0, tx: null }); testigoSenal(); pintaCanal(); return; }
-  f = Math.round(Math.max(0, Math.min(12, f)) * 100) / 100; let e = estadoFino(f);
+  f = Math.round(Math.max(F_MIN, Math.min(12, f)) * 100) / 100; let e = estadoFino(f);
   if (soltado) { clearTimeout(finoA.t); if (e.tx && e.dT <= 0.12) f = e.tx.f; else if (e.dC <= 0.12) { finoA(null); if (e.n - 1 !== radio.canal) tune(e.n - 1); return; } e = estadoFino(f); }   // al soltar, encaja
   frec = f; cas.classList.add('fino'); aguja.style.left = fAx(f) + 'px'; pintaEscala(f);
   // pasar por encima de un canal no lo sintoniza: solo si la aguja se queda quieta en él un momento (barrer el dial no arranca 13 emisoras)
@@ -1864,7 +1870,7 @@ window.__fino = { pinta() {
   // mando fino: la aguja va más despacio que el dedo (×1/3 con ratón, ×1/2 con el dedo), como el vernier de una radio;
   // para saltar lejos, se toca un canal y desde ahí se afina
   let x0 = 0, f0 = 0, mov = false, raton = false;
-  const fDe = ev => raton ? fEscala(ev) : Math.max(0, Math.min(12, f0 + (ev.clientX - x0) / U_DEDO));
+  const fDe = ev => raton ? fEscala(ev) : Math.max(F_MIN, Math.min(12, f0 + (ev.clientX - x0) / U_DEDO));
   cas.addEventListener('pointerdown', e => {
     if (e.pointerType === 'mouse' && e.button !== 0) return; x0 = e.clientX; f0 = frec == null ? radio.canal + 1 : frec; raton = e.pointerType !== 'touch'; mov = false;
     escalaVe(true); escala.classList.toggle('desliza', !raton); pintaEscala(f0);
@@ -2351,7 +2357,7 @@ function vistaFicha(r) {
       <div class="datos"><div class="cod">${r.code} · ${esc(r.format)} · ${r.fecha ? r.fecha.split('-').reverse().join('.') : r.year} · ${esc(r.genre)}</div><h3>${esc(r.artist)}</h3><p class="tit">${esc(titulo(r))}</p>
         ${partic(r).length ? `<div class="aqui"><span class="k">${esPart(r) ? 'AURALITY EN ESTE LANZAMIENTO' : 'TAMBIÉN DE AURALITY'}</span>${lineaPart(r)}</div>` : ''}
         <div class="enlaces mas">${miembros(r).map(a => `<a class="tecla oscura" href="#a-${slug(a)}">${esc(a)} · perfil</a>`).join('')}</div>
-        <div class="enlaces">${r.soundcloud ? '<button class="tecla oscura" type="button" id="bRadio00">Escuchar en la radio · canal 00</button>' : ''}${enl.map(([n, u]) => u ? `<a class="tecla" href="${esc(u)}" target="_blank" rel="noopener">${n} ↗</a>` : `<span class="tecla" aria-disabled="true">${n} · sin enlace</span>`).join('')}</div>
+        <div class="enlaces">${r.soundcloud && !SIN00 ? '<button class="tecla oscura" type="button" id="bRadio00">Escuchar en la radio · canal 00</button>' : ''}${enl.map(([n, u]) => u ? `<a class="tecla" href="${esc(u)}" target="_blank" rel="noopener">${n} ↗</a>` : `<span class="tecla" aria-disabled="true">${n} · sin enlace</span>`).join('')}</div>
         ${DESPLEGADO && r.soundcloud ? `<iframe class="sc" title="Reproductor de SoundCloud: ${esc(r.title)}" allow="autoplay" loading="lazy"
           src="https://w.soundcloud.com/player/?url=${encodeURIComponent(r.soundcloud)}&color=%230e0f12&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=false"></iframe>` : ''}
         <table class="creditos"><tbody>${r.credits.map(([k, v]) => `<tr><th scope="row">${esc(k)}</th>${pend(v) ? '<td class="pend">Por definir</td>' : `<td>${esc(v)}</td>`}</tr>`).join('')}</tbody></table>
@@ -2908,7 +2914,7 @@ document.querySelectorAll('.faja a').forEach(a => a.addEventListener('click', ()
 // ======================= escena 3D en vivo =======================
 const tactil = matchMedia('(pointer: coarse)').matches || innerWidth < 821;
 let knobTarget = -3 * Math.PI / 6, powerT0 = 0;
-if (cat00.cola.length >= 3 && !radio.on) { radio.canal = -1; knobTarget = angulo(-1); pintaCanal(); }   // con 3 lanzamientos o más en SoundCloud, la radio arranca en el 00
+if (cat00.cola.length >= 3 && !radio.on && !SIN00) { radio.canal = -1; knobTarget = angulo(-1); pintaCanal(); }   // con 3 lanzamientos o más en SoundCloud, la radio arranca en el 00
 {
   const cv = $('escena');
   const renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: true });
