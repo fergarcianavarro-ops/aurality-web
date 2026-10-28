@@ -820,10 +820,17 @@ const MEZCLA = {
 const SIN00 = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) || matchMedia('(pointer: coarse) and (hover: none)').matches;
 // reloj de la radio: un worker da el pulso cada 25 ms. Los temporizadores de la página se frenan en segundo plano
 // (hasta uno por segundo o por minuto); los de un worker no, así que las baterías siguen en su sitio en otra pestaña
-const RELOJ = (() => { const subs = new Set(), tic = () => subs.forEach(f => { try { f(); } catch (e) { console.error(e); } });
+const RELOJ = (() => { const subs = new Set(), pend = new Map(); let sig = 1;
+  const tic = () => { const t = performance.now();
+    for (const [id, x] of pend) if (t >= x.at) { if (x.cada) x.at = t + x.cada; else pend.delete(id); try { x.f(); } catch (e) { console.error(e); } }
+    subs.forEach(f => { try { f(); } catch (e) { console.error(e); } }); };
   try { const w = new Worker(URL.createObjectURL(new Blob(['setInterval(function(){postMessage(0)},25)'], { type: 'text/javascript' }))); w.onmessage = tic; }
   catch (e) { setInterval(tic, 25); }
-  return { suma: f => subs.add(f), quita: f => subs.delete(f) }; })();
+  // espera / cada / anula: como setTimeout y setInterval, pero con el pulso del worker
+  return { suma: f => subs.add(f), quita: f => subs.delete(f),
+    espera: (f, ms) => { const id = sig++; pend.set(id, { f, at: performance.now() + (ms || 0) }); return id; },
+    cada: (f, ms) => { const id = sig++; pend.set(id, { f, at: performance.now() + ms, cada: ms }); return id; },
+    anula: id => { pend.delete(id); } }; })();
 // emisión continua: cada canal tiene su propio reloj desde el 1 de octubre de 2026; al sintonizarlo se entra por donde va
 const EPOCA = Date.UTC(2026, 9, 1) / 1000;
 class Ambient {
@@ -2212,12 +2219,12 @@ const cat00 = radio.cat = {
   // reproductor visible (una tira encima de la pletina): se toca ▶ una vez y después los fragmentos se encadenan solos,
   // con un corte cubierto por estática en lugar del cruce (Safari tampoco deja cambiar el volumen)
   tira: /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1),
-  luego(f, s) { this.timers.push(setTimeout(f, s * 1000)); },
+  luego(f, s) { this.timers.push(RELOJ.espera(f, s * 1000)); },
   async monta() {
     if (this.w.length === (this.tira ? 1 : 2)) return true;
     try {
       diag('monta · modo ' + (this.tira ? 'tira' : 'oculto') + ' · ' + (navigator.userAgent.match(/(CriOS|GSA|FxiOS|EdgiOS|Version)\/[\d.]+/) || ['?'])[0]);
-      const SC = this.SC = await Promise.race([cargaSC(), new Promise((_, ko) => setTimeout(() => ko(new Error('sin respuesta')), 9000))]);
+      const SC = this.SC = await Promise.race([cargaSC(), new Promise((_, ko) => RELOJ.espera(() => ko(new Error('sin respuesta')), 9000))]);
       diag('api de soundcloud cargada');
       const cuantos = this.tira ? 1 : 2;
       for (let k = this.w.length; k < cuantos; k++) {
@@ -2225,12 +2232,13 @@ const cat00 = radio.cat = {
         if (this.tira) { $('tira00f').appendChild(f); } else { f.className = 'sc00'; f.tabIndex = -1; f.setAttribute('aria-hidden', 'true'); document.body.appendChild(f); }
         f.src = 'https://w.soundcloud.com/player/?url=' + encodeURIComponent(this.cola[0].soundcloud) + '&color=%230e0f12&auto_play=false&single_active=false&visual=false&show_artwork=false&buying=false&sharing=false&download=false&show_comments=false&show_user=false&hide_related=true&show_teaser=false';
         const w = SC.Widget(f);
-        await new Promise(ok => { let listo = false; w.bind(SC.Widget.Events.READY, () => { listo = true; diag('reproductor listo'); ok(); }); setTimeout(() => { if (!listo) diag('reproductor: sin READY en 9 s'); ok(); }, 9000); });
+        await new Promise(ok => { let listo = false; w.bind(SC.Widget.Events.READY, () => { listo = true; diag('reproductor listo'); ok(); }); RELOJ.espera(() => { if (!listo) diag('reproductor: sin READY en 9 s'); ok(); }, 9000); });
         w.setVolume(0); this.w.push(w);
         // en la tira solo cuenta como «sonando» si la posición avanza de verdad (el aviso PLAY llega aunque Safari no deje sonar)
         w.bind(SC.Widget.Events.PLAY, () => diag('aviso PLAY'));
         w.bind(SC.Widget.Events.PLAY_PROGRESS, e => this.progreso(k, e && e.currentPosition));
         w.bind(SC.Widget.Events.PAUSE, () => { diag('aviso PAUSE'); this.pausado(k); });
+        w.bind(SC.Widget.Events.FINISH, () => { diag('aviso FINISH'); if (!this.tira && this.vivo && k === this.act && this.ahora) this.cruza(this.id); });
       }
       return true;
     } catch (e) { diag('fallo al montar: ' + (e && e.message)); return false; }
@@ -2245,7 +2253,7 @@ const cat00 = radio.cat = {
   },
   pausado(k) {
     if (!this.tira || k !== 0 || !this.sonando || !this.ahora || !this.vivo) return;
-    this.sonando = false; this.bloqueo = true; this.prog = null; this.timers.forEach(clearTimeout); this.timers = [];
+    this.sonando = false; this.bloqueo = true; this.prog = null; this.timers.forEach(RELOJ.anula); this.timers = [];
     this.rotuloTira('CANAL 00 · TOCA ▶ PARA SEGUIR'); this.muestraTira(true); pintaCanal();
   },
   siguiente() {
@@ -2257,7 +2265,7 @@ const cat00 = radio.cat = {
   prepara(k, r) {
     const w = this.w[k];
     return new Promise(ok => {
-      let hecho = false; const fin = v => { if (!hecho) { hecho = true; ok(v); } }; setTimeout(() => { if (!hecho) diag('preparar ' + r.code + ': sin respuesta en 12 s'); fin(null); }, 12000);
+      let hecho = false; const fin = v => { if (!hecho) { hecho = true; ok(v); } }; RELOJ.espera(() => { if (!hecho) diag('preparar ' + r.code + ': sin respuesta en 12 s'); fin(null); }, 12000);
       w.setVolume(0);
       w.load(r.soundcloud, { auto_play: false, single_active: false, visual: false, show_artwork: false, buying: false, sharing: false, download: false, show_comments: false, show_user: false, hide_related: true,
         callback: () => w.getSounds(ss => {
@@ -2268,16 +2276,16 @@ const cat00 = radio.cat = {
             diag('preparado ' + r.code + ' · ' + Math.round(dur) + ' s, desde ' + Math.round(ini));
             fin({ r, k, ini, dur, tema: (snd && snd.title) || titulo(r), url: (snd && snd.permalink_url) || r.soundcloud });
           }));
-          if (n > 1) { w.setVolume(0); w.skip(i); setTimeout(() => { w.pause(); datos(); }, 700); } else datos();
+          if (n > 1) { w.setVolume(0); w.skip(i); RELOJ.espera(() => { w.pause(); datos(); }, 700); } else datos();
         }) });
     });
   },
   funde(k, a, s, fin) {                                                                // fundido de igual potencia, en pasos de 80 ms
-    clearInterval(this.iv[k]); const w = this.w[k], v0 = this.vol[k], t0 = performance.now();
-    this.iv[k] = setInterval(() => {
+    RELOJ.anula(this.iv[k]); const w = this.w[k], v0 = this.vol[k], t0 = performance.now();
+    this.iv[k] = RELOJ.cada(() => {
       const x = Math.min(1, (performance.now() - t0) / (s * 1000)), v = a > v0 ? v0 + (a - v0) * Math.sin(x * Math.PI / 2) : v0 * Math.cos(x * Math.PI / 2);
       this.vol[k] = v; w.setVolume(Math.round(v));
-      if (x >= 1) { clearInterval(this.iv[k]); if (fin) fin(); }
+      if (x >= 1) { RELOJ.anula(this.iv[k]); if (fin) fin(); }
     }, 80);
   },
   suena(p, id) {
@@ -2290,12 +2298,12 @@ const cat00 = radio.cat = {
       return;
     }
     const w = this.w[p.k]; this.act = p.k; this.ahora = p; this.bloqueo = false; this.fallo = false;
-    w.setVolume(0); w.seekTo(p.ini * 1000); w.play(); setTimeout(() => w.seekTo(p.ini * 1000), 400);
+    w.setVolume(0); w.seekTo(p.ini * 1000); w.play(); RELOJ.espera(() => w.seekTo(p.ini * 1000), 400);
     this.funde(p.k, 100, FUNDE); pintaCanal();
     // algunos navegadores (sobre todo en iPhone) no dejan sonar un reproductor externo sin tocarlo: se avisa
     this.luego(() => w.isPaused(pa => { if (pa && id === this.id && this.ahora === p) this.pasaATira(); }), 5);
     this.luego(async () => { const q = await this.prepara(1 - p.k, this.siguiente()); if (id === this.id) this.prep = q; }, 12);
-    this.luego(() => this.cruza(id), Math.max(20, Math.min(FRAG, p.dur - p.ini) - FUNDE));
+    this.luego(() => { if (this.ahora === p) this.cruza(id); }, Math.max(20, Math.min(FRAG, p.dur - p.ini) - FUNDE));
   },
   // empieza a sonar de verdad (por el código o porque se ha tocado ▶ en la tira)
   alSonar(k) {
@@ -2327,7 +2335,7 @@ const cat00 = radio.cat = {
     t.classList.toggle('on', v); t.setAttribute('aria-hidden', !v);
   },
   async cruza(id) {
-    if (id !== this.id) return;
+    if (id !== this.id || !this.ahora || this.cruzandoDe === this.ahora) return; this.cruzandoDe = this.ahora;   // una sola vez por fragmento (temporizador o fin del tema)
     const sale = this.act, q = this.prep; this.prep = null;
     radio.estatica(FUNDE * 0.9, 0.022);
     this.funde(sale, 0, FUNDE, () => this.w[sale].pause());
@@ -2336,7 +2344,7 @@ const cat00 = radio.cat = {
   },
   async empieza(r) {
     if (r) this.pedido = r;
-    const id = ++this.id; this.timers.forEach(clearTimeout); this.timers = []; this.prep = null; this.vivo = true; this.ahora = null; this.fallo = false; this.bloqueo = false; this.sonando = false; pintaCanal();
+    const id = ++this.id; this.timers.forEach(RELOJ.anula); this.timers = []; this.prep = null; this.vivo = true; this.ahora = null; this.fallo = false; this.bloqueo = false; this.sonando = false; pintaCanal();
     if (this.tira && this.w[0]) this.w[0].pause();
     if (!this.cola.length) return;
     diag('canal 00 · empieza');
@@ -2350,7 +2358,7 @@ const cat00 = radio.cat = {
     if (p) this.suena(p, id); else { this.fallo = true; this.muestraTira(false); pintaCanal(); }
   },
   para(s = 2.5) {
-    this.id++; this.vivo = false; this.timers.forEach(clearTimeout); this.timers = []; this.prep = null; this.ahora = null; this.act = -1; this.sonando = false; this.muestraTira(false);
+    this.id++; this.vivo = false; this.timers.forEach(RELOJ.anula); this.timers = []; this.prep = null; this.ahora = null; this.act = -1; this.sonando = false; this.muestraTira(false);
     this.w.forEach((w, k) => this.funde(k, 0, s, () => w.pause()));
   },
   nivel() {                                                                            // el vúmetro no puede leer el audio de SoundCloud: se aproxima
