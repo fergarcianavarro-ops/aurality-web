@@ -818,6 +818,14 @@ const MEZCLA = {
 // en el móvil (iPhone, iPad y pantallas táctiles sin ratón) el canal 00 no existe por ahora: SoundCloud no deja sonar su
 // reproductor sin tocarlo dentro y la tira es incómoda. Se retomará con audio propio (ver docs en la hoja de ruta)
 const SIN00 = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) || matchMedia('(pointer: coarse) and (hover: none)').matches;
+// reloj de la radio: un worker da el pulso cada 25 ms. Los temporizadores de la página se frenan en segundo plano
+// (hasta uno por segundo o por minuto); los de un worker no, así que las baterías siguen en su sitio en otra pestaña
+const RELOJ = (() => { const subs = new Set(), tic = () => subs.forEach(f => { try { f(); } catch (e) { console.error(e); } });
+  try { const w = new Worker(URL.createObjectURL(new Blob(['setInterval(function(){postMessage(0)},25)'], { type: 'text/javascript' }))); w.onmessage = tic; }
+  catch (e) { setInterval(tic, 25); }
+  return { suma: f => subs.add(f), quita: f => subs.delete(f) }; })();
+// emisión continua: cada canal tiene su propio reloj desde el 1 de octubre de 2026; al sintonizarlo se entra por donde va
+const EPOCA = Date.UTC(2026, 9, 1) / 1000;
 class Ambient {
   constructor() { this.canal = 2; this.amb = 2; this.on = false; this.ctx = null; this.gen = null; this.cat = null; }   // canal -1 = canal 00 (catálogo)
   init() {   // senal: lo que llega de la emisora sintonizada (se apaga al salir del canal con la sintonía fina)
@@ -880,19 +888,29 @@ class Ambient {
     return g;
   }
   matarGen(g, fundido = 2.5) {
-    if (!g) return; g.vivo = false; g.timers.forEach(clearTimeout); clearInterval(g.inter);
+    if (!g) return; g.vivo = false; g.timers.forEach(clearTimeout); clearInterval(g.inter); if (g.tic) RELOJ.quita(g.tic); g.cola = [];
     const t = this.ctx.currentTime; [g.fader, ...(g.salidas || [])].forEach(n => { n.gain.cancelScheduledValues(t); n.gain.setValueAtTime(n.gain.value, t); n.gain.linearRampToValueAtTime(0, t + fundido); });
     setTimeout(() => g.nodos.forEach(n => { try { n.disconnect(); } catch (e) {} }), (fundido + 10) * 1000);
   }
-  luego(g, s, fn) { g.timers.push(setTimeout(() => g.vivo && this.on && fn(), s * 1000)); }
-  secuenciador(g, bpm, paso) {                     // planifica semicorcheas con margen, como un secuenciador de verdad
-    const c = this.ctx, dur = 60 / bpm / 4; let n = 0, prox = c.currentTime + 0.15;
-    // si el navegador frena el temporizador (pestaña en segundo plano, móvil bloqueado), los pasos atrasados se saltan:
-    // tocarlos todos de golpe al volver producía una ráfaga de ruido
-    // un retraso corto se recupera tocando los pasos al momento; uno largo salta al siguiente compás completo
-    g.inter = setInterval(() => { if (!g.vivo) return;
-      if (prox < c.currentTime - 0.4) { const salto = Math.ceil((c.currentTime - prox) / dur), fin = Math.ceil((n + salto) / 16) * 16; prox += (fin - n) * dur; n = fin; }
-      while (prox < c.currentTime + 0.35) { paso(n, Math.max(prox, c.currentTime), dur); n++; prox += dur; } }, 40);
+  // capas que vuelven cada cierto tiempo: se apuntan en tiempo de audio y las dispara el reloj del worker
+  luego(g, s, fn) { (g.cola || (g.cola = [])).push([this.ctx.currentTime + s, fn]); this.vigila(g); }
+  vigila(g) {
+    if (g.tic) return;
+    g.tic = () => { if (!g.vivo) { RELOJ.quita(g.tic); return; } const ahora = this.ctx.currentTime;
+      if (g.cola && g.cola.length) { const listos = g.cola.filter(x => x[0] <= ahora); if (listos.length) { g.cola = g.cola.filter(x => x[0] > ahora); listos.forEach(([, fn]) => { if (g.vivo && this.on) fn(); }); } }
+      if (g.paso) g.paso(); };
+    RELOJ.suma(g.tic);
+  }
+  // secuenciador en semicorcheas: el número de paso sale del reloj real (emisión continua) y se planifica con margen.
+  // Si algo frena la página, los pasos perdidos se saltan sin ráfagas y la pieza sigue en su sitio
+  secuenciador(g, bpm, paso) {
+    const c = this.ctx, dur = 60 / bpm / 4, E = EPOCA + this.amb * 61.7, ahora = Date.now() / 1000;
+    let n = Math.ceil((ahora + 0.12 - E) / dur / 16) * 16, prox = c.currentTime + (E + n * dur - ahora);     // entra al empezar el siguiente compás
+    g.primero = true;
+    g.paso = () => { const t = c.currentTime, margen = document.hidden ? 1.2 : 0.35;
+      if (prox < t - 0.25) { const k = Math.ceil((t + 0.05 - prox) / dur); n += k; prox += k * dur; }
+      while (prox < t + margen) { paso(n, Math.max(prox, t), dur); g.primero = false; n++; prox += dur; } };
+    this.vigila(g);
   }
   nota(grado, oct = 0) { const [, root, modo] = CANALES[this.amb], sc = MODOS[modo], n = sc.length; const o = Math.floor(grado / n); return root + sc[((grado % n) + n) % n] + 12 * (o + oct); }
   // ---------- instrumentos ----------
@@ -968,7 +986,7 @@ class Ambient {
     nueva(); let compas = 0, calla = false, timbre = 0;
     this.secuenciador(g, 72, (n, t) => {
       const p = n % 32;
-      if (p === 0) { compas++; if (compas % 4 === 0) { const k = Math.floor(Math.random() * frase.length); if (frase[k]) frase[k][1] = elige([0, 1, 2, 3, 4, 5, 7]); }
+      if (p === 0) { compas = Math.floor(n / 32) + 1; if (compas % 4 === 0) { const k = Math.floor(Math.random() * frase.length); if (frase[k]) frase[k][1] = elige([0, 1, 2, 3, 4, 5, 7]); }
         if (compas % 8 === 0) { calla = Math.random() < 0.3; timbre = 1 - timbre; } if (compas % 16 === 0) nueva();
         if (compas % 4 === 1) this.pad(g, [this.nota(0, -1), this.nota(4, -1)], t, 13, { onda: 'sine', att: 3, rel: 5, gain: 0.03, corte: 2400 }); }
       if (calla) return;
@@ -1042,7 +1060,7 @@ class Ambient {
     nuevaFrase();
     this.secuenciador(g, bpm, (n, t) => {
       const p = n % 16, tt = t + (p % 2 ? tPaso * sw : 0);
-      if (p === 0) { compas++;
+      if (p === 0) { compas = Math.floor(n / 16) + 1;
         raiz = this.nota(compas % 8 >= 6 ? 3 : 0, -1);                                  // Im7 seis compases, IVm7 dos: repetición hipnótica
         if (compas % 4 === 0) { stabP = STAB.slice(); if (Math.random() < 0.5) { const k = 1 + Math.floor(Math.random() * 4); stabP[k] = (stabP[k] + elige([-1, 1, 2]) + 16) % 16; } }
         if (compas % 16 === 1) nuevaFrase(); }
@@ -1069,7 +1087,7 @@ class Ambient {
     let compas = 0, grado = 0;
     this.secuenciador(g, bpm, (n, t) => {
       const p = n % 16;
-      if (p === 0) { compas++; if (compas % 8 === 1) grado = elige([0, 0, 3, 5]); if (compas % 2 === 1) this.fm(g, this.nota(grado, -2), t, { ratio: 1, indice: 0.2, dec: 2.2, gain: 0.12 }); }
+      if (p === 0) { compas = Math.floor(n / 16) + 1; if (compas % 8 === 1 || g.primero) grado = elige([0, 0, 3, 5]); if (compas % 2 === 1) this.fm(g, this.nota(grado, -2), t, { ratio: 1, indice: 0.2, dec: 2.2, gain: 0.12 }); }
       if (p % 4 === 0) this.bombo(g, t, 0.5);
       if (p % 4 === 2) this.ruidoCorto(g, t, 0.03, 0.02, 'highpass', 8000);
       if ((p === 2 || p === 10) && Math.random() < 0.8) {
@@ -1157,8 +1175,8 @@ class Ambient {
     let compas = 0, gr = 0, var8 = 0;
     this.secuenciador(g, bpm, (n, t) => {
       const p = n % 16, swg = p % 2 ? tP * sw : 0, hum = azar(-0.006, 0.006), tt = t + swg + hum;
-      if (p === 0) { compas++; const ciclo = (compas - 1) % 32;
-        if ((compas - 1) % 2 === 0) { gr = PROG[((compas - 1) / 2 | 0) % 4]; const ac = acorde(gr); teclado(ac.slice(0, 4), t + 0.01, tP * 30); sub(this.nota(gr, -1), t, tP * 31); if (compas > 2) this.pad(g, [this.nota(gr, 0), this.nota(gr + 4, 0)], t, tP * 32, { att: 1.5, rel: 3, gain: 0.005, corte: 650, onda: 'sawtooth' }); }
+      if (p === 0) { compas = Math.floor(n / 16) + 1; const ciclo = (compas - 1) % 32;
+        if ((compas - 1) % 2 === 0 || g.primero) { gr = PROG[((compas - 1) / 2 | 0) % 4]; const ac = acorde(gr); teclado(ac.slice(0, 4), t + 0.01, tP * 30); sub(this.nota(gr, -1), t, tP * 31); if (compas > 2) this.pad(g, [this.nota(gr, 0), this.nota(gr + 4, 0)], t, tP * 32, { att: 1.5, rel: 3, gain: 0.005, corte: 650, onda: 'sawtooth' }); }
         if (compas % 4 === 1) nuevaFrase(); var8 = Math.random(); }
       const ciclo = (compas - 1) % 32, intro = compas <= 2, respiro = ciclo >= 28 && ciclo < 30, conBat = !intro && !respiro;
       // 2-step: bombo en 1 y en el «y» del 3, caja (seca, ligeramente tarde) en 2 y 4, hats en los contratiempos
@@ -1261,8 +1279,8 @@ class Ambient {
     let compas = 0, gr = 0, arpP = [], azarC = 0;
     this.secuenciador(g, bpm, (n, t) => {
       const p = n % 16;
-      if (p === 0) { compas++; azarC = Math.random(); const ciclo = (compas - 1) % 48;
-        if ((compas - 1) % 2 === 0) { gr = PROG[((compas - 1) / 2 | 0) % 4]; pad([this.nota(gr, 0), this.nota(gr + 2, 0), this.nota(gr + 4, 1)], t, tP * 32); arpP = [0, 2, 4, 7].map(k => this.nota(gr + k, 2)); }
+      if (p === 0) { compas = Math.floor(n / 16) + 1; azarC = Math.random(); const ciclo = (compas - 1) % 48;
+        if ((compas - 1) % 2 === 0 || g.primero) { gr = PROG[((compas - 1) / 2 | 0) % 4]; pad([this.nota(gr, 0), this.nota(gr + 2, 0), this.nota(gr + 4, 1)], t, tP * 32); arpP = [0, 2, 4, 7].map(k => this.nota(gr + k, 2)); }
         if (compas % 8 === 1) nuevaFrase();
         if (ciclo > 4 && ciclo % 8 === 7 && azarC < 0.5) silencio(t + tP * 12, tP * 4);                  // silencio brusco al final de frase
         if (azarC > 0.85) glitchLofi(t + tP * 8, tP * 8); }
@@ -1344,8 +1362,8 @@ class Ambient {
     let compas = 0, gr = 0, azarC = 0, arp = [];
     this.secuenciador(g, bpm, (n, t) => {
       const p = n % 16;
-      if (p === 0) { compas++; azarC = Math.random(); const ciclo = (compas - 1) % 64;
-        if ((compas - 1) % 2 === 0) { gr = PROG[((compas - 1) / 2 | 0) % 4]; const ac = acorde(gr);
+      if (p === 0) { compas = Math.floor(n / 16) + 1; azarC = Math.random(); const ciclo = (compas - 1) % 64;
+        if ((compas - 1) % 2 === 0 || g.primero) { gr = PROG[((compas - 1) / 2 | 0) % 4]; const ac = acorde(gr);
           supersaw(ac, t, tP * 32, padHp, 3, 0.0062); supersaw([ac[2], ac[3], ac[4]], t, tP * 32, gateF, 2, 0.05, 0.02);
           arp = [this.nota(gr, 2), this.nota(gr + 4, 2), this.nota(gr + 1, 3), this.nota(gr + 4, 2), this.nota(gr + 2, 3), this.nota(gr + 4, 2)]; }
         // el filtro de los pads se abre y se cierra en arcos de 16 compases: transiciones sin drops
@@ -1437,11 +1455,11 @@ class Ambient {
     let compas = 0, gr = 0, azarC = 0, sec = 'intro';
     this.secuenciador(g, bpm, (n, t) => {
       const p = n % 16;
-      if (p === 0) { compas++; azarC = Math.random(); const cl = (compas - 1) % 32;
+      if (p === 0) { compas = Math.floor(n / 16) + 1; azarC = Math.random(); const cl = (compas - 1) % 32;
         sec = cl < 4 ? 'intro' : cl < 12 ? 'garage' : cl < 14 ? 'subida' : cl === 14 ? 'capela' : cl < 23 ? 'drop' : cl < 27 ? 'garage' : cl < 31 ? 'drop' : 'capela';
         gr = PROG[((compas - 1) / 2 | 0) % 4]; hats = elige(HATS); bombeo = sec === 'drop' ? 0.85 : 0.45;
         armF.frequency.setTargetAtTime(sec === 'drop' ? 3800 : sec === 'subida' ? 2600 : 1500, t, 0.4);
-        if (sec === 'intro' || sec === 'garage') { if ((compas - 1) % 2 === 0) piano(acorde(gr), t, tP * 30); }
+        if (sec === 'intro' || sec === 'garage') { if ((compas - 1) % 2 === 0 || g.primero) piano(acorde(gr), t, tP * 30); }
         if (sec === 'drop') sierras(acorde(gr), t, tP * 16);
         if (cl === 12) { hpF.frequency.setValueAtTime(20, t); hpF.frequency.exponentialRampToValueAtTime(1200, t + tP * 32); }  // subida
         if (sec === 'capela') { hpF.frequency.setValueAtTime(20, t); silenciaBanda(t, tP * 16); }          // un compás solo con la voz
@@ -1543,9 +1561,9 @@ class Ambient {
     nuevaFrase();
     this.secuenciador(g, bpm, (n, t) => {
       const p = n % 16, p32 = n % 32;
-      if (p === 0) { compas++; azarC = Math.random(); const ciclo = (compas - 1) % 64;
-        if ((compas - 1) % 4 === 0) { gr = PROG[((compas - 1) / 4 | 0) % 4]; pad(voces(gr), t, tP * 64); }
-        if ((compas - 1) % 2 === 0) brk = Math.random() < 0.6 ? BREAKS[0] : elige(BREAKS);
+      if (p === 0) { compas = Math.floor(n / 16) + 1; azarC = Math.random(); const ciclo = (compas - 1) % 64;
+        if ((compas - 1) % 4 === 0 || g.primero) { gr = PROG[((compas - 1) / 4 | 0) % 4]; pad(voces(gr), t, tP * 64); }
+        if ((compas - 1) % 2 === 0 || g.primero) brk = Math.random() < 0.6 ? BREAKS[0] : elige(BREAKS);
         if (compas % 8 === 1) nuevaFrase(); }
       const ciclo = (compas - 1) % 64, intro = ciclo < 8, respiro = ciclo >= 40 && ciclo < 48, conBat = !intro && !respiro;
       // breaks
@@ -1629,8 +1647,8 @@ class Ambient {
     nuevaFrase();
     this.secuenciador(g, bpm, (n, t) => {
       const p = n % 16, p32 = n % 32;
-      if (p === 0) { compas++; azarC = Math.random();
-        if ((compas - 1) % 2 === 0) { gr = PROG[((compas - 1) / 2 | 0) % 4]; ac = tonos(gr); colchon([ac[0], ac[1], ac[3]].map(m => m - 12), t, tP * 32); }
+      if (p === 0) { compas = Math.floor(n / 16) + 1; azarC = Math.random();
+        if ((compas - 1) % 2 === 0 || g.primero) { gr = PROG[((compas - 1) / 2 | 0) % 4]; ac = tonos(gr); colchon([ac[0], ac[1], ac[3]].map(m => m - 12), t, tP * 32); }
         if (compas % 8 === 1) nuevaFrase(); }
       const ciclo = (compas - 1) % 32;
       // arpegio principal en semicorcheas: notas solapadas con cola, acento y brillo que cambian
@@ -1706,8 +1724,8 @@ class Ambient {
     nuevaFrase();
     this.secuenciador(g, bpm, (n, t) => {
       const p = n % 16, p32 = n % 32, tt = t + (p % 2 ? tP * sw : 0);
-      if (p === 0) { compas++; azarC = Math.random();
-        if ((compas - 1) % 2 === 0) { gr = PROG[((compas - 1) / 2 | 0) % 4]; cuerdas([this.nota(gr, 0), this.nota(gr + 2, 0), this.nota(gr + 4, 0), this.nota(gr, 1)], t, tP * 32); }
+      if (p === 0) { compas = Math.floor(n / 16) + 1; azarC = Math.random();
+        if ((compas - 1) % 2 === 0 || g.primero) { gr = PROG[((compas - 1) / 2 | 0) % 4]; cuerdas([this.nota(gr, 0), this.nota(gr + 2, 0), this.nota(gr + 4, 0), this.nota(gr, 1)], t, tP * 32); }
         if (compas % 4 === 1) nuevaFrase(); }
       const ciclo = (compas - 1) % 32, intro = compas <= 2, respiro = ciclo >= 20 && ciclo < 22, conBat = !intro && !respiro;
       // break lento: bombo en 1 y en el «y» del 2 y del 3, caja gorda en 2 y 4
@@ -1786,7 +1804,21 @@ const cas = $('casillas');
   new ResizeObserver(ajusta).observe(pl); movil.addEventListener('change', ajusta); ajusta(); }
 { const b = document.createElement('button'); b.id = 'canal0'; b.className = 'c00'; b.title = 'aurality · fragmentos del catálogo'; b.setAttribute('aria-label', 'Canal 00, aurality, fragmentos del catálogo'); b.onclick = () => tune(-1); if (SIN00) { b.disabled = true; b.style.visibility = 'hidden'; b.setAttribute('aria-hidden', 'true'); } cas.appendChild(b); }
 CANALES.forEach(([nom, , , est], i) => { const b = document.createElement('button'); b.id = 'canal' + (i + 1); b.title = nom + ' · ' + ESTILOS[est]; b.setAttribute('aria-label', 'Canal ' + String(i + 1).padStart(2, '0') + ', ' + nom + ', ' + ESTILOS[est]); b.onclick = () => tune(i); cas.appendChild(b); });
+// pantalla de bloqueo y centro de control (iPhone, Android, teclas multimedia): qué suena y mandos de la radio
+function pintaSesion() {
+  if (!('mediaSession' in navigator)) return;
+  try { const k = radio.canal, nom = k < 0 ? 'CANAL 00 · aurality' : `CANAL ${String(k + 1).padStart(2, '0')} · ${CANALES[k][0]}`;
+    navigator.mediaSession.metadata = new MediaMetadata({ title: nom, artist: 'aurality · radio AU-00', album: 'Broadcasted from Elda', artwork: [{ src: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }] });
+    navigator.mediaSession.playbackState = radio.on ? 'playing' : 'paused'; } catch (e) {}
+}
+if ('mediaSession' in navigator) try {
+  navigator.mediaSession.setActionHandler('play', () => { if (!radio.on) togglePlay(); });
+  navigator.mediaSession.setActionHandler('pause', () => { if (radio.on) togglePlay(); });
+  navigator.mediaSession.setActionHandler('nexttrack', () => $('bNext').click());
+  navigator.mediaSession.setActionHandler('previoustrack', () => $('bPrev').click());
+} catch (e) {}
 function pintaCanal() {
+  pintaSesion();
   cas.querySelectorAll('button').forEach((b, i) => b.setAttribute('aria-pressed', i - 1 === radio.canal ? 'true' : 'false'));
   if (window.__fino && window.__fino.pinta()) return;
   if (radio.canal < 0) { $('canalK').textContent = 'Radio · catálogo'; $('canalNom').textContent = 'CANAL 00 · aurality'; $('canalNum').textContent = '00 / 12';
