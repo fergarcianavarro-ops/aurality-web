@@ -1901,16 +1901,18 @@ window.__fino = { pinta() {
 { // arrastre sobre las casillas (un toque sin arrastrar sigue eligiendo el canal)
   // mando fino: la aguja va más despacio que el dedo (×1/3 con ratón, ×1/2 con el dedo), como el vernier de una radio;
   // para saltar lejos, se toca un canal y desde ahí se afina
-  let x0 = 0, f0 = 0, mov = false, raton = false;
-  const fDe = ev => raton ? fEscala(ev) : Math.max(F_MIN, Math.min(12, f0 + (ev.clientX - x0) / U_DEDO));
+  // un toque cambia de canal; la escala ampliada solo sale al mantener pulsado y desplazar. Desde ese momento la aguja
+  // se mueve lo mismo que el cursor o el dedo, partiendo de donde estaba (sin saltos)
+  let x0 = 0, f0 = 0, mov = false, raton = false, pxU = U_DEDO;
+  const fDe = ev => Math.max(F_MIN, Math.min(12, f0 + (ev.clientX - x0) / pxU));
   cas.addEventListener('pointerdown', e => {
     if (e.pointerType === 'mouse' && e.button !== 0) return; x0 = e.clientX; f0 = frec == null ? radio.canal + 1 : frec; raton = e.pointerType !== 'touch'; mov = false;
-    escalaVe(true); escala.classList.toggle('desliza', !raton); pintaEscala(f0);
     try { cas.setPointerCapture(e.pointerId); } catch (err) {}
     if (!radio.on && encendido) togglePlay(); radio.txPrepara();
   });
   cas.addEventListener('pointermove', e => { if (!cas.hasPointerCapture || !cas.hasPointerCapture(e.pointerId)) return; if (!mov && Math.abs(e.clientX - x0) < 5) return;
-    if (!mov) x0 += Math.sign(e.clientX - x0) * 5;                                    // el umbral no cuenta como movimiento
+    if (!mov) { x0 = e.clientX;                                                        // el umbral no cuenta como movimiento
+      escalaVe(true); escala.classList.toggle('desliza', !raton); pxU = raton ? escMarcas.getBoundingClientRect().width / 12 : U_DEDO; pintaEscala(f0); }
     mov = true; e.preventDefault(); finoA(fDe(e)); });
   const suelta = e => {
     const x = e.clientX - cas.getBoundingClientRect().left;
