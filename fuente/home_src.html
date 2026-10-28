@@ -1910,7 +1910,7 @@ window.__fino = { pinta() {
     try { cas.setPointerCapture(e.pointerId); } catch (err) {}
     if (!radio.on && encendido) togglePlay(); radio.txPrepara();
   });
-  cas.addEventListener('pointermove', e => { if (!cas.hasPointerCapture || !cas.hasPointerCapture(e.pointerId)) return; if (!mov && Math.abs(e.clientX - x0) < 5) return;
+  cas.addEventListener('pointermove', e => { if (!cas.hasPointerCapture || !cas.hasPointerCapture(e.pointerId)) return; if (!mov && Math.abs(e.clientX - x0) < (raton ? 10 : 6)) return;   // un clic con el trackpad puede temblar unos píxeles: eso no es arrastrar
     if (!mov) { x0 = e.clientX;                                                        // el umbral no cuenta como movimiento
       escalaVe(true); escala.classList.toggle('desliza', !raton); pxU = raton ? escMarcas.getBoundingClientRect().width / 12 : U_DEDO; pintaEscala(f0); }
     mov = true; e.preventDefault(); finoA(fDe(e)); });
