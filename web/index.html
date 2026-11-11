@@ -172,7 +172,7 @@ body{background:linear-gradient(180deg,var(--cielo-1) 0%,var(--cielo-2) 72%);col
 .pletina{position:fixed;left:calc(var(--faja-w) + 20px);right:28px;bottom:20px;z-index:7;height:92px;background:linear-gradient(180deg,#eceae4,#dddbd4);
   clip-path:var(--chaflan);display:grid;grid-template-columns:minmax(0,1.3fr) auto minmax(0,1fr) auto;align-items:center;gap:26px;padding:0 26px;
   box-shadow:inset 0 1px 0 #fff}
-.teclado,.pletina .abre{display:none}   /* móvil: botonera de secciones y tecla para desplegar la radio */
+.teclado,.pletina .abre,.filtrosM,.compartir{display:none}   /* móvil: botonera de secciones y tecla para desplegar la radio */
 .pletina::after{content:"AURALITY  AU-00 · PLETINA";position:absolute;right:26px;bottom:7px;font:500 8.5px/1 var(--f-mono);letter-spacing:.2em;color:var(--grabado);white-space:pre}
 .ahora{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:center;min-width:0}
 .led{width:11px;height:11px;border-radius:50%;background:#9aa0ab;box-shadow:inset 0 1px 2px rgba(0,0,0,.35);grid-row:1/4;transition:background .4s,box-shadow .4s}
@@ -663,6 +663,19 @@ iframe.vid{display:block;width:100%;aspect-ratio:16/9;border:0;margin-top:8px;ba
   .teclado i{width:8px;height:8px;border-radius:50%;background:#1b2236;box-shadow:inset 0 0 0 1px rgba(0,0,0,.45),inset 0 1px 2px rgba(0,0,0,.5);transition:background .3s,box-shadow .3s}
   .teclado a[aria-current="page"] i{background:radial-gradient(circle at 36% 30%,#b9ccff 0 8%,#4d78ff 30%,#2346d8 70%,#1a2f9e 100%);box-shadow:inset 0 0 0 1px rgba(10,20,70,.55),0 0 5px rgba(60,110,255,.6)}
   .teclado a:focus-visible{outline:2px solid var(--letra-relieve);outline-offset:-4px}
+  /* catálogo: primero los discos; los filtros, plegados tras su tecla */
+  .filtrosM{display:flex;gap:8px;margin:0 0 14px}
+  .filtrosM #bFil{flex:1;justify-content:space-between;height:44px;padding:0 14px}
+  .filtrosM #bFil b{margin-left:auto;margin-right:12px;font-weight:800;color:var(--azul)}
+  .filtrosM #bFil i{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid var(--tinta)}
+  .filtrosM #bFil[aria-expanded="true"] i{border-top:0;border-bottom:7px solid var(--tinta)}
+  .filtrosM #bLimpia{height:44px;padding:0 14px}
+  .panel-cuerpo:not(.fil-abiertos) > .faders{display:none}
+  /* ficha: escuchar primero; los enlaces que no existen no ocupan sitio */
+  .fl .datos > .enlaces:not(.mas){order:1}.fl .datos > .sc{order:2}.fl .datos > .aqui{order:3}.fl .datos > .enlaces.mas{order:4}.fl .datos > .creditos{order:5}.fl .datos > .escala{order:6}
+  .enlaces .tecla[aria-disabled="true"]{display:none}
+  .enlaces .tecla{min-height:44px}
+  .compartir{display:inline-flex}
   .encendido{left:0;top:calc(70px + env(safe-area-inset-top,0px))}
   .menu .t{white-space:nowrap}
   .mando{padding:28px 24px 22px}
@@ -2394,6 +2407,8 @@ function pintaFaders() {
     const n = REL.filter(r => filtraSin(r, b.dataset.t ? 'tipo' : 'art') && (b.dataset.t ? tipoDe(r) === b.dataset.t : miembros(r).includes(b.dataset.a))).length;
     b.querySelector('.n').textContent = n; b.classList.toggle('cero', !n); });
   document.querySelectorAll('.orden button').forEach(b => b.setAttribute('aria-pressed', b.dataset.o === ordenC));
+  if ($('nFil')) { const n = (TIPO_ON.size < TIPOS_C.length ? 1 : 0) + ART_ON.size + GEN_ON.size + sel.filter(Boolean).length;
+    $('nFil').textContent = n ? '· ' + n : ''; $('bLimpia').hidden = !n; }
   document.querySelectorAll('.riel').forEach(riel => {
     const i = +riel.dataset.i, bs = riel.querySelectorAll('button'); bs.forEach((b, j) => b.setAttribute('aria-pressed', j === sel[i]));
     const b = bs[sel[i]]; riel.querySelector('.cursor').style.left = (b.offsetLeft + b.offsetWidth / 2) + 'px';
@@ -2479,7 +2494,7 @@ function vistaCatalogo() {
   const P = $('panel');
   P.innerHTML = `<header class="panel-cab"><div><h2>CATÁLOGO</h2><div class="sub">${REL.length} referencias · ${REL[REL.length - 1].code}–${REL[0].code} · Broadcasted from Elda</div></div>
     <div class="vista" role="group" aria-label="Vista"><button class="tecla" id="vRej" aria-pressed="${vista === 'rejilla'}">Rejilla</button><button class="tecla" id="vLis" aria-pressed="${vista === 'lista'}">Lista</button></div></header>
-    <div class="panel-cuerpo"><div class="faders" aria-label="Filtros · corredor AU-04">
+    <div class="panel-cuerpo"><div class="filtrosM"><button class="tecla" type="button" id="bFil" aria-expanded="false" aria-controls="faders">Filtros<b id="nFil"></b><i aria-hidden="true"></i></button><button class="tecla" type="button" id="bLimpia" hidden>Limpiar</button></div><div class="faders" id="faders" aria-label="Filtros · corredor AU-04">
       ${TIPOS_C.length > 1 ? `<div class="fader"><span class="lbl">TIPO</span><div class="llaves" role="group" aria-label="Tipo">${TIPOS_C.map(([k, n]) => `<button class="llave" type="button" data-t="${k}" aria-pressed="true"><i aria-hidden="true"></i>${n}<span class="n"></span></button>`).join('')}</div></div>` : ''}
       <div class="fader"><span class="lbl">ARTISTA</span><div class="llaves" role="group" aria-label="Artistas (varios a la vez; ninguno = todos)">${ARTISTAS.map(a => `<button class="llave" type="button" data-a="${esc(a)}" aria-pressed="false"><i aria-hidden="true"></i>${esc(a)}<span class="n"></span></button>`).join('')}</div></div>
       ${FILTROS.map((f, i) => `<div class="fader"><span class="lbl">${f.lbl}</span>
@@ -2487,6 +2502,8 @@ function vistaCatalogo() {
       ${GENEROS.length > 1 ? selectorHTML() : ''}</div>
       <p class="conteo"><span id="conteo"></span><span class="orden" role="group" aria-label="Orden">ORDEN<button type="button" data-o="recientes">Recientes</button><button type="button" data-o="antiguos">Antiguos</button><button type="button" data-o="az">A–Z</button></span></p><div id="resultados"></div></div>`;
   P.querySelectorAll('.selector').forEach(montaSelector);
+  $('bFil').onclick = () => { const c = P.querySelector('.panel-cuerpo'), v = !c.classList.contains('fil-abiertos'); c.classList.toggle('fil-abiertos', v); $('bFil').setAttribute('aria-expanded', v); pintaFaders(); };
+  $('bLimpia').onclick = () => { limpiaFiltros(); pintaFaders(); pintaResultados(); };
   P.querySelectorAll('.llave').forEach(b => b.onclick = () => {
     if (b.dataset.t) { const k = b.dataset.t; TIPO_ON.has(k) ? TIPO_ON.delete(k) : TIPO_ON.add(k); }
     else { const a = b.dataset.a; ART_ON.has(a) ? ART_ON.delete(a) : ART_ON.add(a); }
@@ -2719,7 +2736,7 @@ function vistaFicha(r) {
       <div class="datos"><div class="cod">${r.code} · ${esc(r.format)} · ${r.fecha ? r.fecha.split('-').reverse().join('.') : r.year} · ${esc(r.genre)}</div><h3>${esc(r.artist)}</h3><p class="tit">${esc(titulo(r))}</p>
         ${partic(r).length ? `<div class="aqui"><span class="k">${esPart(r) ? 'AURALITY EN ESTE LANZAMIENTO' : 'TAMBIÉN DE AURALITY'}</span>${lineaPart(r)}</div>` : ''}
         <div class="enlaces mas">${miembros(r).map(a => `<a class="tecla oscura" href="#a-${slug(a)}">${esc(a)} · perfil</a>`).join('')}</div>
-        <div class="enlaces">${r.soundcloud && !SIN00 ? '<button class="tecla oscura" type="button" id="bRadio00">Escuchar en la radio · canal 00</button>' : ''}${enl.map(([n, u]) => u ? `<a class="tecla" href="${esc(u)}" target="_blank" rel="noopener">${n} ↗</a>` : `<span class="tecla" aria-disabled="true">${n} · sin enlace</span>`).join('')}</div>
+        <div class="enlaces">${r.soundcloud && !SIN00 ? '<button class="tecla oscura" type="button" id="bRadio00">Escuchar en la radio · canal 00</button>' : ''}${enl.map(([n, u]) => u ? `<a class="tecla" href="${esc(u)}" target="_blank" rel="noopener">${n} ↗</a>` : `<span class="tecla" aria-disabled="true">${n} · sin enlace</span>`).join('')}<button class="tecla oscura compartir" type="button" id="bComp">Compartir</button></div>
         ${DESPLEGADO && r.soundcloud ? `<iframe class="sc" title="Reproductor de SoundCloud: ${esc(r.title)}" allow="autoplay" loading="lazy"
           src="https://w.soundcloud.com/player/?url=${encodeURIComponent(r.soundcloud)}&color=%230e0f12&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=false"></iframe>` : ''}
         <table class="creditos"><tbody>${r.credits.map(([k, v]) => `<tr><th scope="row">${esc(k)}</th>${pend(v) ? '<td class="pend">Por definir</td>' : `<td>${esc(v)}</td>`}</tr>`).join('')}</tbody></table>
@@ -2728,6 +2745,8 @@ function vistaFicha(r) {
       ${extrasFicha(r)}
       <nav class="pasos" aria-label="Otras referencias">${ant ? `<a class="tecla" href="#${ant.code}">← ${ant.code}</a>` : '<span></span>'}${sig ? `<a class="tecla" href="#${sig.code}">${sig.code} →</a>` : '<span></span>'}</nav></div>`;
   if ($('bRadio00')) $('bRadio00').onclick = () => escucha00(r);
+  $('bComp').onclick = async () => { const url = location.origin + '/' + r.code, t = `${r.artist} — ${titulo(r)} · aurality`;   // /AU0212: el portero pone la portada en la vista previa
+    try { if (navigator.share) await navigator.share({ title: t, url }); else { await navigator.clipboard.writeText(url); $('bComp').textContent = 'Enlace copiado'; } } catch (e) {} };
   const bv = $('bVideo'); if (bv) bv.onclick = () => {                                 // el vídeo solo se carga al pulsar (y la radio se calla)
     if (radio.on) { radio.apagar(); pintaPlay(); }
     const f = document.createElement('iframe'); f.className = 'vid'; f.src = bv.dataset.src; f.title = 'Vídeo de ' + r.code; f.allow = 'autoplay; fullscreen; picture-in-picture'; f.allowFullscreen = true; bv.replaceWith(f); };
