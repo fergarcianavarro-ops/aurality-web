@@ -36,7 +36,7 @@ s = src.replace('%%DATA%%', json.dumps(data, ensure_ascii=False)).replace('%%ALT
 assert '%%' not in s
 s = s.replace('<title>aurality AU-00</title>\n', '').replace('<meta name="claude:viewport-fit-sides" content="cover">\n', '')
 
-desc = 'aurality · aura-of-reality. Sello y plataforma creativa de Elda: catálogo, roster, Señal Mensual y radio ambient en directo.'
+desc = 'Sello y plataforma creativa de Elda: catálogo, roster, Señal Mensual y radio ambient en directo.'   # el nombre ya va en el título
 head = f'''<!doctype html>
 <html lang="es"><head>
 <meta charset="utf-8">

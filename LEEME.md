@@ -1,6 +1,6 @@
 # aurality · web AU-00
 
-La web de aurality. Cloudflare Pages la publica desde este repositorio: cualquier cambio que llegue aquí
+La web de aurality, en https://aurality.es. Cloudflare la publica desde este repositorio: cualquier cambio que llegue aquí
 (desde el panel o desde Claude) sale en la web en un minuto, sobrescribiendo la versión anterior.
 
 ```
@@ -27,20 +27,15 @@ fuente/             código de origen de la web (no se publica)
 
 ---
 
-## 1 · Publicar con Cloudflare Pages (una vez)
+## 1 · Dónde está publicada
 
-1. Crea una cuenta gratis en https://dash.cloudflare.com/sign-up.
-2. En el menú: **Compute → Workers & Pages → Create**. Si te ofrece crear un *Worker*, busca la opción **Pages** («Looking to deploy Pages? Get started»).
-3. **Import an existing Git repository → Connect GitHub**. Autoriza a Cloudflare y elige solo el repositorio `aurality-web`.
-4. Configuración de la compilación:
-   - *Project name*: `aurality` (será `aurality.pages.dev` si está libre).
-   - *Production branch*: `main`.
-   - *Framework preset*: **None**.
-   - *Build command*: vacío.
-   - *Build output directory*: **`web`**.
-5. **Save and Deploy**. En un minuto tienes la web en `https://aurality.pages.dev`.
+En **https://aurality.es**. La publica Cloudflare con un *Worker* llamado `aurality-web`
+(**Compute → Workers & Pages → aurality-web**), unido a este repositorio: cada cambio en `main` sale en un minuto.
 
-El plan gratuito permite 500 publicaciones al mes y no cobra por visitas ni por tráfico.
+- Dominios del Worker (pestaña **Domains**): `aurality.es` y `www.aurality.es`. La dirección
+  `aurality-web.fernando-garcia-navarro00.workers.dev` sigue funcionando.
+- `www` lleva siempre a `aurality.es` (dominio aurality.es → **Rules → Redirect Rules**).
+- El plan gratuito no cobra por visitas ni por tráfico.
 
 ## 2 · Entrar en el panel privado
 
@@ -52,7 +47,7 @@ El plan gratuito permite 500 publicaciones al mes y no cobra por visitas ni por 
 5. *Generate token* y copia la clave (empieza por `github_pat_`). Guárdala en un sitio seguro: GitHub no la vuelve a enseñar.
 
 **b) Entrar**
-Ve a `https://aurality.pages.dev/admin` → **Iniciar sesión con token** → pega la clave.
+Ve a `https://aurality.es/admin` → **Iniciar sesión con token** → pega la clave.
 El navegador la recuerda, así que solo se pide la primera vez en cada aparato.
 Un socio puede entrar con su propia clave si le añades al repositorio (*Settings → Collaborators → Add people*).
 Si alguien pierde el móvil o el portátil, borra su clave en GitHub y deja de valer.
@@ -93,8 +88,14 @@ Lo más fácil es enviarte tú un mensaje de prueba nada más publicar la web.
 
 ## 5 · Dominio e imagen al compartir
 
-- **Dominio:** en el proyecto de Cloudflare Pages, *Custom domains → Set up a domain*. Cloudflare indica los registros DNS. El HTTPS se activa solo.
-- **Imagen al compartir:** con dominio propio, la etiqueta `og:image` tiene que llevar la dirección completa (por ejemplo `https://aurality.es/og-image.jpg`). Se cambia en `fuente/build.py` (lo hace Claude si se lo pides).
+- **Dominio:** `aurality.es` está registrado en Hostinger (cuenta de un socio; hay que renovarlo cada año) y sus DNS
+  los lleva Cloudflare: en Hostinger solo se cambiaron los servidores de nombres a `elinore` y `konnor.ns.cloudflare.com`.
+  Cualquier registro DNS se toca en Cloudflare, no en Hostinger.
+- **Correo:** los registros de correo de Hostinger (MX, SPF, DMARC, `autoconfig`, `autodiscover`, `hostingermail-*`)
+  están en Cloudflare en **DNS only** (nube gris). No pasarlos a «Proxied», o el correo falla.
+- **Imagen al compartir:** `web/og-image.jpg` (1200×630, la formación del cierre del trailer con el lettering).
+  El portero (`worker/`) le pone la dirección completa y en cada lanzamiento usa su portada.
+  WhatsApp guarda la vista previa de cada enlace un tiempo: para ver un cambio, prueba con una dirección nueva (`https://aurality.es/?v=2`).
 
 ## 6 · Para quien toque el código
 
