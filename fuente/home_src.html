@@ -658,6 +658,16 @@ iframe.vid{display:block;width:100%;aspect-ratio:16/9;border:0;margin-top:8px;ba
   .enlaces .tecla[aria-disabled="true"]{display:none}
   .enlaces .tecla{min-height:44px}
   .compartir{display:inline-flex}
+  a,button,input,select,textarea,label{touch-action:manipulation}
+  .tecla{font-size:11px;min-height:40px;box-sizing:border-box}
+  .llave{font-size:11px;min-height:40px}.llave .n{font-size:11px}
+  .fader .lbl,.sub2,.campo label,.creditos th,.escala .k,.ref .c,.fl .cod,.eti span,.modulo .rol,.part span,.sinf span,.txt .k,.mando .ref,#lema .k,#proxLin span,.der .dest,.antena,.anio b,.conteo,.visor .nn,.riel button{font-size:11px}
+  .ref .marca,.cab span,.teclas .bt,.cas12 button{font-size:10px}
+  .teclas .bt{min-height:36px;display:inline-flex;align-items:center}
+  .anio .tecla{min-width:44px;justify-content:center}
+  .riel button{padding-bottom:14px}                              /* más sitio para el dedo bajo cada posición del fader */
+  .selector .visor{min-height:44px}
+  input,textarea,select,.campo input,.campo textarea{font-size:16px}
   .encendido{left:0;top:calc(70px + env(safe-area-inset-top,0px))}
   .menu .t{white-space:nowrap}
   .mando{padding:28px 24px 22px}
@@ -2824,7 +2834,9 @@ const NOMBRE = { escucha: ['01 · SECCIÓN', 'ESCUCHA'], catalogo: ['02 · SECCI
 // mientras los enlaces internos siguen siendo #AU0212, #a-ufisi, #s-10_26
 const deDireccion = p => { p = p.replace(/\/+$/, ''); const q = p.toLowerCase();
   return q.startsWith('senal-') ? 's-' + p.slice(6) : ART.some(a => a.s === q) ? 'a-' + q : p; };
+const PADRE = { ficha: 'catalogo', artista: 'roster', senal: 'editorial' }; let yPadre = 0;
 function ruta(ev) {
+  const antes = seccion, yAntes = scrollY;
   const porHash = (ev && ev.type === 'hashchange') || location.hash.length > 1;
   const h = porHash ? decodeURIComponent(location.hash.slice(1)) : deDireccion(decodeURIComponent(location.pathname.slice(1))), r = REL.find(x => x.code === h.toUpperCase());
   const art = h.startsWith('a-') && ART.find(a => a.s === h.slice(2));
@@ -2843,7 +2855,7 @@ function ruta(ev) {
   if (radioPorSC) { radioPorSC = false; radio.encender().then(pintaPlay); }
   if (seccion === 'catalogo') vistaCatalogo(); if (seccion === 'ficha') { vistaFicha(r); montaSC($('panel')); } if (seccion === 'roster') vistaRoster(); if (seccion === 'artista') vistaArtista(art); if (seccion === 'senal') { anioSen = sen.anio; vistaSenal(sen); } if (seccion === 'manifiesto') vistaManifiesto(); if (seccion === 'contacto') vistaContacto(); if (seccion === 'registro') vistaRegistro(); if (seccion === 'editorial') vistaEditorial(); if (seccion === 'kit') vistaKit(kitA);
   if (seccion !== 'escucha') { P.style.animation = 'none'; void P.offsetWidth; P.style.animation = ''; P.querySelector('.panel-cuerpo').scrollTop = 0; }
-  if (movilQ.matches) { scrollTo(0, 0); document.querySelector('.barra').classList.remove('oculta'); }
+  if (movilQ.matches) { if (PADRE[seccion] === antes) yPadre = yAntes; scrollTo(0, PADRE[antes] === seccion ? yPadre : 0); document.querySelector('.barra').classList.remove('oculta'); }
   foco = ({ catalogo: 'p4', ficha: 'hero', roster: 'p3', artista: 'p3', senal: 'p2', registro: 'p2', kit: 'hero', editorial: 'p2', manifiesto: 'hero', contacto: 'p5' })[seccion] || null;
   mesSenal = seccion === 'senal' ? sen.mes : 0; tunePulse = 0.6;
 }
@@ -3130,7 +3142,10 @@ if (cat00.cola.length >= 3 && !radio.on && !SIN00) { radio.canal = -1; knobTarge
   // rendimiento: si el aparato no llega a ~24 fps, se baja la resolución
   let fpsN = 0, fpsT = 0, rebajado = false;
   let press = 0, t0 = performance.now(), last = t0, lvl = 0, knobRot = knobTarget, expo = 0.45;
+  const tapaM = matchMedia('(max-width:820px)'), panelM = document.getElementById('panel');
   function frame(now) {
+    // móvil: con una sección abierta el panel tapa la escena; pasada la transición no se dibuja (batería y calor)
+    if (tapaM.matches && !panelM.hidden && frame.uno) { if (!frame.tap) frame.tap = now; if (now - frame.tap > 1600) { last = now; if (!document.hidden) requestAnimationFrame(frame); return; } } else frame.tap = 0;
     const dt0 = Math.max(0, (now - last) / 1000), dt = Math.min(0.05, dt0); last = now;   // nunca negativo: la marca de rAF puede ir por detrás de performance.now()
     // se mide pasados 3 s del encendido (la entrada carga más) y se baja la resolución por escalones, solo lo necesario
     if (!rebajado && encendido && now - powerT0 > 3000 && dt0 < 0.5) { fpsN++; fpsT += dt0; if (fpsN === 120) { if (fpsT / fpsN > 1 / 28) { dprMax = Math.max(1, dprMax * 0.8); renderer.setPixelRatio(dprMax); rebajado = dprMax <= 1; } else rebajado = true; fpsN = 0; fpsT = 0; } }

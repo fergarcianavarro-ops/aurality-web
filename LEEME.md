@@ -97,6 +97,13 @@ Lo más fácil es enviarte tú un mensaje de prueba nada más publicar la web.
   El portero (`worker/`) le pone la dirección completa y en cada lanzamiento usa su portada.
   WhatsApp guarda la vista previa de cada enlace un tiempo: para ver un cambio, prueba con una dirección nueva (`https://aurality.es/?v=2`).
 
+## 5 bis · La web en el móvil
+
+En pantallas de hasta 820 px la web cambia de estructura (el escritorio no se toca): la página se desplaza entera,
+la radio va plegada en una línea sobre una botonera de secciones, el catálogo pliega sus filtros tras una tecla y la
+ficha pone primero lo de escuchar y una tecla «Compartir». El 3D deja de dibujarse cuando una sección lo tapa.
+Con «Añadir a pantalla de inicio» se instala como app (`web/manifest.webmanifest`, iconos `web/icono-*.png`).
+
 ## 6 · Para quien toque el código
 
 - El diseño se cambia en `fuente/` y se regenera con `python3 fuente/build.py`. Ese script solo reescribe `web/index.html`, nunca el contenido ni las imágenes.
