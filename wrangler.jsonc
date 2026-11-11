@@ -5,6 +5,8 @@
 {
   "name": "aurality-web",
   "compatibility_date": "2026-09-01",
+  // vistas previas de las ramas que no son main (npx wrangler preview): la configuración va arriba, el bloque puede ir vacío
+  "previews": {},
   "main": "worker/index.js",
   "assets": {
     "directory": "./web",
