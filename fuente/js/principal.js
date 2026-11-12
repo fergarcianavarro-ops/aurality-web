@@ -2394,9 +2394,27 @@ try { const m = localStorage.getItem('au-canal'), c = +m;                       
   if (m !== null && !radio.on && Number.isInteger(c) && c <= 11 && c >= (SIN00 || !cat00.cola.length ? 0 : -1)) { radio.canal = c; knobTarget = angulo(c); pintaCanal(); } } catch (e) {}
 // montar la escena ocupa el procesador un buen rato: antes se deja pintar lo que ya está listo (la carga o, en una llegada directa, la ficha)
 await new Promise(ok => { const ya = () => requestAnimationFrame(() => setTimeout(ok, 0)); window.__directo ? setTimeout(ya, 500) : ya(); });
-{
+escena3d: {
   const cv = $('escena');
-  const renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: true });
+  // Sin aceleración gráfica (un equipo sin tarjeta, una gráfica vetada por el navegador, los robots de Google) la escena se
+  // dibujaría por programa y dejaría la web sin respuesta durante segundos. En ese caso no se monta: queda una imagen fija
+  // de la escena y todo lo demás funciona igual. Se puede forzar con ?grafica=si (o la tecla que aparece en ese modo).
+  // La comprobación cuesta (crear el contexto por programa son uno o dos segundos), así que el resultado se recuerda; y a los
+  // navegadores automáticos (medidores, robots) ni se les intenta: no necesitan la escena.
+  const nota = v => { try { if (v) localStorage.setItem('au-grafica', v); return localStorage.getItem('au-grafica'); } catch (e) { return null; } };
+  const forzada = nota(/[?&]grafica=si/.test(location.search) ? 'si' : '') === 'si' || /[?&]grafica=si/.test(location.search);
+  let renderer = null;
+  if (forzada || !(navigator.webdriver || nota() === 'no')) try {
+    renderer = new THREE.WebGLRenderer({ canvas: cv, antialias: true, alpha: true, failIfMajorPerformanceCaveat: !forzada });
+    if (!forzada) { const g = renderer.getContext(), x = g.getExtension('WEBGL_debug_renderer_info'), nom = x ? String(g.getParameter(x.UNMASKED_RENDERER_WEBGL)) : '';
+      if (/swiftshader|llvmpipe|software|basic render/i.test(nom)) { renderer.dispose(); renderer = null; nota('no'); } }   // dibuja por programa: como no tener gráfica
+  } catch (e) { renderer = null; nota('no'); }
+  if (!renderer) {
+    document.body.classList.add('sin-escena'); window.__carga?.mark('piezas', 'SIN GRÁFICA'); window.__carga?.mark('escena', 'IMAGEN FIJA'); window.__listo = true;
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'tecla'; b.id = 'bGrafica'; b.textContent = 'Escena 3D en pausa · Activar';
+    b.onclick = () => { try { localStorage.setItem('au-grafica', 'si'); } catch (e2) {} location.reload(); }; document.body.appendChild(b);
+    break escena3d;
+  }
   let dprMax = Math.min(devicePixelRatio, tactil ? 2 : 1.75); renderer.setPixelRatio(dprMax); renderer.setClearColor(0x000000, 0);
   renderer.toneMapping = THREE.NeutralToneMapping; renderer.toneMappingExposure = 0.45;
   renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;

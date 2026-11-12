@@ -14,6 +14,7 @@ const PANTALLAS = [
   ['tablet-h', { viewport: { width: 1180, height: 820 }, isMobile: true, hasTouch: true }],
   ['tablet-v', { viewport: { width: 820, height: 1180 }, isMobile: true, hasTouch: true }],
   ['movil', { viewport: { width: 393, height: 852 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }],
+  ['sin-grafica', { viewport: { width: 1440, height: 900 } }],   // un equipo sin aceleración gráfica: imagen fija en lugar de la escena 3D
 ].filter(([n]) => !SOLO || SOLO.includes(n));
 const VISTAS = ['catalogo', 'AU0212', 'roster', 'editorial', 'senal', 'manifiesto', 'contacto', 'archivo', 'archivo-AU0212'];   // las dos últimas: el piloto de «la máquina abierta»
 const fallos = [], avisos = [];
@@ -23,10 +24,12 @@ const fallos = [], avisos = [];
   const b = await chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
   for (const [nom, o] of PANTALLAS) {
     const ctx = await b.newContext(o), p = await ctx.newPage(); p.setDefaultTimeout(90000); const cdp = await ctx.newCDPSession(p);
+    // las pruebas corren sin tarjeta gráfica: se fuerza la escena 3D salvo en la pasada que comprueba el modo sin gráfica
+    if (nom !== 'sin-grafica') await ctx.addInitScript(() => { try { localStorage.setItem('au-grafica', 'si'); } catch (e) {} });
     const foto = async f => { const { data } = await cdp.send('Page.captureScreenshot', { format: 'jpeg', quality: 72 }); fs.writeFileSync(path.join(SAL, f), Buffer.from(data, 'base64')); };
     let kb = 0, n = 0;
     p.on('pageerror', e => fallos.push(`${nom}: error del programa · ${e.message}`));
-    p.on('console', m => { if (m.type() === 'error' && !/soundcloud|sndcdn|net::ERR/i.test(m.text())) fallos.push(`${nom}: consola · ${m.text().slice(0, 160)}`); });
+    p.on('console', m => { if (m.type() === 'error' && !/soundcloud|sndcdn|net::ERR|WebGL/i.test(m.text())) fallos.push(`${nom}: consola · ${m.text().slice(0, 160)}`); });
     p.on('response', async r => { const u = r.url(); if (!u.startsWith(BASE)) return; n++;
       if (r.status() >= 400 && !/\/tx\//.test(u)) fallos.push(`${nom}: ${r.status()} ${u.slice(BASE.length)}`);
       try { kb += (await r.body()).length / 1024; } catch (e) {} });
@@ -48,9 +51,11 @@ const fallos = [], avisos = [];
       ax.forEach(a => avisos.push(`${nom}/${v}: accesibilidad · ${a}`));
       await foto(`${nom}_${v}.jpg`);
     }
+    if (nom === 'sin-grafica' && !await p.evaluate(() => document.body.classList.contains('sin-escena'))) fallos.push('sin-grafica: no ha entrado en el modo de imagen fija');
     await ctx.close();
     // 3 · enlace directo a una ficha: se ve sin pasar por ENCENDER
     const c2 = await b.newContext(o), q = await c2.newPage(); q.setDefaultTimeout(90000);
+    if (nom !== 'sin-grafica') await c2.addInitScript(() => { try { localStorage.setItem('au-grafica', 'si'); } catch (e) {} });
     q.on('pageerror', e => fallos.push(`${nom}/directo: error del programa · ${e.message}`));
     const t1 = Date.now(); await q.goto(BASE + '/AU0212'); await q.waitForFunction(() => !document.getElementById('carga') || document.getElementById('carga').classList.contains('fuera'), null, { timeout: 180000 });
     const tDirecto = Date.now() - t1, d = await q.evaluate(() => ({ panel: !document.getElementById('panel').hidden && /AU0212/.test(document.getElementById('panel').innerText), puerta: !document.getElementById('encendido').classList.contains('fuera'), titulo: document.title }));
