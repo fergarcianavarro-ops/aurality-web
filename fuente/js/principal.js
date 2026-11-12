@@ -43,7 +43,7 @@ const MEZCLA = {
 
 // en el móvil (iPhone, iPad y pantallas táctiles sin ratón) el canal 00 no existe por ahora: SoundCloud no deja sonar su
 // reproductor sin tocarlo dentro y la tira es incómoda. Se retomará con audio propio (ver docs en la hoja de ruta)
-const SIN00 = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) || matchMedia('(pointer: coarse) and (hover: none)').matches;
+let SIN00 = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1) || matchMedia('(pointer: coarse) and (hover: none)').matches;
 // reloj de la radio: un worker da el pulso cada 25 ms. Los temporizadores de la página se frenan en segundo plano
 // (hasta uno por segundo o por minuto); los de un worker no, así que las baterías siguen en su sitio en otra pestaña
 const RELOJ = (() => { const subs = new Set(), pend = new Map(); let sig = 1;
@@ -1046,7 +1046,7 @@ CANALES.forEach(([nom, , , est], i) => { const b = document.createElement('butto
 function pintaSesion() {
   if (!('mediaSession' in navigator)) return;
   try { const k = radio.canal, nom = k < 0 ? 'CANAL 00 · aurality' : `CANAL ${String(k + 1).padStart(2, '0')} · ${CANALES[k][0]}`;
-    navigator.mediaSession.metadata = new MediaMetadata({ title: nom, artist: 'aurality · radio AU-00', album: 'Broadcasted from Elda', artwork: [{ src: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }] });
+    navigator.mediaSession.metadata = new MediaMetadata({ title: nom, artist: 'aurality · radio AU-00', album: 'Broadcasted from Elda', artwork: [{ src: '/apple-touch-icon.png', sizes: '180x180', type: 'image/png' }, { src: '/icono-512.png', sizes: '512x512', type: 'image/png' }] });
     navigator.mediaSession.playbackState = radio.on ? 'playing' : 'paused'; } catch (e) {}
 }
 if ('mediaSession' in navigator) try {
@@ -1074,7 +1074,7 @@ function pintaPlay() {
 let encendido = false, tunePulse = 0;
 async function togglePlay() { if (radio.on) radio.apagar(); else await radio.encender(); pintaPlay(); pintaCanal(); }
 const angulo = c => c < 0 ? -Math.PI / 12 : -(c + 1) * Math.PI / 6;       // el 00 cae entre el 12 y el 01 del dial
-function tune(i) { radio.sintonizar(i); pintaCanal(); tunePulse = 1; knobTarget = angulo(radio.canal); }
+function tune(i) { radio.sintonizar(i); pintaCanal(); tunePulse = 1; knobTarget = angulo(radio.canal); try { localStorage.setItem('au-canal', radio.canal); } catch (e) {} }   // el receptor recuerda dónde lo dejaste
 // ---------- sintonía fina y frecuencias ocultas ----------
 // El dial va de 00.0 a 12.0: los enteros son los canales; entre medias hay estática y, a veces, una transmisión oculta.
 // Cerca de una transmisión el piloto azul parpadea y la señal se cuela entre el ruido; encima, se limpia y queda fijada.
@@ -1088,7 +1088,7 @@ const escalaVe = v => {
 };
 // con ratón la escala está quieta y la aguja va pegada al cursor; con el dedo la aguja queda en el centro y la escala corre debajo (U px por unidad, 1:1 con el dedo)
 const U_DEDO = 64, escMarcas = $('escMarcas');
-const F_MIN = SIN00 ? 1 : 0;
+let F_MIN = SIN00 ? 1 : 0;
 const fEscala = ev => { const r = escMarcas.getBoundingClientRect(); return Math.max(F_MIN, Math.min(12, (ev.clientX - r.left) / r.width * 12)); };
 const pintaEscala = f => {
   if (escala.classList.contains('desliza')) { const c = escala.clientWidth / 2; escMarcas.style.width = 12 * U_DEDO + 'px'; escMarcas.style.left = (c - f * U_DEDO) + 'px'; escAguja.style.left = c + 'px'; }
@@ -1243,7 +1243,7 @@ const DATA = await (async () => {
   if (Array.isArray(D.artists)) D.artists = Object.fromEntries(D.artists.filter(a => a && a.name).map(({ name, ...r }) => [name.trim().toUpperCase(), r]));
   D.releases = (D.releases || []).filter(r => r && r.code && r.artist).map(r => ({ ...r, artist: r.artist.trim().toUpperCase(), title: r.title || '[ S/T ]', destacado: r.destacado === true || r.destacado === 'true', edicion: r.edicion === true || r.edicion === 'true', historia: String(r.historia || '').trim(), video: String(r.video || '').trim(),
     fotos: (r.fotos || []).map(f => typeof f === 'string' ? { img: f, pie: '' } : { img: (f && (f.imagen || f.img)) || '', pie: (f && f.pie) || '' }).filter(f => f.img), fecha: /^\d{4}-\d{2}-\d{2}/.test(String(r.fecha || '')) ? String(r.fecha).slice(0, 10) : '', presave: r.presave || '',
-    fragmentos: (r.fragmentos || []).map(f => typeof f === 'string' ? f : f && (f.archivo || f.file)).filter(Boolean), format: (r.format || 'SINGLE').toUpperCase(), genre: (r.genre || '—').toUpperCase().trim(), cover: r.cover || '', soundcloud: r.soundcloud || '', spotify: r.spotify || '', bandcamp: r.bandcamp || '', year: +r.year || r.year || '',
+    fragmentos: (r.fragmentos || []).map(f => typeof f === 'string' ? f : f && (f.archivo || f.file)).filter(Boolean), format: (r.format || 'SINGLE').toUpperCase(), genre: (r.genre || '—').toUpperCase().trim(), cover: r.cover || '', soundcloud: r.soundcloud || '', audio: r.audio ? '/' + String(typeof r.audio === 'string' ? r.audio : r.audio.archivo || r.audio.file || '').replace(/^\/+/, '') : '', spotify: r.spotify || '', bandcamp: r.bandcamp || '', year: +r.year || r.year || '',
     credits: (r.credits || []).map(c => Array.isArray(c) ? c : [c.rol || '', c.nombre || '']).filter(([k]) => k),
     tracks: (r.tracks || []).map(t => typeof t === 'string' ? t : (t && t.titulo) || '').filter(Boolean),
     participantes: (r.participantes || []).map(p => Array.isArray(p) ? p : [(p && p.artista) || '', (p && p.rol) || '']).map(([a, rol]) => [String(a).trim().toUpperCase(), String(rol || '').trim()]).filter(([a]) => a) }))
@@ -1297,7 +1297,7 @@ const pend = v => !v || /POR DEFINIR/i.test(v) || /S\/T/.test(v);
 const ANCHOS = [320, 640, 1280];
 const variante = (src, w) => { const m = /^\/?(covers|senal)\/([^/?#\s,]+)$/.exec(src || ''); return m ? `/${m[1]}/v/${encodeURI(m[2])}-${w}.webp` : ''; };
 const ligera = (src, sizes) => variante(src, 320) ? ` srcset="${ANCHOS.map(w => esc(variante(src, w)) + ' ' + w + 'w').join(', ')}" sizes="${sizes}" onerror="this.onerror=null;this.removeAttribute('srcset');this.removeAttribute('sizes')"` : '';
-const T_REJILLA = '(max-width:820px) 46vw, 190px', T_FICHA = '(max-width:820px) 92vw, 320px';
+const T_REJILLA = '(max-width:599px) 46vw, (max-width:820px) 31vw, 190px', T_FICHA = '(max-width:599px) 92vw, (max-width:820px) 40vw, 480px';
 const portada = (r, cls, sizes = T_REJILLA) => r.cover ? `<img class="${cls}" src="${esc(r.cover)}"${ligera(r.cover, sizes)} alt="Portada de ${esc(r.title)}" loading="lazy" decoding="async">`
   : `<div class="${cls} sinp" role="img" aria-label="Sin portada todavía"><b>${r.code}</b><span>SIN PORTADA</span></div>`;
 const titulo = r => /S\/T/.test(r.title) ? 'Sin título' : r.title;
@@ -1453,7 +1453,7 @@ window.__diag00 = diagL;
 const FRAG = 75, FUNDE = 7;                                                          // segundos de cada fragmento y de cada cruce
 const aSeg = v => { const m = String(v || '').trim().match(/^(\d+):(\d{1,2})$/); return m ? +m[1] * 60 + +m[2] : null; };
 addEventListener('resize', () => { if ($('tira00').classList.contains('on')) cat00.muestraTira(true); });
-const cat00 = radio.cat = {
+const catSC = {
   cola: REL.filter(r => r.soundcloud), w: [], vol: [0, 0], iv: [], act: -1, prep: null, ahora: null, timers: [], ult: [], pedido: null,
   id: 0, vivo: false, bloqueo: false, fallo: false, SC: null, sonando: false,
   // iPhone / iPad: Safari solo deja sonar el reproductor de SoundCloud si se toca con el dedo. Ahí el canal 00 usa un único
@@ -1616,6 +1616,64 @@ const cat00 = radio.cat = {
     return radio.on ? 'Sintonizando el catálogo…' : `Fragmentos del catálogo · ${plural(this.cola.length, 'lanzamiento', 'lanzamientos')}`;
   },
 };
+// ---------- canal 00 con fragmentos propios ----------
+// En cuanto algún lanzamiento trae su fragmento (un mp3 subido desde el panel, campo «Fragmento propio»), el canal 00 deja
+// SoundCloud y suena solo con esos archivos. Pasan por el motor de la radio, así que el vúmetro y la escena leen la música
+// de verdad, y suena también en iPhone (donde SoundCloud no deja). Sin ningún fragmento propio, todo sigue como estaba.
+const PROPIO = REL.some(r => r.audio), CRUCE = 3, NIVEL_P = 0.8;
+const SILENCIO = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA=';
+const catPropio = {
+  cola: REL.filter(r => r.audio), el: [], g: [], act: -1, ahora: null, id: 0, vivo: false, fallo: false, bloqueo: false, tira: false, pedido: null, ult: [], timers: [],
+  luego(f, seg) { this.timers.push(RELOJ.espera(f, seg * 1000)); },
+  monta() {                                                                            // dos reproductores que se turnan, conectados al motor (tras el limitador: la música ya viene masterizada)
+    if (this.el.length || !radio.ctx) return; const c = radio.ctx;
+    for (let k = 0; k < 2; k++) { const a = new Audio(); a.preload = 'auto'; a.setAttribute('playsinline', ''); const g = c.createGain(); g.gain.value = 0;
+      try { c.createMediaElementSource(a).connect(g); g.connect(radio.limite); } catch (e) {}
+      this.el.push(a); this.g.push(g); }
+  },
+  rampa(k, a, seg) { const g = this.g[k].gain, t = radio.ctx.currentTime; g.cancelScheduledValues(t); g.setValueAtTime(g.value, t); g.linearRampToValueAtTime(a, t + seg); },
+  siguiente() {
+    if (this.pedido && this.pedido.audio) { const r = this.pedido; this.pedido = null; return r; } this.pedido = null;
+    const op = this.cola.filter(r => !this.ult.includes(r.code)), r = (op.length ? op : this.cola)[Math.floor(Math.random() * (op.length || this.cola.length))];
+    this.ult = [r.code, ...this.ult].slice(0, Math.max(0, Math.min(2, this.cola.length - 1))); return r;
+  },
+  suena(r, id) {
+    if (id !== this.id) return; const sale = this.act, k = sale === 0 ? 1 : 0, a = this.el[k];
+    a.onended = a.ontimeupdate = null; a.dataset.ok = 1; a.src = r.audio; a.currentTime = 0;
+    const sigue = () => { if (id !== this.id || this.act !== k) return; a.onended = a.ontimeupdate = null; radio.estatica(CRUCE * 0.9, 0.022); this.suena(this.siguiente(), id); };
+    a.onended = sigue; a.ontimeupdate = () => { if (a.duration && a.duration - a.currentTime < CRUCE + 0.3) sigue(); };   // el cruce empieza poco antes del final
+    this.act = k; this.ahora = { r, tema: titulo(r) }; this.fallo = false; this.bloqueo = false; pintaCanal();
+    const pr = a.play(); if (pr) pr.catch(() => { if (id === this.id && this.act === k) { this.bloqueo = true; pintaCanal(); } });   // el navegador pide un toque: ▶ lo arranca
+    this.rampa(k, NIVEL_P, sale < 0 ? 1.5 : CRUCE);
+    if (sale >= 0) { this.rampa(sale, 0, CRUCE); const v = this.el[sale]; this.luego(() => { if (this.act !== sale) v.pause(); }, CRUCE + 0.2); }
+    a.onerror = () => { if (id === this.id && this.act === k) { this.fallo = true; pintaCanal(); this.luego(() => sigue(), 2); } };
+  },
+  empieza(r) {
+    if (r) this.pedido = r;
+    const id = ++this.id; this.timers.forEach(RELOJ.anula); this.timers = []; this.vivo = true; this.fallo = false;
+    if (!this.cola.length || !radio.ctx) return; this.monta();
+    // este arranque viene de un toque: se aprovecha para desbloquear el reproductor que entrará después (iPhone)
+    const otro = this.el[this.act === 0 ? 0 : 1]; if (!otro.dataset.ok) { otro.dataset.ok = 1; otro.src = SILENCIO; const pr = otro.play(); if (pr) pr.then(() => { if (this.el[this.act] !== otro) otro.pause(); }).catch(() => {}); }
+    this.suena(this.siguiente(), id);
+  },
+  para(seg = 2.5) {
+    this.id++; this.vivo = false; this.timers.forEach(RELOJ.anula); this.timers = []; this.ahora = null; this.act = -1; if (!this.el.length) return;
+    this.el.forEach((a, k) => { a.onended = a.ontimeupdate = a.onerror = null; this.rampa(k, 0, seg); RELOJ.espera(() => { if (!this.vivo) a.pause(); }, seg * 1000 + 200); });
+  },
+  nivel() { return 0; },                                                              // aquí el vúmetro lee el motor: es la música de verdad
+  muestraTira() {},
+  rotulo() {
+    const p = this.ahora;
+    if (p) { if (this.bloqueo) return 'Toca ▶ para sintonizar'; if (this.fallo) return 'Sin señal · pasando al siguiente';
+      const entero = p.r.spotify || p.r.soundcloud || p.r.bandcamp;
+      return `<a href="#${p.r.code}">${esc(p.r.artist)} — ${esc(p.tema)}</a>` + (entero ? ` · <a href="${esc(entero)}" target="_blank" rel="noopener">entero ↗</a>` : ''); }
+    return radio.on ? 'Sintonizando el catálogo…' : `Fragmentos del catálogo · ${plural(this.cola.length, 'lanzamiento', 'lanzamientos')}`;
+  },
+};
+const cat00 = radio.cat = PROPIO ? catPropio : catSC;
+if (PROPIO && SIN00) {                                                                // con fragmentos propios el canal 00 existe también donde SoundCloud no deja
+  SIN00 = false; F_MIN = 0; const b = $('canal0'); if (b) { b.disabled = false; b.style.visibility = ''; b.removeAttribute('aria-hidden'); }
+}
 // desde una ficha: pon este lanzamiento en el canal 00
 async function escucha00(r) {
   if (!encendido) await encender(false);
@@ -1640,7 +1698,7 @@ function vistaFicha(r) {
       <div class="datos"><div class="cod">${r.code} · ${esc(r.format)} · ${r.fecha ? r.fecha.split('-').reverse().join('.') : r.year} · ${esc(r.genre)}</div><h3>${esc(r.artist)}</h3><p class="tit">${esc(titulo(r))}</p>
         ${partic(r).length ? `<div class="aqui"><span class="k">${esPart(r) ? 'AURALITY EN ESTE LANZAMIENTO' : 'TAMBIÉN DE AURALITY'}</span>${lineaPart(r)}</div>` : ''}
         <div class="enlaces mas">${miembros(r).map(a => `<a class="tecla oscura" href="#a-${slug(a)}">${esc(a)} · perfil</a>`).join('')}</div>
-        <div class="enlaces">${r.soundcloud && !SIN00 ? '<button class="tecla oscura" type="button" id="bRadio00">Escuchar en la radio · canal 00</button>' : ''}${enl.map(([n, u]) => u ? `<a class="tecla" href="${esc(u)}" target="_blank" rel="noopener">${n} ↗</a>` : `<span class="tecla" aria-disabled="true">${n} · sin enlace</span>`).join('')}<button class="tecla oscura compartir" type="button" id="bComp">Compartir</button></div>
+        <div class="enlaces">${(PROPIO ? r.audio : r.soundcloud) && !SIN00 ? '<button class="tecla oscura" type="button" id="bRadio00">Escuchar en la radio · canal 00</button>' : ''}${enl.map(([n, u]) => u ? `<a class="tecla" href="${esc(u)}" target="_blank" rel="noopener">${n} ↗</a>` : `<span class="tecla" aria-disabled="true">${n} · sin enlace</span>`).join('')}<button class="tecla oscura compartir" type="button" id="bComp">Compartir</button></div>
         ${DESPLEGADO && r.soundcloud ? `<iframe class="sc" title="Reproductor de SoundCloud: ${esc(r.title)}" allow="autoplay" loading="lazy"
           src="https://w.soundcloud.com/player/?url=${encodeURIComponent(r.soundcloud)}&color=%230e0f12&auto_play=false&hide_related=true&show_comments=false&show_user=true&show_reposts=false&show_teaser=false&visual=false"></iframe>` : ''}
         <table class="creditos"><tbody>${r.credits.map(([k, v]) => `<tr><th scope="row">${esc(k)}</th>${pend(v) ? '<td class="pend">Por definir</td>' : `<td>${esc(v)}</td>`}</tr>`).join('')}</tbody></table>
@@ -2043,9 +2101,24 @@ const NOMBRE = { escucha: ['01 · SECCIÓN', 'ESCUCHA'], catalogo: ['02 · SECCI
 // mientras los enlaces internos siguen siendo #AU0212, #a-ufisi, #s-10_26
 const deDireccion = p => { p = p.replace(/\/+$/, ''); const q = p.toLowerCase();
   return q.startsWith('senal-') ? 's-' + p.slice(6) : ART.some(a => a.s === q) ? 'a-' + q : p; };
-const PADRE = { ficha: 'catalogo', artista: 'roster', senal: 'editorial' }; let yPadre = 0;
+const PADRE = { ficha: 'catalogo', artista: 'roster', senal: 'editorial' }; let yPadre = 0, sPadre = 0, hActual = '';
+// continuidad entre vistas: la portada (o el retrato) que se pulsa viaja hasta su sitio en la vista siguiente, y vuelve.
+// Usa las transiciones entre vistas del navegador; donde no existen, o con movimiento reducido, el cambio es directo como antes.
+const IMG_V = '.portada, .retrato, .sinf, .sinp, .ed-senal img', PRAL_V = '.fl > .portada, .fl > .retrato, .fl > .sinf, .fl > .sinp';
+const viajero = h => { const P = $('panel'); if (P.hidden) return null; let a = null; try { a = h && P.querySelector(`a[href="#${CSS.escape(h)}"]`); } catch (e) {}
+  const el = (a && a.querySelector(IMG_V)) || P.querySelector(PRAL_V); if (!el) return null;
+  const r = el.getBoundingClientRect(); return r.bottom > 0 && r.top < innerHeight && r.width > 0 ? el : null; };   // solo viaja lo que está a la vista
 function ruta(ev) {
-  const antes = seccion, yAntes = scrollY;
+  const destino = location.hash.length > 1 ? decodeURIComponent(location.hash.slice(1)) : deDireccion(decodeURIComponent(location.pathname.slice(1))), origen = hActual;
+  const viejo = ev && document.startViewTransition && !sinMov.matches && !document.hidden ? viajero(destino) : null;
+  if (!viejo) return rutaYa(ev);
+  viejo.style.viewTransitionName = 'viajero'; document.documentElement.classList.add('vt');
+  let nuevo = null;
+  const vt = document.startViewTransition(() => { viejo.style.viewTransitionName = ''; rutaYa(ev); nuevo = viajero(origen); if (nuevo) nuevo.style.viewTransitionName = 'viajero'; });
+  vt.finished.catch(() => {}).then(() => { if (nuevo) nuevo.style.viewTransitionName = ''; document.documentElement.classList.remove('vt'); });
+}
+function rutaYa(ev) {
+  const antes = seccion, yAntes = scrollY, cAntes = $('panel').querySelector('.panel-cuerpo'), sAntes = cAntes ? cAntes.scrollTop : 0;
   const porHash = (ev && ev.type === 'hashchange') || location.hash.length > 1;
   const h = porHash ? decodeURIComponent(location.hash.slice(1)) : deDireccion(decodeURIComponent(location.pathname.slice(1))), r = REL.find(x => x.code === h.toUpperCase());
   const art = h.startsWith('a-') && ART.find(a => a.s === h.slice(2));
@@ -2063,10 +2136,11 @@ function ruta(ev) {
   const P = $('panel'); P.hidden = seccion === 'escucha';
   if (radioPorSC) { radioPorSC = false; radio.encender().then(pintaPlay); }
   if (seccion === 'catalogo') vistaCatalogo(); if (seccion === 'ficha') { vistaFicha(r); montaSC($('panel')); } if (seccion === 'roster') vistaRoster(); if (seccion === 'artista') vistaArtista(art); if (seccion === 'senal') { anioSen = sen.anio; vistaSenal(sen); } if (seccion === 'manifiesto') vistaManifiesto(); if (seccion === 'contacto') vistaContacto(); if (seccion === 'registro') vistaRegistro(); if (seccion === 'editorial') vistaEditorial(); if (seccion === 'kit') vistaKit(kitA);
-  if (seccion !== 'escucha') { P.style.animation = 'none'; void P.offsetWidth; P.style.animation = ''; P.querySelector('.panel-cuerpo').scrollTop = 0; }
+  if (seccion !== 'escucha') { P.style.animation = 'none'; void P.offsetWidth; P.style.animation = '';
+    if (PADRE[seccion] === antes) sPadre = sAntes; P.querySelector('.panel-cuerpo').scrollTop = PADRE[antes] === seccion ? sPadre : 0; }   // al volver de una ficha, el catálogo sigue donde estaba
   if (movilQ.matches) { if (PADRE[seccion] === antes) yPadre = yAntes; scrollTo(0, PADRE[antes] === seccion ? yPadre : 0); document.querySelector('.barra').classList.remove('oculta'); }
   foco = ({ catalogo: 'p4', ficha: 'hero', roster: 'p3', artista: 'p3', senal: 'p2', registro: 'p2', kit: 'hero', editorial: 'p2', manifiesto: 'hero', contacto: 'p5' })[seccion] || null;
-  mesSenal = seccion === 'senal' ? sen.mes : 0; tunePulse = 0.6;
+  mesSenal = seccion === 'senal' ? sen.mes : 0; tunePulse = 0.6; hActual = seccion === 'escucha' ? '' : seccion === 'ficha' ? r.code : seccion === 'artista' ? 'a-' + art.s : seccion === 'senal' ? 's-' + sen.code : h;
 }
 // ---------- destacados de la portada ----------
 // se eligen a mano en el panel (casilla «Destacar en la portada»): como mucho 3, los más recientes primero.
@@ -2222,10 +2296,18 @@ pintaAvisos();
   if (/Android/i.test(navigator.userAgent)) ig.addEventListener('click', e => { e.preventDefault();
     location.href = `intent://instagram.com/_u/${user}/#Intent;package=com.instagram.android;scheme=https;S.browser_fallback_url=${encodeURIComponent(url)};end`; }); }
 if ((DATA.manifiesto || {}).titular) $('lemaT').textContent = DATA.manifiesto.titular;
+// la portada de la ficha se inclina hacia el puntero (solo con ratón; con movimiento reducido se queda quieta)
+{ const P = $('panel'); let viva = null;
+  const suelta = () => { if (viva) { viva.classList.remove('en-mano'); viva.style.removeProperty('--rx'); viva.style.removeProperty('--ry'); viva = null; } };
+  P.addEventListener('pointermove', e => { if (e.pointerType !== 'mouse' || sinMov.matches) return;
+    const im = e.target instanceof Element && e.target.matches('.fl > img.portada') ? e.target : null; if (im !== viva) suelta(); if (!im) return;
+    const r = im.getBoundingClientRect(), x = (e.clientX - r.left) / r.width - 0.5, y = (e.clientY - r.top) / r.height - 0.5;
+    viva = im; im.classList.add('en-mano'); im.style.setProperty('--ry', (x * 9).toFixed(2) + 'deg'); im.style.setProperty('--rx', (-y * 9).toFixed(2) + 'deg'); });
+  P.addEventListener('pointerleave', suelta); }
 // el cuerpo del panel se desplaza por dentro (en ordenador): tiene que poder alcanzarse y moverse con el teclado
 new MutationObserver(() => { if (!matchMedia('(max-width:820px)').matches) $('panel').querySelectorAll(':scope > .panel-cuerpo:not([tabindex])').forEach(e => { e.tabIndex = 0; }); }).observe($('panel'), { childList: true });
 addEventListener('hashchange', ruta);
-addEventListener('popstate', () => { if (!location.hash) ruta(); });   // atrás / adelante entre direcciones limpias
+addEventListener('popstate', ev => { if (!location.hash) ruta(ev); });   // atrás / adelante entre direcciones limpias
 ruta();
 // quien llega directo a una ficha o a una sección la ve sin pasar por ENCENDER: el receptor entra en silencio y el sonido se pide con ▶
 if (window.__directo && seccion !== 'escucha') encender(false);
@@ -2239,6 +2321,8 @@ document.querySelectorAll('.faja a').forEach(a => a.addEventListener('click', ()
 const tactil = matchMedia('(pointer: coarse)').matches || innerWidth < 821;
 let knobTarget = -3 * Math.PI / 6, powerT0 = 0;
 if (cat00.cola.length >= 3 && !radio.on && !SIN00) { radio.canal = -1; knobTarget = angulo(-1); pintaCanal(); }   // con 3 lanzamientos o más en SoundCloud, la radio arranca en el 00
+try { const m = localStorage.getItem('au-canal'), c = +m;                                 // …salvo que ya se hubiera dejado en otro canal: vuelve a él
+  if (m !== null && !radio.on && Number.isInteger(c) && c <= 11 && c >= (SIN00 || !cat00.cola.length ? 0 : -1)) { radio.canal = c; knobTarget = angulo(c); pintaCanal(); } } catch (e) {}
 // montar la escena ocupa el procesador un buen rato: antes se deja pintar lo que ya está listo (la carga o, en una llegada directa, la ficha)
 await new Promise(ok => { const ya = () => requestAnimationFrame(() => setTimeout(ok, 0)); window.__directo ? setTimeout(ya, 500) : ya(); });
 {

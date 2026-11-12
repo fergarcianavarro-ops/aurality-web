@@ -72,6 +72,7 @@ collections:
               - { name: fragmento, label: Inicio del fragmento (canal 00), widget: string, required: false, pattern: ['^\d{1,2}:\d{2}$', 'Formato m:ss, por ejemplo 1:45'], hint: "Opcional. Minuto en el que empieza el trozo que suena en el canal 00 (m:ss). Vacío = hacia la mitad del tema. En los sets se aplica a todos los temas." }
               - { name: spotify, label: Spotify, widget: string, required: false }
               - { name: bandcamp, label: Bandcamp, widget: string, required: false }
+              - { name: audio, label: "Fragmento propio (canal 00)", widget: file, required: false, choose_url: false, media_folder: /web/fragmentos, public_folder: fragmentos, hint: "Opcional. Un mp3 de 45 a 90 segundos de este lanzamiento. En cuanto un lanzamiento lo tiene, el canal 00 suena solo con los fragmentos propios (también en iPhone), el vúmetro lee la música de verdad y la radio deja de usar SoundCloud." }
               - { name: historia, label: Historia, widget: text, required: false, hint: "Dos o tres párrafos: por qué existe, dónde se hizo, quién estuvo. Deja una línea en blanco entre párrafos. El primero sale más grande. Vacío = no sale." }
               - { name: video, label: Vídeo, widget: string, required: false, hint: "Enlace de YouTube o Vimeo. Solo se carga cuando alguien pulsa ▶. Vacío = no sale." }
               - name: fotos

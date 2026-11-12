@@ -732,3 +732,45 @@ iframe.vid{display:block;width:100%;aspect-ratio:16/9;border:0;margin-top:8px;ba
 .solo-lector{position:absolute;width:1px;height:1px;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}
 .panel-cuerpo:focus{outline:none}
 .panel-cuerpo:focus-visible{outline:2px solid var(--azul,#2a53c9);outline-offset:-3px}
+
+/* continuidad entre vistas: la portada o el retrato viajan a su sitio; el resto cambia con un fundido corto. Movimiento mecánico: corto y con tope */
+::view-transition-group(viajero){animation-duration:.38s;animation-timing-function:cubic-bezier(.2,.9,.25,1)}
+::view-transition-old(viajero),::view-transition-new(viajero){height:100%;width:100%;object-fit:cover}
+::view-transition-old(root),::view-transition-new(root){animation-duration:.22s}
+.vt .panel{animation:none}
+
+/* ---------- tablet ---------- */
+/* en vertical (600–820 px) usa la disposición del móvil, pero aprovechando el ancho: más portadas por fila y la ficha a dos columnas */
+@media (min-width:600px) and (max-width:820px){
+  .rejilla{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+  .modulos{grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+  .fl{grid-template-columns:minmax(0,40%) minmax(0,1fr);gap:22px}
+}
+@media (min-width:740px) and (max-width:820px){
+  .rejilla{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
+/* en horizontal (pantalla táctil ancha) usa la disposición de ordenador, con dianas y letra para el dedo y los filtros plegados */
+@media (min-width:821px) and (max-width:1400px) and (pointer:coarse){
+  .tecla{font-size:11px;min-height:40px;box-sizing:border-box}
+  .llave{font-size:11px;min-height:40px}.llave .n{font-size:11px}
+  .fader .lbl,.sub2,.campo label,.creditos th,.escala .k,.ref .c,.fl .cod,.eti span,.modulo .rol,.part span,.sinf span,.txt .k,.mando .ref,#lema .k,#proxLin span,.der .dest,.antena,.anio b,.conteo,.visor .nn,.riel button{font-size:11px}
+  input,textarea,select{font-size:16px}
+  a,button,input,select,textarea,label{touch-action:manipulation}
+  .filtrosM{display:flex;gap:8px;margin:0 0 14px}
+  .filtrosM #bFil{flex:1;justify-content:space-between;height:44px;padding:0 14px}
+  .filtrosM #bFil b{margin-left:auto;margin-right:12px;font-weight:800;color:var(--azul)}
+  .filtrosM #bFil i{width:0;height:0;border-left:5px solid transparent;border-right:5px solid transparent;border-top:7px solid var(--tinta)}
+  .filtrosM #bFil[aria-expanded="true"] i{border-top:0;border-bottom:7px solid var(--tinta)}
+  .filtrosM #bLimpia{height:44px;padding:0 14px}
+  .panel-cuerpo:not(.fil-abiertos) > .faders{display:none}
+}
+
+/* ---------- la ficha en ordenador: la portada manda ---------- */
+/* más grande, se queda a la vista mientras se leen los datos y se inclina hacia el puntero, como un objeto que se tiene en la mano */
+@media (min-width:821px){
+  .fl{grid-template-columns:minmax(240px,min(44%,480px)) minmax(0,1fr)}
+  .fl > .portada,.fl > .retrato,.fl > .sinp,.fl > .sinf{position:sticky;top:0}
+  .fl > img.portada{transform:perspective(1000px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg));transition:transform .5s cubic-bezier(.2,.9,.25,1),box-shadow .5s;box-shadow:0 10px 24px -14px rgba(20,26,40,.55)}
+  .fl > img.portada.en-mano{transition-duration:.12s;box-shadow:0 22px 38px -18px rgba(20,26,40,.6)}
+}
+@media (prefers-reduced-motion:reduce){.fl > img.portada{transform:none;transition:none}}
