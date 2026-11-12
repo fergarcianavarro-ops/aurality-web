@@ -779,9 +779,9 @@ iframe.vid{display:block;width:100%;aspect-ratio:16/9;border:0;margin-top:8px;ba
 /* el archivo: nada tapa la escena; las fichas van en una bandeja inclinada que se desliza hacia ti */
 .panel.abierta:not(.depie){background:none;box-shadow:none;clip-path:none;animation:none}
 .panel.abierta:not(.depie) .panel-cab{position:absolute;z-index:4;left:0;top:0;border:0;padding:14px 20px 13px;background:linear-gradient(180deg,#ecebe6,#e2e0d9);clip-path:var(--chaflan);box-shadow:inset 0 1px 0 #fff}
-.panel.abierta .vista{display:none}
+.panel.abierta:not(.depie) .panel-cab{display:flex;align-items:center;gap:22px}
 .panel.abierta:not(.depie) .panel-cuerpo{padding:0;scrollbar-width:thin;scrollbar-color:rgba(40,48,66,.45) transparent}
-.mesa-mandos{position:absolute;z-index:5;right:0;top:0;display:flex;gap:8px;align-items:stretch;justify-content:flex-end}
+.mesa-mandos{position:absolute;z-index:5;left:0;top:62px;display:flex;gap:8px;align-items:stretch}   /* segunda fila, bajo la placa del título */
 .mesa-mandos .filtrosM{display:flex;gap:8px;margin:0}
 .mesa-mandos .filtrosM #bFil{justify-content:space-between;gap:10px;height:40px;padding:0 14px}
 .mesa-mandos .filtrosM #bFil b{font-weight:800;color:var(--azul)}
@@ -789,7 +789,7 @@ iframe.vid{display:block;width:100%;aspect-ratio:16/9;border:0;margin-top:8px;ba
 .mesa-mandos .filtrosM #bFil[aria-expanded="true"] i{border-top:0;border-bottom:7px solid var(--tinta)}
 .mesa-mandos .filtrosM #bLimpia{height:40px;padding:0 14px}
 .mesa-mandos .conteo{order:-1;margin:0;gap:16px;padding:0 14px;height:40px;background:linear-gradient(180deg,#ecebe6,#e2e0d9);clip-path:var(--chaflan);box-shadow:inset 0 1px 0 #fff}
-.mesa-mandos .faders{display:none;position:absolute;right:0;top:48px;width:min(760px,calc(100vw - var(--faja-w) - var(--hueco) - 56px));margin:0;max-height:60vh;overflow:auto;background:linear-gradient(180deg,#ecebe6,#e2e0d9);clip-path:var(--chaflan);box-shadow:inset 0 1px 0 #fff}
+.mesa-mandos .faders{display:none;position:absolute;left:0;top:48px;width:min(760px,calc(100vw - var(--faja-w) - var(--hueco) - 56px));margin:0;max-height:60vh;overflow:auto;background:linear-gradient(180deg,#ecebe6,#e2e0d9);clip-path:var(--chaflan);box-shadow:inset 0 1px 0 #fff}
 .panel.abierta:has(.panel-cuerpo.fil-abiertos) .mesa-mandos .faders{display:grid}
 .pista{position:relative}
 .mesa-escena{position:sticky;top:0;overflow:hidden;perspective:1350px;perspective-origin:50% 4%}
@@ -820,16 +820,6 @@ iframe.vid{display:block;width:100%;aspect-ratio:16/9;border:0;margin-top:8px;ba
   .panel.depie:hover,.panel.depie:focus-within,.con-depie:has(.panel.depie:hover) .placa-canto,.con-depie:has(.panel.depie:focus-within) .placa-canto,.con-depie:has(.panel.depie:hover) .placa-sombra,.con-depie:has(.panel.depie:focus-within) .placa-sombra{transform:perspective(1700px) rotateY(0deg) rotateX(0deg)}
 }
 @media (prefers-reduced-motion:reduce){.panel.depie,.con-depie .placa-canto,.con-depie .placa-sombra{transform:none!important}}
-/* el piloto en móvil y tablet vertical: la bandeja a dos columnas, con menos inclinación; sin lector (no hay puntero) */
-@media (max-width:820px){
-  .panel.abierta:not(.depie){background:none}
-  .panel.abierta:not(.depie) .panel-cab{position:relative;margin:0 0 8px}
-  .mesa-mandos{position:relative;flex-wrap:wrap;justify-content:flex-start;margin:0 0 8px}
-  .mesa-mandos .faders{position:relative;top:0;width:100%;max-height:none}
-  .mesa-escena{top:56px;perspective:820px;perspective-origin:50% 0%}
-  .mesa-plano{left:3%;right:3%;bottom:4%;transform:rotateX(42deg) translateY(calc(var(--s,0) * 1px))}
-  .mesa-plano .rejilla{gap:14px}
-  .mesa-plano .ref{flex-basis:calc((100% - (var(--cols,2) - 1) * 14px) / var(--cols,2))}
-  .lector{display:none}
-}
+/* la mesa solo existe en ordenador (pantalla ancha y puntero fino): en móvil y en táctil, el catálogo es la rejilla o la lista de siempre */
+@media not ((min-width:821px) and (hover:hover) and (pointer:fine)){#vMes{display:none}}
 @media (min-width:821px) and (max-width:1320px){.panel.abierta:not(.depie) .panel-cab .sub{display:none}}

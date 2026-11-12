@@ -1288,7 +1288,10 @@ const filtraSin = (r, sin) => (sin === 'tipo' || TIPO_ON.has(tipoDe(r))) && (sin
   && (sin === 'gen' || !GEN_ON.size || GEN_ON.has(r.genre)) && FILTROS.every((f, i) => sel[i] === 0 || String(r[f.k]) === f.ops[sel[i]]);
 const limpiaFiltros = () => { sel.fill(0); ART_ON.clear(); GEN_ON.clear(); TIPOS_C.forEach(([k]) => TIPO_ON.add(k)); };
 const sel = FILTROS.map(() => 0); let vista = 'rejilla';
-try { vista = localStorage.getItem('au-vista') || 'rejilla'; } catch (e) {}
+// la mesa (el catálogo dentro de la escena) es una vista solo de ordenador: pide pantalla ancha y puntero fino. En móvil y en táctil, rejilla o lista.
+const mesaOK = matchMedia('(min-width:821px) and (hover:hover) and (pointer:fine)');
+try { vista = localStorage.getItem('au-vista') || 'rejilla'; } catch (e) {}   // la mesa es una tercera vista: se elige, no viene puesta
+const vistaEf = () => vista === 'mesa' && !mesaOK.matches ? 'rejilla' : vista;
 $('nRefs').textContent = REL.length + ' referencias';
 const esc = t => String(t).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
 const pend = v => !v || /POR DEFINIR/i.test(v) || /S\/T/.test(v);
@@ -1333,9 +1336,9 @@ function pintaResultados0() {
   const r = filtrados(), codes = new Set(r.map(x => x.code)), cont = $('resultados'); $('conteo').textContent = `Mostrando ${r.length} de ${REL.length}`;
   const pos = new Map([...REL].sort(ORDENES[ordenC] || ORDENES.recientes).map((x, n) => [x.code, n]));
   const ordena = () => cont.querySelectorAll('[data-c]').forEach(el => { el.style.order = pos.get(el.dataset.c); });
-  const q = vista === 'rejilla' ? '.ref' : '.fila[data-c]';
+  const q = vista !== 'lista' ? '.ref' : '.fila[data-c]';
   if (vistaPintada !== vista || !cont.querySelector(q)) {
-    cont.innerHTML = (vista === 'rejilla' ? `<div class="rejilla">${REL.map(tarjetaRef).join('')}</div>`
+    cont.innerHTML = (vista !== 'lista' ? `<div class="rejilla">${REL.map(tarjetaRef).join('')}</div>`
       : `<div class="lista"><div class="fila cab" aria-hidden="true"><span>CÓDIGO</span><span>ARTISTA</span><span class="t">TÍTULO</span><span class="f">FORMATO</span><span class="g">GÉNERO</span><span class="y">AÑO</span><span></span></div>${REL.map(filaRef).join('')}</div>`)
       + `<div class="vacio" id="vacioC" hidden>Ninguna referencia con estos filtros.<button class="tecla" id="bLimpiar">Quitar filtros</button></div>`;
     $('bLimpiar').onclick = () => { limpiaFiltros(); pintaFaders(); pintaResultados(); };
@@ -1398,7 +1401,7 @@ const corto = (o, m) => o.length <= m ? o : (o.split(' ')[0].length <= m ? o.spl
 function vistaCatalogo() {
   const P = $('panel');
   P.innerHTML = `<header class="panel-cab"><div><h2>CATÁLOGO</h2><div class="sub">${REL.length} referencias · ${REL[REL.length - 1].code}–${REL[0].code} · Broadcasted from Elda</div></div>
-    <div class="vista" role="group" aria-label="Vista"><button class="tecla" id="vRej" aria-pressed="${vista === 'rejilla'}">Rejilla</button><button class="tecla" id="vLis" aria-pressed="${vista === 'lista'}">Lista</button></div></header>
+    <div class="vista" role="group" aria-label="Vista"><button class="tecla" id="vMes" aria-pressed="${vistaEf() === 'mesa'}">Mesa</button><button class="tecla" id="vRej" aria-pressed="${vistaEf() === 'rejilla'}">Rejilla</button><button class="tecla" id="vLis" aria-pressed="${vistaEf() === 'lista'}">Lista</button></div></header>
     <div class="panel-cuerpo"><div class="filtrosM"><button class="tecla" type="button" id="bFil" aria-expanded="false" aria-controls="faders">Filtros<b id="nFil"></b><i aria-hidden="true"></i></button><button class="tecla" type="button" id="bLimpia" hidden>Limpiar</button></div><div class="faders" id="faders" aria-label="Filtros · corredor AU-04">
       ${TIPOS_C.length > 1 ? `<div class="fader"><span class="lbl">TIPO</span><div class="llaves" role="group" aria-label="Tipo">${TIPOS_C.map(([k, n]) => `<button class="llave" type="button" data-t="${k}" aria-pressed="true"><i aria-hidden="true"></i>${n}<span class="n"></span></button>`).join('')}</div></div>` : ''}
       <div class="fader"><span class="lbl">ARTISTA</span><div class="llaves" role="group" aria-label="Artistas (varios a la vez; ninguno = todos)">${ARTISTAS.map(a => `<button class="llave" type="button" data-a="${esc(a)}" aria-pressed="false"><i aria-hidden="true"></i>${esc(a)}<span class="n"></span></button>`).join('')}</div></div>
@@ -1436,7 +1439,9 @@ function vistaCatalogo() {
     riel.addEventListener('keydown', e => { const d = e.key === 'ArrowRight' ? 1 : e.key === 'ArrowLeft' ? -1 : 0; if (!d) return; e.preventDefault(); sel[i] = Math.max(0, Math.min(FILTROS[i].ops.length - 1, sel[i] + d)); pintaFaders(); pintaResultados(); riel.querySelectorAll('button')[sel[i]].focus(); });
   });
   vistaPintada = null;
-  const setV = v => { vista = v; try { localStorage.setItem('au-vista', v); } catch (e) {} $('vRej').setAttribute('aria-pressed', v === 'rejilla'); $('vLis').setAttribute('aria-pressed', v === 'lista'); pintaResultados(); };
+  const setV = v => { const eraMesa = !!mesa; vista = v; try { localStorage.setItem('au-vista', v); } catch (e) {} $('vMes').setAttribute('aria-pressed', v === 'mesa'); $('vRej').setAttribute('aria-pressed', v === 'rejilla'); $('vLis').setAttribute('aria-pressed', v === 'lista');
+    if (eraMesa || (v === 'mesa' && mesaOK.matches)) rutaYa(); else pintaResultados(); };   // entrar o salir de la mesa cambia la sección entera
+  $('vMes').onclick = () => setV('mesa');
   $('vRej').onclick = () => setV('rejilla'); $('vLis').onclick = () => setV('lista');
   pintaResultados(); requestAnimationFrame(pintaFaders);
 }
@@ -2107,9 +2112,9 @@ const deDireccion = p => { p = p.replace(/\/+$/, ''); const q = p.toLowerCase();
 // Nada tapa la escena. Las fichas descansan en una bandeja inclinada que se desliza hacia ti al desplazar; la más cercana
 // (o la que señalas) se lee en el lector, junto al módulo AU-04. Reutiliza el catálogo de siempre: mismos filtros, mismas tarjetas.
 let mesa = null;
-function abreArchivo() {
+function abreArchivo(pil) {
   const P = $('panel'), cu = P.querySelector('.panel-cuerpo'), res = $('resultados');
-  P.querySelector('.panel-cab h2').textContent = 'ARCHIVO';
+  if (vista === 'lista') { vista = 'mesa'; vistaPintada = null; pintaResultados0(); }                // /archivo fuerza la mesa aunque se hubiera elegido la lista
   const man = document.createElement('div'); man.className = 'mesa-mandos';                       // los mandos no se desplazan con la mesa
   [P.querySelector('.filtrosM'), P.querySelector('.conteo'), $('faders')].forEach(e => e && man.appendChild(e)); P.insertBefore(man, cu);
   const lec = document.createElement('div'); lec.className = 'lector'; lec.innerHTML = '<span class="k">FICHA EN LECTURA</span><b class="cod"></b><span class="dat"></span><span class="art"></span><span class="tit"></span>'; P.appendChild(lec);
@@ -2121,13 +2126,13 @@ function abreArchivo() {
     lec.querySelector('.art').textContent = r.artist; lec.querySelector('.tit').textContent = titulo(r);
     res.querySelectorAll('.ref.leida').forEach(e => e.classList.remove('leida')); const el = res.querySelector(`.ref[data-c="${c}"]`); if (el) el.classList.add('leida'); };
   const m = mesa = { cols: 4, filaH: 300, vis: [],
-    s() { return movilQ.matches ? Math.max(0, -res.getBoundingClientRect().top + esc_.offsetTop) : cu.scrollTop; },
+    s() { return cu.scrollTop; },
     mide() {
       const rej = res.querySelector('.rejilla'); if (!rej) return; if (rej.parentNode !== pl) pl.appendChild(rej);
-      res.querySelectorAll('a.ref').forEach(a => { const h = '#archivo-' + a.dataset.c; if (a.getAttribute('href') !== h) a.setAttribute('href', h); });
+      if (pil) res.querySelectorAll('a.ref').forEach(a => { const h = '#archivo-' + a.dataset.c; if (a.getAttribute('href') !== h) a.setAttribute('href', h); });
       this.vis = [...rej.querySelectorAll('.ref:not([hidden])')].sort((a, b) => (+a.style.order || 0) - (+b.style.order || 0));
-      this.cols = movilQ.matches ? (innerWidth >= 600 ? 3 : 2) : cu.clientWidth < 760 ? 3 : 4; rej.style.setProperty('--cols', this.cols);
-      const alto = movilQ.matches ? Math.max(360, innerHeight - (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--dock')) || 132) - 56) : cu.clientHeight;
+      this.cols = cu.clientWidth < 760 ? 3 : 4; rej.style.setProperty('--cols', this.cols);
+      const alto = cu.clientHeight;
       esc_.style.height = alto + 'px';
       const c0 = this.vis[0]; this.filaH = c0 ? c0.offsetHeight + (parseFloat(getComputedStyle(rej).rowGap) || 0) : 300;
       const filas = Math.ceil(this.vis.length / this.cols);
@@ -2140,11 +2145,10 @@ function abreArchivo() {
   res.addEventListener('pointerover', e => { const c = e.target.closest && e.target.closest('.ref'); if (c && e.pointerType === 'mouse') { senalada = c; lee(c.dataset.c); } });
   res.addEventListener('pointerleave', () => { senalada = null; m.mueve(); });
   res.addEventListener('focusin', e => { const c = e.target.closest && e.target.closest('.ref'); if (!c) return; lee(c.dataset.c);          // con teclado: la ficha enfocada se trae al frente
-    const i = m.vis.indexOf(c), y = Math.floor(i / m.cols) * m.filaH; if (i >= 0 && !movilQ.matches) cu.scrollTop = y; });
+    const i = m.vis.indexOf(c), y = Math.floor(i / m.cols) * m.filaH; if (i >= 0) cu.scrollTop = y; });
   m.mide(); if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (mesa === m) m.mide(); });
 }
-addEventListener('scroll', () => { if (mesa && movilQ.matches) mesa.mueve(); }, { passive: true });
-addEventListener('resize', () => { if (mesa) mesa.mide(); });
+addEventListener('resize', () => { if (mesa) { if (mesaOK.matches) mesa.mide(); else rutaYa(); } });   // si la ventana deja de dar para la mesa, vuelve la rejilla
 // la ficha del piloto: la placa de siempre, de pie en la escena; se pone de frente al acercarse a leerla
 function abrePlaca() {
   const P = $('panel');
@@ -2187,8 +2191,10 @@ function rutaYa(ev) {
   const P = $('panel'); P.hidden = seccion === 'escucha';
   if (radioPorSC) { radioPorSC = false; radio.encender().then(pintaPlay); }
   if (seccion === 'catalogo') vistaCatalogo(); if (seccion === 'ficha') { vistaFicha(r); montaSC($('panel')); } if (seccion === 'roster') vistaRoster(); if (seccion === 'artista') vistaArtista(art); if (seccion === 'senal') { anioSen = sen.anio; vistaSenal(sen); } if (seccion === 'manifiesto') vistaManifiesto(); if (seccion === 'contacto') vistaContacto(); if (seccion === 'registro') vistaRegistro(); if (seccion === 'editorial') vistaEditorial(); if (seccion === 'kit') vistaKit(kitA);
-  mesa = null; P.classList.toggle('abierta', pil); P.classList.toggle('depie', pil && seccion === 'ficha'); document.body.classList.toggle('con-depie', pil && seccion === 'ficha');
-  if (pil) { if (seccion === 'ficha') abrePlaca(); else abreArchivo(); }
+  // con la vista Mesa elegida (solo ordenador) el catálogo vive en la escena y sus fichas son placas de pie; /archivo es la misma mesa, forzada
+  const enMesa = seccion === 'catalogo' && mesaOK.matches && (pil || vista === 'mesa'), dePie = seccion === 'ficha' && mesaOK.matches && (pil || vista === 'mesa');
+  mesa = null; P.classList.toggle('abierta', enMesa || dePie); P.classList.toggle('depie', dePie); document.body.classList.toggle('con-depie', dePie);
+  if (enMesa) abreArchivo(pil); if (pil && seccion === 'ficha') abrePlaca();
   if (seccion !== 'escucha') { P.style.animation = 'none'; void P.offsetWidth; P.style.animation = '';
     if (PADRE[seccion] === antes) sPadre = sAntes; P.querySelector('.panel-cuerpo').scrollTop = PADRE[antes] === seccion ? sPadre : 0; }   // al volver de una ficha, el catálogo sigue donde estaba
   if (movilQ.matches) { if (PADRE[seccion] === antes) yPadre = yAntes; scrollTo(0, PADRE[antes] === seccion ? yPadre : 0); document.querySelector('.barra').classList.remove('oculta'); }
