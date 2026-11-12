@@ -42,3 +42,13 @@
   from = "/*"
   to = "/index.html"
   status = 200
+
+# el programa lleva una huella en el nombre y las tipografías no cambian: caché de un año
+[[headers]]
+  for = "/js/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"
+[[headers]]
+  for = "/fuentes/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

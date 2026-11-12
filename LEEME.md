@@ -5,26 +5,36 @@ La web de aurality, en https://aurality.es. Cloudflare la publica desde este rep
 
 ```
 web/                lo que se publica
-  index.html          la web (se genera desde fuente/, no se edita a mano)
+  index.html          la página (se genera desde fuente/, no se edita a mano)
+  js/                 el programa de la web, empaquetado con three.js (se genera; el nombre lleva una huella)
+  fuentes/            las tipografías, servidas desde la propia web
   contenido/          TODO el contenido, en cuatro archivos que edita el panel
     lanzamientos.json   catálogo
     artistas.json       roster
     senal.json          Señal Mensual
     textos.json         manifiesto y contacto
   admin/              el panel privado  →  tu-web/admin
-  covers/             portadas y fotos que subes desde el panel
-  senal/              portadas de la Señal Mensual
+  covers/             portadas y fotos que subes desde el panel (covers/v/: sus copias ligeras, automáticas)
+  senal/              portadas de la Señal Mensual (senal/v/: sus copias ligeras)
   img/                faja de cromo, punta, barra móvil, lettering
   _headers            cabeceras de Cloudflare (caché y panel fuera de buscadores)
 netlify.toml        configuración de Netlify, por si se vuelve a publicar allí (publica web/)
 wrangler.jsonc      configuración de Cloudflare Workers (publica web/)
-worker/             el portero: pone la vista previa de cada enlace (portada, foto…) al compartir
+worker/             el portero: vista previa de cada enlace al compartir, contenido en texto para buscadores,
+                    sitemap.xml, robots.txt y las frecuencias ocultas
 fuente/             código de origen de la web (no se publica)
-  home_src.html       diseño, escena 3D, radio ambient, secciones
-  parts.js, geo.json  piezas 3D AU-01…AU-05
-  build.py            regenera web/index.html  →  python3 fuente/build.py
+  home_src.html       el marcado de la página
+  estilos.css         todos los estilos
+  js/principal.js     el programa: radio ambient, secciones, escena 3D
+  js/piezas.js        piezas 3D AU-01…AU-06 (con geo.json)
+  js/carga.js         la pantalla de arranque
+  img/                originales de las texturas de la interfaz
+  build.py            monta todo  →  python3 fuente/build.py
+pruebas/            pruebas automáticas: abre la web en ordenador, tablet y móvil y avisa si algo se rompe
+.github/workflows/  tarea que genera sola las copias ligeras de cada portada subida desde el panel
 ```
 
+---
 ---
 
 ## 1 · Dónde está publicada
@@ -106,6 +116,14 @@ Con «Añadir a pantalla de inicio» se instala como app (`web/manifest.webmanif
 
 ## 6 · Para quien toque el código
 
-- El diseño se cambia en `fuente/` y se regenera con `python3 fuente/build.py`. Ese script solo reescribe `web/index.html`, nunca el contenido ni las imágenes.
+- La primera vez: `npm install` (trae esbuild, three.js, las tipografías y wrangler). Hace falta Python 3 con Pillow.
+- El diseño se cambia en `fuente/` y se monta con `python3 fuente/build.py`. Ese script reescribe `web/index.html`, `web/js/` y `web/fuentes/`,
+  y genera las copias ligeras de las portadas que falten; nunca toca el contenido ni las imágenes originales.
+- Para verla en local con el portero: `npx wrangler dev --port 8799`. Para pasar las pruebas: `node pruebas/humo.js` (ver la cabecera de ese archivo).
 - Antes de subir cambios, trae lo último (`git pull`). El panel también escribe en este repositorio.
-- three.js (jsDelivr), las fuentes (Google Fonts), el reproductor de SoundCloud el panel (Sveltia CMS, unpkg) y el envío del formulario (FormSubmit) se cargan desde fuera.
+- **Portadas ligeras.** Cada imagen de `web/covers/` y `web/senal/` tiene tres copias en WebP (320, 640 y 1280 px) en la subcarpeta `v/`.
+  La web pide la que necesita y, si aún no existe, enseña la original. Al subir una portada desde el panel, la tarea de GitHub las genera sola.
+- **Buscadores.** El portero deja en cada dirección su contenido en texto, su dirección canónica (siempre `https://aurality.es/…`) y sus datos de música,
+  y publica `/sitemap.xml` y `/robots.txt` a partir del contenido del panel. Cualquier otra dirección de la web (workers.dev, vistas previas) lleva `noindex`.
+- **Llegada directa.** Quien abre un enlace a una ficha o a una sección la ve sin pasar por ENCENDER; el sonido se pide con ▶.
+- three.js y las tipografías ya van dentro de la web. Siguen cargándose desde fuera el reproductor de SoundCloud, el panel (Sveltia CMS, unpkg) y el envío del formulario (FormSubmit).

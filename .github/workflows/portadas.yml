@@ -1,0 +1,28 @@
+# aurality · portadas ligeras automáticas.
+# Cuando se sube una portada o una foto desde el panel (/admin), esta tarea genera sus copias ligeras
+# (tres anchos en WebP, en web/covers/v y web/senal/v) y las guarda en el repositorio. No hay que hacer nada a mano.
+# Mientras no existen, la web enseña la imagen original: nunca se queda sin portada.
+name: Portadas ligeras
+on:
+  push:
+    branches: [main]
+    paths: ['web/covers/*', 'web/senal/*']
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency: portadas
+jobs:
+  generar:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: { python-version: '3.12' }
+      - run: pip install --quiet pillow
+      - run: python3 fuente/build.py --portadas
+      - name: Guardar las copias nuevas
+        run: |
+          git config user.name "aurality · portadas"
+          git config user.email "actions@users.noreply.github.com"
+          git add web/covers/v web/senal/v
+          git diff --cached --quiet || { git commit -m "Portadas ligeras de lo subido desde el panel"; git pull --rebase -q; git push; }

@@ -1,0 +1,18 @@
+{
+  "name": "aurality-web",
+  "private": true,
+  "description": "Herramientas de montaje y pruebas de la web de aurality. La web publicada es la carpeta web/.",
+  "scripts": {
+    "montar": "python3 fuente/build.py",
+    "pruebas": "node pruebas/humo.js"
+  },
+  "devDependencies": {
+    "@fontsource-variable/instrument-sans": "5.3.0",
+    "@fontsource-variable/jetbrains-mono": "5.3.0",
+    "@fontsource/michroma": "5.3.0",
+    "axe-core": "4.14.0",
+    "esbuild": "0.28.2",
+    "three": "0.186.1",
+    "wrangler": "4.160.1"
+  }
+}
