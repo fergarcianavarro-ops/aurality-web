@@ -1460,6 +1460,7 @@ const FRAG = 75, FUNDE = 7;                                                     
 const aSeg = v => { const m = String(v || '').trim().match(/^(\d+):(\d{1,2})$/); return m ? +m[1] * 60 + +m[2] : null; };
 addEventListener('resize', () => { if ($('tira00').classList.contains('on')) cat00.muestraTira(true); });
 const catSC = {
+  cebado: [false, false],
   cola: REL.filter(r => r.soundcloud), w: [], vol: [0, 0], iv: [], act: -1, prep: null, ahora: null, timers: [], ult: [], pedido: null,
   id: 0, vivo: false, bloqueo: false, fallo: false, SC: null, sonando: false,
   // iPhone / iPad: Safari solo deja sonar el reproductor de SoundCloud si se toca con el dedo. Ahí el canal 00 usa un único
@@ -1549,8 +1550,16 @@ const catSC = {
     this.funde(p.k, 100, FUNDE); pintaCanal();
     // algunos navegadores (sobre todo en iPhone) no dejan sonar un reproductor externo sin tocarlo: se avisa
     this.luego(() => w.isPaused(pa => { if (pa && id === this.id && this.ahora === p) this.pasaATira(); }), 5);
-    this.luego(async () => { const q = await this.prepara(1 - p.k, this.siguiente()); if (id === this.id) this.prep = q; }, 12);
+    this.cebado[p.k] = true;
+    this.luego(async () => { const q = await this.prepara(1 - p.k, this.siguiente()); if (id === this.id) { this.prep = q; this.ceba(q); } }, this.cebado[1 - p.k] ? 12 : 4);
     this.luego(() => { if (this.ahora === p) this.cruza(id); }, Math.max(20, Math.min(FRAG, p.dur - p.ini) - FUNDE));
+  },
+  // un reproductor que nunca ha sonado no arranca con la pestaña en segundo plano: el navegador lo aplaza hasta que se vuelve
+  // a ella, y la radio se quedaba callada entre un tema y el siguiente. Se le hace sonar un instante en silencio mientras la
+  // pestaña está a la vista (al preparar el siguiente tema) y ya queda libre para arrancar solo.
+  ceba(q) {
+    if (!q || this.tira || this.cebado[q.k] || document.hidden || this.act === q.k || !this.vivo) return; const k = q.k, w = this.w[k]; this.cebado[k] = true;
+    w.setVolume(0); this.vol[k] = 0; w.play(); RELOJ.espera(() => { if (this.act !== k) { w.pause(); w.seekTo(q.ini * 1000); } }, 900);
   },
   // empieza a sonar de verdad (por el código o porque se ha tocado ▶ en la tira)
   alSonar(k) {
@@ -1677,6 +1686,7 @@ const catPropio = {
   },
 };
 const cat00 = radio.cat = PROPIO ? catPropio : catSC;
+document.addEventListener('visibilitychange', () => { if (!document.hidden && !PROPIO && catSC.prep) catSC.ceba(catSC.prep); });
 if (PROPIO && SIN00) {                                                                // con fragmentos propios el canal 00 existe también donde SoundCloud no deja
   SIN00 = false; F_MIN = 0; const b = $('canal0'); if (b) { b.disabled = false; b.style.visibility = ''; b.removeAttribute('aria-hidden'); }
 }
@@ -2369,7 +2379,7 @@ addEventListener('hashchange', ruta);
 addEventListener('popstate', ev => { if (!location.hash) ruta(ev); });   // atrás / adelante entre direcciones limpias
 ruta();
 // quien llega directo a una ficha o a una sección la ve sin pasar por ENCENDER: el receptor entra en silencio y el sonido se pide con ▶
-if (window.__directo && seccion !== 'escucha') encender(false);
+if (window.__directo && seccion !== 'escucha') { $('encendido').style.transition = 'none'; encender(false); }   // sin fundido: la puerta no llega a verse
 window.__carga?.mark('datos', REL.length + ' REF. · SEÑAL ' + (SEN[0] ? SEN[0].code : '—'));
 addEventListener('resize', punta); requestAnimationFrame(punta);
 const abrir = v => { $('faja').classList.toggle('abierta', v); $('velo').classList.toggle('on', v); $('bMenu').setAttribute('aria-expanded', v); if (v) punta(); };
