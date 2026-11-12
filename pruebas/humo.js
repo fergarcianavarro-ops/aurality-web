@@ -15,7 +15,7 @@ const PANTALLAS = [
   ['tablet-v', { viewport: { width: 820, height: 1180 }, isMobile: true, hasTouch: true }],
   ['movil', { viewport: { width: 393, height: 852 }, isMobile: true, hasTouch: true, deviceScaleFactor: 2 }],
 ].filter(([n]) => !SOLO || SOLO.includes(n));
-const VISTAS = ['catalogo', 'AU0212', 'roster', 'editorial', 'senal', 'manifiesto', 'contacto'];
+const VISTAS = ['catalogo', 'AU0212', 'roster', 'editorial', 'senal', 'manifiesto', 'contacto', 'archivo', 'archivo-AU0212'];   // las dos últimas: el piloto de «la máquina abierta»
 const fallos = [], avisos = [];
 
 (async () => {

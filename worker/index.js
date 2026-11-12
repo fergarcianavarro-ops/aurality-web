@@ -126,6 +126,7 @@ async function contenido(env, origen, clave) {
   if (k === 'contacto') { const c = (await lee('textos.json')).contacto || {};
     return { ruta: '/contacto', html: `<h1>Contacto · aurality</h1><p>Demos, contratación y prensa.</p>${c.email ? `<p>Correo: <a href="mailto:${esc(c.email)}">${esc(c.email)}</a></p>` : ''}${c.instagram ? `<p>${enlace(c.instagram, 'Instagram de aurality')}</p>` : ''}
       ${parrafos(c.intro_demo)}${parrafos(c.intro_contratacion)}${parrafos(c.intro_prensa)}${c.nota ? `<p>${esc(c.nota)}</p>` : ''}${nav}`, ld: [] }; }
+  if (/^archivo(-au\d+)?$/.test(k)) return { ruta: '/' + k.replace(/au\d+$/, x => x.toUpperCase()), html: `<h1>aurality</h1>${nav}`, ld: [], reservado: true };   // piloto en pruebas: existe, pero fuera de buscadores
   if (k === 'registro') return { ruta: '/registro', html: `<h1>Registro de escucha · aurality</h1><p>Las frecuencias ocultas captadas en este aparato.</p>${nav}`, ld: [], reservado: true };
   if (k === 'kit') { const [tx, as] = await Promise.all([lee('textos.json'), arts()]), K = tx.kit || {}, m = tx.manifiesto || {};
     return { ruta: '/kit', html: `<h1>Kit de prensa de aurality</h1>${parrafos(K.texto) || parrafos([m.titular, (m.parrafos || [])[0]].filter(Boolean).join('\n\n'))}

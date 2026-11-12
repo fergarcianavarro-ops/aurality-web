@@ -1328,7 +1328,8 @@ const sinMov = matchMedia('(prefers-reduced-motion: reduce)');
 let vistaPintada = null;
 // todas las referencias se pintan una vez; al filtrar, las que salen se desvanecen en su sitio, las que quedan se deslizan
 // a su nueva posición y las que entran aparecen escalonadas
-function pintaResultados() {
+function pintaResultados() { pintaResultados0(); if (mesa) mesa.mide(); }
+function pintaResultados0() {
   const r = filtrados(), codes = new Set(r.map(x => x.code)), cont = $('resultados'); $('conteo').textContent = `Mostrando ${r.length} de ${REL.length}`;
   const pos = new Map([...REL].sort(ORDENES[ordenC] || ORDENES.recientes).map((x, n) => [x.code, n]));
   const ordena = () => cont.querySelectorAll('[data-c]').forEach(el => { el.style.order = pos.get(el.dataset.c); });
@@ -2100,7 +2101,56 @@ const NOMBRE = { escucha: ['01 · SECCIÓN', 'ESCUCHA'], catalogo: ['02 · SECCI
 // direcciones limpias: la barra del navegador enseña /AU0212, /ufisi, /senal-10_26 o /catalogo (lo que se comparte),
 // mientras los enlaces internos siguen siendo #AU0212, #a-ufisi, #s-10_26
 const deDireccion = p => { p = p.replace(/\/+$/, ''); const q = p.toLowerCase();
+  if (/^archivo(-au\d+)?$/.test(q)) return 'archivo' + (q.length > 7 ? '-' + q.slice(8).toUpperCase() : '');   // el piloto de «la máquina abierta»
   return q.startsWith('senal-') ? 's-' + p.slice(6) : ART.some(a => a.s === q) ? 'a-' + q : p; };
+// ---------- piloto «la máquina abierta» (aurality.es/archivo): el catálogo como mesa de fichas ----------
+// Nada tapa la escena. Las fichas descansan en una bandeja inclinada que se desliza hacia ti al desplazar; la más cercana
+// (o la que señalas) se lee en el lector, junto al módulo AU-04. Reutiliza el catálogo de siempre: mismos filtros, mismas tarjetas.
+let mesa = null;
+function abreArchivo() {
+  const P = $('panel'), cu = P.querySelector('.panel-cuerpo'), res = $('resultados');
+  P.querySelector('.panel-cab h2').textContent = 'ARCHIVO';
+  const man = document.createElement('div'); man.className = 'mesa-mandos';                       // los mandos no se desplazan con la mesa
+  [P.querySelector('.filtrosM'), P.querySelector('.conteo'), $('faders')].forEach(e => e && man.appendChild(e)); P.insertBefore(man, cu);
+  const lec = document.createElement('div'); lec.className = 'lector'; lec.innerHTML = '<span class="k">FICHA EN LECTURA</span><b class="cod"></b><span class="dat"></span><span class="art"></span><span class="tit"></span>'; P.appendChild(lec);
+  const esc_ = document.createElement('div'), pl = document.createElement('div'); esc_.className = 'mesa-escena'; pl.className = 'mesa-plano'; esc_.appendChild(pl);
+  res.classList.add('pista'); res.insertBefore(esc_, res.firstChild);
+  let senalada = null, enLector = '';
+  const lee = c => { if (!c || c === enLector) return; enLector = c; const r = REL.find(x => x.code === c); if (!r) return;
+    lec.querySelector('.cod').textContent = r.code; lec.querySelector('.dat').textContent = [r.format, r.genre, r.year].filter(Boolean).join(' · ');
+    lec.querySelector('.art').textContent = r.artist; lec.querySelector('.tit').textContent = titulo(r);
+    res.querySelectorAll('.ref.leida').forEach(e => e.classList.remove('leida')); const el = res.querySelector(`.ref[data-c="${c}"]`); if (el) el.classList.add('leida'); };
+  const m = mesa = { cols: 4, filaH: 300, vis: [],
+    s() { return movilQ.matches ? Math.max(0, -res.getBoundingClientRect().top + esc_.offsetTop) : cu.scrollTop; },
+    mide() {
+      const rej = res.querySelector('.rejilla'); if (!rej) return; if (rej.parentNode !== pl) pl.appendChild(rej);
+      res.querySelectorAll('a.ref').forEach(a => { const h = '#archivo-' + a.dataset.c; if (a.getAttribute('href') !== h) a.setAttribute('href', h); });
+      this.vis = [...rej.querySelectorAll('.ref:not([hidden])')].sort((a, b) => (+a.style.order || 0) - (+b.style.order || 0));
+      this.cols = movilQ.matches ? (innerWidth >= 600 ? 3 : 2) : cu.clientWidth < 760 ? 3 : 4; rej.style.setProperty('--cols', this.cols);
+      const alto = movilQ.matches ? Math.max(360, innerHeight - (parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--dock')) || 132) - 56) : cu.clientHeight;
+      esc_.style.height = alto + 'px';
+      const c0 = this.vis[0]; this.filaH = c0 ? c0.offsetHeight + (parseFloat(getComputedStyle(rej).rowGap) || 0) : 300;
+      const filas = Math.ceil(this.vis.length / this.cols);
+      res.style.height = alto + Math.max(0, filas - 1) * this.filaH + 'px'; this.mueve();
+    },
+    mueve() { const s = this.s(); pl.style.setProperty('--s', s.toFixed(1));
+      if (!senalada) { const f = Math.max(0, Math.round(s / this.filaH)), c = this.vis[Math.min(this.vis.length - 1, f * this.cols)]; if (c) lee(c.dataset.c); } },
+  };
+  cu.addEventListener('scroll', () => m.mueve(), { passive: true });
+  res.addEventListener('pointerover', e => { const c = e.target.closest && e.target.closest('.ref'); if (c && e.pointerType === 'mouse') { senalada = c; lee(c.dataset.c); } });
+  res.addEventListener('pointerleave', () => { senalada = null; m.mueve(); });
+  res.addEventListener('focusin', e => { const c = e.target.closest && e.target.closest('.ref'); if (!c) return; lee(c.dataset.c);          // con teclado: la ficha enfocada se trae al frente
+    const i = m.vis.indexOf(c), y = Math.floor(i / m.cols) * m.filaH; if (i >= 0 && !movilQ.matches) cu.scrollTop = y; });
+  m.mide(); if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (mesa === m) m.mide(); });
+}
+addEventListener('scroll', () => { if (mesa && movilQ.matches) mesa.mueve(); }, { passive: true });
+addEventListener('resize', () => { if (mesa) mesa.mide(); });
+// la ficha del piloto: la placa de siempre, de pie en la escena; se pone de frente al acercarse a leerla
+function abrePlaca() {
+  const P = $('panel');
+  P.querySelectorAll('a[href="#catalogo"]').forEach(a => { a.setAttribute('href', '#archivo'); if (/cat[aá]logo/i.test(a.textContent) && a.children.length === 0) a.textContent = a.textContent.replace(/cat[aá]logo/i, m => m[0] === 'C' ? 'ARCHIVO' : 'Archivo'); });
+  P.querySelectorAll('a[href^="#AU"]').forEach(a => a.setAttribute('href', '#archivo-' + a.getAttribute('href').slice(1)));
+}
 const PADRE = { ficha: 'catalogo', artista: 'roster', senal: 'editorial' }; let yPadre = 0, sPadre = 0, hActual = '';
 // continuidad entre vistas: la portada (o el retrato) que se pulsa viaja hasta su sitio en la vista siguiente, y vuelve.
 // Usa las transiciones entre vistas del navegador; donde no existen, o con movimiento reducido, el cambio es directo como antes.
@@ -2120,12 +2170,13 @@ function ruta(ev) {
 function rutaYa(ev) {
   const antes = seccion, yAntes = scrollY, cAntes = $('panel').querySelector('.panel-cuerpo'), sAntes = cAntes ? cAntes.scrollTop : 0;
   const porHash = (ev && ev.type === 'hashchange') || location.hash.length > 1;
-  const h = porHash ? decodeURIComponent(location.hash.slice(1)) : deDireccion(decodeURIComponent(location.pathname.slice(1))), r = REL.find(x => x.code === h.toUpperCase());
+  const h = porHash ? decodeURIComponent(location.hash.slice(1)) : deDireccion(decodeURIComponent(location.pathname.slice(1)));
+  const pil = /^archivo(-|$)/i.test(h), r = REL.find(x => x.code === (pil ? h.slice(8) : h).toUpperCase());   // pil: el piloto (archivo y su ficha)
   const art = h.startsWith('a-') && ART.find(a => a.s === h.slice(2));
   const sen = h === 'senal' ? SEN[0] : h.startsWith('s-') ? SEN.find(e => e.code === h.slice(2)) : null;
   const kitA = h.startsWith('kit-') ? ART.find(a => a.s === h.slice(4)) : null;
-  seccion = ['catalogo', 'roster', 'manifiesto', 'contacto', 'registro', 'kit', 'editorial'].includes(h) || kitA ? (kitA ? 'kit' : h) : sen ? 'senal' : r ? 'ficha' : art ? 'artista' : 'escucha';
-  const dir = '/' + (seccion === 'escucha' ? '' : seccion === 'ficha' ? r.code : seccion === 'artista' ? art.s : seccion === 'senal' ? (h === 'senal' ? 'senal' : 'senal-' + sen.code) : seccion === 'kit' ? (kitA ? 'kit-' + kitA.s : 'kit') : h);
+  seccion = pil ? (r ? 'ficha' : 'catalogo') : ['catalogo', 'roster', 'manifiesto', 'contacto', 'registro', 'kit', 'editorial'].includes(h) || kitA ? (kitA ? 'kit' : h) : sen ? 'senal' : r ? 'ficha' : art ? 'artista' : 'escucha';
+  const dir = '/' + (pil ? 'archivo' + (r ? '-' + r.code : '') : seccion === 'escucha' ? '' : seccion === 'ficha' ? r.code : seccion === 'artista' ? art.s : seccion === 'senal' ? (h === 'senal' ? 'senal' : 'senal-' + sen.code) : seccion === 'kit' ? (kitA ? 'kit-' + kitA.s : 'kit') : h);
   if (location.pathname + location.hash !== dir) try { history.replaceState(history.state, '', dir); } catch (e) {}
   const navS = seccion === 'ficha' ? 'catalogo' : seccion === 'artista' ? 'roster' : seccion === 'registro' ? 'escucha' : seccion === 'kit' ? (kitA ? 'roster' : 'contacto') : seccion === 'senal' ? 'editorial' : seccion;
   document.querySelectorAll('.placa,.teclado a').forEach(p => p.setAttribute('aria-current', p.dataset.s === navS ? 'page' : 'false')); punta();
@@ -2136,11 +2187,13 @@ function rutaYa(ev) {
   const P = $('panel'); P.hidden = seccion === 'escucha';
   if (radioPorSC) { radioPorSC = false; radio.encender().then(pintaPlay); }
   if (seccion === 'catalogo') vistaCatalogo(); if (seccion === 'ficha') { vistaFicha(r); montaSC($('panel')); } if (seccion === 'roster') vistaRoster(); if (seccion === 'artista') vistaArtista(art); if (seccion === 'senal') { anioSen = sen.anio; vistaSenal(sen); } if (seccion === 'manifiesto') vistaManifiesto(); if (seccion === 'contacto') vistaContacto(); if (seccion === 'registro') vistaRegistro(); if (seccion === 'editorial') vistaEditorial(); if (seccion === 'kit') vistaKit(kitA);
+  mesa = null; P.classList.toggle('abierta', pil); P.classList.toggle('depie', pil && seccion === 'ficha'); document.body.classList.toggle('con-depie', pil && seccion === 'ficha');
+  if (pil) { if (seccion === 'ficha') abrePlaca(); else abreArchivo(); }
   if (seccion !== 'escucha') { P.style.animation = 'none'; void P.offsetWidth; P.style.animation = '';
     if (PADRE[seccion] === antes) sPadre = sAntes; P.querySelector('.panel-cuerpo').scrollTop = PADRE[antes] === seccion ? sPadre : 0; }   // al volver de una ficha, el catálogo sigue donde estaba
   if (movilQ.matches) { if (PADRE[seccion] === antes) yPadre = yAntes; scrollTo(0, PADRE[antes] === seccion ? yPadre : 0); document.querySelector('.barra').classList.remove('oculta'); }
   foco = ({ catalogo: 'p4', ficha: 'hero', roster: 'p3', artista: 'p3', senal: 'p2', registro: 'p2', kit: 'hero', editorial: 'p2', manifiesto: 'hero', contacto: 'p5' })[seccion] || null;
-  mesSenal = seccion === 'senal' ? sen.mes : 0; tunePulse = 0.6; hActual = seccion === 'escucha' ? '' : seccion === 'ficha' ? r.code : seccion === 'artista' ? 'a-' + art.s : seccion === 'senal' ? 's-' + sen.code : h;
+  mesSenal = seccion === 'senal' ? sen.mes : 0; tunePulse = 0.6; hActual = pil ? 'archivo' + (r ? '-' + r.code : '') : seccion === 'escucha' ? '' : seccion === 'ficha' ? r.code : seccion === 'artista' ? 'a-' + art.s : seccion === 'senal' ? 's-' + sen.code : h;
 }
 // ---------- destacados de la portada ----------
 // se eligen a mano en el panel (casilla «Destacar en la portada»): como mucho 3, los más recientes primero.
