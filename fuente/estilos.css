@@ -66,6 +66,7 @@ body{background:linear-gradient(180deg,var(--cielo-1) 0%,var(--cielo-2) 72%);col
 /* frase de entrada: qué es esto, sin encasillar */
 .lema{position:fixed;top:26px;left:calc(var(--faja-w) + 34px);z-index:5;display:grid;gap:9px;pointer-events:none;max-width:min(44vw,520px);animation:aparece 1.2s .6s backwards}
 .lema[hidden]{display:none}
+.lema .lema-m{display:none}   /* móvil: el titular del manifiesto, en la portada, lleva a leerlo entero */
 .lema .k{font:700 10px/1.25 var(--f-mono);letter-spacing:.2em;text-transform:uppercase;color:#2b3242}
 .lema .t{font:400 15px/1.35 var(--f-display);letter-spacing:.05em;color:var(--tinta);text-wrap:balance}
 .lema span{text-shadow:0 0 10px rgba(205,214,228,.95),0 0 3px rgba(205,214,228,.9)}
@@ -627,6 +628,8 @@ iframe.vid{display:block;width:100%;aspect-ratio:16/9;border:0;margin-top:8px;ba
   .velo.on{opacity:1;pointer-events:auto}
   .proximo{position:relative;top:auto;right:auto;width:auto;order:1;animation:none;align-self:stretch;align-content:start}
   .lema{top:calc(84px + env(safe-area-inset-top,0px));left:18px;right:18px;max-width:none;gap:6px}.lema .k{font-size:9px}.lema .t{font-size:13px}
+  .lema .lema-m{display:inline-flex;align-items:center;gap:10px;justify-self:start;pointer-events:auto;margin-top:8px;height:40px;padding:0 14px;text-shadow:none}
+  .lema-m i{width:0;height:0;border-top:5px solid transparent;border-bottom:5px solid transparent;border-left:7px solid currentColor;transform:none}
   .proximo.activo{order:-1}
   .lateral{left:0;right:0;width:auto;bottom:calc(var(--dock) + 12px);flex-direction:row;gap:10px;overflow-x:auto;scroll-snap-type:x mandatory;
     padding-inline:max(12px,env(safe-area-inset-left,0px)) max(12px,env(safe-area-inset-right,0px));scrollbar-width:none;scroll-padding-inline:12px}
