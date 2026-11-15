@@ -2112,6 +2112,7 @@ function vistaContacto() {
   };
 }
 let seccion = 'escucha', foco = null, mesSenal = 0;
+let abreT = 0;   // la máquina: 0 montada · 1 desmontada (el despiece de la portada)
 const NOMBRE = { escucha: ['01 · SECCIÓN', 'ESCUCHA'], catalogo: ['02 · SECCIÓN', 'CATÁLOGO'], roster: ['03 · SECCIÓN', 'ROSTER'], senal: ['04 · SECCIÓN', 'SEÑAL'], editorial: ['04 · SECCIÓN', 'EDITORIAL'], manifiesto: ['05 · SECCIÓN', 'MANIFIESTO'], contacto: ['06 · SECCIÓN', 'CONTACTO'] };
 // direcciones limpias: la barra del navegador enseña /AU0212, /ufisi, /senal-10_26 o /catalogo (lo que se comparte),
 // mientras los enlaces internos siguen siendo #AU0212, #a-ufisi, #s-10_26
@@ -2484,6 +2485,31 @@ escena3d: {
       F.s = Math.min(F.s0, hueco * 0.86 / (dims[n][0] * ppu), (h - 170) * 0.72 / (dims[n][1] * ppu));
     }
   }
+  // ---------- la máquina se desmonta ----------
+  // Un mando (o la rueda del ratón, o separar dos dedos) lleva las piezas de su sitio a un despiece ordenado: en fila en horizontal,
+  // en columna en vertical. Cada pieza lleva su rótulo y es la puerta a su sección. En reposo, la máquina lo hace sola.
+  const DESP = [['hero', 'manifiesto', 'AU-01', 'Manifiesto'], ['p2', 'editorial', 'AU-02', 'Editorial'], ['p3', 'roster', 'AU-03', 'Roster'], ['p4', 'catalogo', 'AU-04', 'Catálogo'], ['p5', 'contacto', 'AU-05', 'Contacto']];
+  const qDesp = n => (FOCO[n] && FOCO[n].q) || new THREE.Quaternion().setFromEuler(new THREE.Euler(-0.08, 0.3, 0));
+  const desp = {}, dimD = {}, despEl = $('despiece'), bDesp = $('bDesp'); let abre = 0;
+  DESP.forEach(([n, sec, cod, nom], i) => { const a = document.createElement('a'); a.href = '#' + sec; a.tabIndex = -1; a.innerHTML = `<span>${cod}</span><b>${nom}</b>`; despEl.appendChild(a); desp[n] = { p: new THREE.Vector3(), q: qDesp(n), s: 1, a, i, sec, dx: 0, dy: 0 }; });
+  function encajaDespiece(w, h) {
+    cam.position.copy(CAM); cam.lookAt(LOOK); cam.updateMatrixWorld(); const tg = Math.tan(THREE.MathUtils.degToRad(cam.fov / 2)), alto = modo === 'alto';
+    const fajaW = h * 400 / 2160, x0 = alto ? 0 : fajaW + 50, x1 = alto ? w : w - 50, y0 = alto ? 196 : h * 0.2, y1 = alto ? h - 150 : h * 0.72, N = DESP.length;
+    despEl.classList.toggle('alto', alto);
+    for (const [n] of DESP) {
+      const D = desp[n], o = parts[n][0];
+      if (!dimD[n]) { const q0 = o.quaternion.clone(), s0 = o.scale.x, p0 = o.position.clone(); o.quaternion.copy(D.q); o.scale.setScalar(1); o.position.set(0, 0, 0); o.updateMatrixWorld(true);
+        _bx.setFromObject(o).getSize(_sz); dimD[n] = [_sz.x, _sz.y]; o.quaternion.copy(q0); o.scale.setScalar(s0); o.position.copy(p0); o.updateMatrixWorld(true); }
+      const paso = alto ? (y1 - y0) / N : (x1 - x0) / N, sx = alto ? w * 0.27 : x0 + (D.i + 0.5) * paso, sy = alto ? y0 + (D.i + 0.5) * paso : (y0 + y1) / 2 - 10;
+      const maxW = alto ? w * 0.32 : Math.min(paso * 0.78, 260), maxH = alto ? paso * 0.74 : (y1 - y0) * 0.62;
+      // en vertical el despiece va más cerca de la cámara: así la última fila no queda bajo el suelo
+      _v.set(0, 0, alto ? 520 : 0).project(cam); _v.x = sx / w * 2 - 1; _v.y = -(sy / h * 2 - 1); _v.unproject(cam); D.p.copy(_v);
+      const ppu = (h / 2) / ((cam.position.z - D.p.z) * tg); D.s = Math.min(maxW / (dimD[n][0] * ppu), maxH / (dimD[n][1] * ppu));
+      D.dx = alto ? w * 0.5 - sx : 0; D.dy = alto ? 0 : (y0 + y1) / 2 - 10 + maxH / 2 + 26 - sy;      // dónde va el rótulo respecto a la pieza: a la derecha (vertical) o debajo (horizontal)
+    }
+  }
+  const ponDesp = v => { v = v ? 1 : 0; if (abreT !== v) abreT = v; bDesp.setAttribute('aria-pressed', v ? 'true' : 'false'); bDesp.lastChild.textContent = v ? 'Montar' : 'Desmontar'; document.body.classList.toggle('desmontada', !!v); };
+  bDesp.hidden = false; bDesp.onclick = () => ponDesp(abreT < 0.5);
   const fb = { hero: 0, p2: 0, p3: 0, p4: 0, p5: 0 }; let rf = 0, modo = 'ancho';
   const keyL = new THREE.DirectionalLight(0xffffff, 1.7); keyL.position.set(-500, 1300, 700); keyL.target.position.set(0, -400, -300); scene.add(keyL.target);
   keyL.castShadow = true; keyL.shadow.mapSize.set(2048, 2048); keyL.shadow.radius = 6; keyL.shadow.bias = -0.0004; keyL.shadow.normalBias = 0.8;
@@ -2496,6 +2522,7 @@ escena3d: {
     renderer.setSize(w, h, false); cam.aspect = w / h; cam.fov = E.fov; cam.updateProjectionMatrix(); CAM.set(...E.cam); LOOK.set(...E.look);
     for (const [n, [o]] of Object.entries(parts)) { const [pp, sc] = E.p[n]; o.position.set(...pp); o.scale.setScalar(sc); base[n] = { q: base[n]?.q || o.quaternion.clone(), p: o.position.clone(), s: sc }; }
     if (modo === 'ancho') encajaFoco(w, h);
+    encajaDespiece(w, h);
   }
   size(); addEventListener('resize', size);
 
@@ -2519,12 +2546,31 @@ escena3d: {
   addEventListener('pointermove', e => {
     mouse.set(e.clientX / innerWidth * 2 - 1, e.clientY / innerHeight * 2 - 1);
     if (!encendido || e.target !== document.body && e.target !== cv && !e.target.classList.contains('grano')) { hover = null; rot.classList.remove('on'); cv.style.cursor = ''; return; }
-    hover = pick(e); cv.style.cursor = hover === 'p5' || hover === 'p2' ? 'pointer' : '';
-    if (hover) { rot.textContent = MANDOS[hover]; rot.style.left = e.clientX + 'px'; rot.style.top = e.clientY + 'px'; rot.classList.add('on'); } else rot.classList.remove('on');
+    hover = pick(e); cv.style.cursor = hover && abre > 0.6 || hover === 'p5' || hover === 'p2' ? 'pointer' : '';
+    if (hover && abre < 0.6) { rot.textContent = MANDOS[hover]; rot.style.left = e.clientX + 'px'; rot.style.top = e.clientY + 'px'; rot.classList.add('on'); } else rot.classList.remove('on');
   });
   cv.style.pointerEvents = 'auto';
-  addEventListener('click', e => { if (!encendido || (e.target !== cv && e.target !== document.body)) return; const n = pick(e); if (n === 'p5') { togglePlay(); press = 1; } if (n === 'p2') tune(radio.canal + 1);
+  addEventListener('click', e => { if (!encendido || (e.target !== cv && e.target !== document.body)) return; const n = pick(e);
+    if (abre > 0.6) { if (n && desp[n]) location.hash = desp[n].sec; return; }
+    if (n === 'p5') { togglePlay(); press = 1; } if (n === 'p2') tune(radio.canal + 1);
     if (tactil && n) { rot.textContent = MANDOS[n]; rot.style.left = Math.min(e.clientX, innerWidth - 260) + 'px'; rot.style.top = e.clientY + 'px'; rot.classList.add('on'); clearTimeout(rot.t); rot.t = setTimeout(() => rot.classList.remove('on'), 1800); } });
+  // rueda del ratón sobre la escena: desmonta (abajo) o monta (arriba); al soltar, se queda en el extremo más cercano
+  let tRueda = 0;
+  addEventListener('wheel', e => { if (seccion !== 'escucha' || !encendido || (e.target !== cv && e.target !== document.body)) return;
+    abreT = THREE.MathUtils.clamp(abreT + e.deltaY / 520, 0, 1); clearTimeout(tRueda); tRueda = setTimeout(() => ponDesp(abreT > 0.5), 240); }, { passive: true });
+  // dos dedos sobre la escena: separarlos desmonta, juntarlos monta
+  const dedos = new Map(); let pin = null;
+  if (tactil) cv.style.touchAction = 'none';
+  cv.addEventListener('pointerdown', e => { if (e.pointerType !== 'touch') return; dedos.set(e.pointerId, [e.clientX, e.clientY]); if (dedos.size === 2 && seccion === 'escucha' && encendido) { const [a, b] = [...dedos.values()]; pin = { d: Math.hypot(a[0] - b[0], a[1] - b[1]) || 1, a: abreT }; } });
+  cv.addEventListener('pointermove', e => { if (!dedos.has(e.pointerId)) return; dedos.set(e.pointerId, [e.clientX, e.clientY]); if (pin && dedos.size === 2) { const [a, b] = [...dedos.values()]; abreT = THREE.MathUtils.clamp(pin.a + (Math.hypot(a[0] - b[0], a[1] - b[1]) / pin.d - 1) * 1.1, 0, 1); } });
+  const sueltaDedo = e => { if (!dedos.delete(e.pointerId)) return; if (pin && dedos.size < 2) { pin = null; ponDesp(abreT > 0.5); } };
+  cv.addEventListener('pointerup', sueltaDedo); cv.addEventListener('pointercancel', sueltaDedo);
+  addEventListener('keydown', e => { if (e.key === 'Escape' && abreT && seccion === 'escucha') ponDesp(0); });
+  // modo reposo: si nadie toca nada durante un rato en la portada, la máquina se desmonta y se vuelve a montar sola, despacio,
+  // y la escena respira como si alguien moviera el ratón. Cualquier gesto se la devuelve a quien la mira.
+  const REPOSO = { espera: 45000, ciclo: 30, abierta: 10 }; let ultimo = performance.now(), reposo = false, repT = 0;
+  const toca = () => { ultimo = performance.now(); if (reposo) { reposo = false; document.body.classList.remove('en-reposo'); } };
+  ['pointermove', 'pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(ev => addEventListener(ev, toca, { passive: true }));
   // rendimiento: si el aparato no llega a ~24 fps, se baja la resolución
   let fpsN = 0, fpsT = 0, rebajado = false;
   let press = 0, t0 = performance.now(), last = t0, lvl = 0, knobRot = knobTarget, expo = 0.45;
@@ -2534,10 +2580,16 @@ escena3d: {
     if (tapaM.matches && !panelM.hidden && frame.uno) { if (!frame.tap) frame.tap = now; if (now - frame.tap > 1600) { last = now; if (!document.hidden) requestAnimationFrame(frame); return; } } else frame.tap = 0;
     const dt0 = Math.max(0, (now - last) / 1000), dt = Math.min(0.05, dt0); last = now;   // nunca negativo: la marca de rAF puede ir por detrás de performance.now()
     // se mide pasados 3 s del encendido (la entrada carga más) y se baja la resolución por escalones, solo lo necesario
-    if (!rebajado && encendido && now - powerT0 > 3000 && dt0 < 0.5) { fpsN++; fpsT += dt0; if (fpsN === 120) { if (fpsT / fpsN > 1 / 28) { dprMax = Math.max(1, dprMax * 0.8); renderer.setPixelRatio(dprMax); rebajado = dprMax <= 1; } else rebajado = true; fpsN = 0; fpsT = 0; } }
+    if (!rebajado && encendido && now - powerT0 > 3000 && dt0 < 0.5) { fpsN++; fpsT += dt0; if (fpsN === 120) { if (fpsT / fpsN > 1 / 28) { if (!document.body.classList.contains('sin-enfoque')) document.body.classList.add('sin-enfoque');   // primero se apaga el enfoque selectivo; si no basta, baja la resolución
+        else { dprMax = Math.max(1, dprMax * 0.8); renderer.setPixelRatio(dprMax); rebajado = dprMax <= 1; } } else rebajado = true; fpsN = 0; fpsT = 0; } }
     const on = encendido, tt = reduce ? 0 : (now - t0) / 1000, u = (tt / 30) % 1;
     expo += ((on ? 1.0 : 0.45) - expo) * Math.min(1, dt * 1.6); renderer.toneMappingExposure = expo;
     lvl += (radio.nivel() - lvl) * Math.min(1, dt * 12); tunePulse = Math.max(0, tunePulse - dt * 0.9); press = Math.max(0, press - dt * 4);
+    if (seccion !== 'escucha' || !on) { if (abreT) ponDesp(0); ultimo = now; }
+    else if (!reduce && !reposo && now - ultimo > REPOSO.espera) { reposo = true; repT = now; document.body.classList.add('en-reposo'); }
+    if (reposo) { const c = ((now - repT) / 1000) % REPOSO.ciclo, v = c > 2 && c < 2 + REPOSO.abierta ? 1 : 0; if (v !== abreT) ponDesp(v);
+      const tr = (now - repT) / 1000; mouse.set(Math.sin(tr * 0.21) * 0.55, Math.sin(tr * 0.13 + 1) * 0.35); }
+    abre += (abreT - abre) * Math.min(1, dt * 3.2); if (Math.abs(abreT - abre) < 0.0005) abre = abreT;
     sm.x += (mouse.x - sm.x) * Math.min(1, dt * 2.5); sm.y += (mouse.y - sm.y) * Math.min(1, dt * 2.5);
     const mov = on ? 1 : 0.12;
     for (const [n, [o]] of Object.entries(parts)) {
@@ -2555,12 +2607,19 @@ escena3d: {
       if (fb[n] > 0.001 && F) { o.position.lerp(F.p, fb[n]); if (F.q) o.quaternion.slerp(F.q, fb[n]); o.scale.setScalar(THREE.MathUtils.lerp(b.s, F.s, fb[n])); }
       else if (conFoco && foco !== n) o.position.z -= 1300 * rf;
       if (n === 'p3') { const k = Math.min(1, lvl * 6), s0 = fb[n] > 0.001 && F ? THREE.MathUtils.lerp(b.s, F.s, fb[n]) : b.s; membrana.forEach(([m, z0]) => { m.position.z = z0 + k * 9; }); o.scale.setScalar(s0 * (1 + k * 0.025)); }
+      const D = desp[n];                                                               // despiece: cada pieza sale hacia su sitio un poco después que la anterior
+      if (abre > 0.001 && !conFoco) { let k = THREE.MathUtils.clamp(abre * 1.36 - D.i * 0.09, 0, 1); k = k * k * (3 - 2 * k);
+        o.position.lerp(D.p, k); o.quaternion.slerp(D.q, k); o.scale.setScalar(THREE.MathUtils.lerp(o.scale.x, D.s, k)); D.k = k; } else D.k = 0;
     }
     rf = THREE.MathUtils.clamp(rf + ((foco && modo === 'ancho' ? 1 : 0) - rf) * Math.min(1, dt * 1.8), 0, 1);
     if (CU.cursores) CU.cursores.forEach(([cap, ix], k) => { const y = CU.TR0 + Math.round(curT[k] * 12) * CU.STEP; cap.position.y += (y - cap.position.y) * Math.min(1, dt * 6); ix.position.y = cap.position.y; });
     const kT = mesSenal ? -mesSenal * Math.PI / 6 : knobTarget; knobRot += (kT - knobRot) * Math.min(1, dt * 3); if (knob) knob.rotation.z = knobRot;
     cam.position.set(CAM.x + sm.x * 40, CAM.y - sm.y * 22, CAM.z); cam.lookAt(LOOK);
     renderer.render(scene, cam);
+    if (abre > 0.001 || frame.rot) { frame.rot = abre > 0.001;                           // los rótulos del despiece siguen a su pieza
+      for (const [n] of DESP) { const D = desp[n], o = parts[n][0]; _v.copy(o.position).project(cam);
+        const x = (_v.x + 1) / 2 * innerWidth + D.dx * D.k, y = (1 - _v.y) / 2 * innerHeight + D.dy * D.k, v = Math.max(0, D.k * 2.5 - 1.5);
+        D.a.style.transform = `translate(${x.toFixed(1)}px,${y.toFixed(1)}px)`; D.a.style.opacity = v.toFixed(2); const vivo = v > 0.6; if (vivo !== D.vivo) { D.vivo = vivo; D.a.classList.toggle('on', vivo); D.a.tabIndex = vivo ? 0 : -1; } } }
     if (!frame.uno) { frame.uno = true; window.__carga?.mark('escena', 'EN DIRECTO'); }
     if (!document.hidden) requestAnimationFrame(frame);
   }
