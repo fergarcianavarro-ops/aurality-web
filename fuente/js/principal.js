@@ -2602,6 +2602,7 @@ escena3d: {
       const tun = n === 'p2' || n === 'hero' ? Math.sin(tunePulse * Math.PI) * (n === 'hero' ? 0.35 : 0.6) : 0;
       if (tun) { qm.setFromAxisAngle(new THREE.Vector3(0, 1, 0), tun); o.quaternion.multiply(qm); }
       o.position.set(b.p.x, b.p.y + m.bob * (Math.sin(TAU * m.bk * uu + m.bp) - Math.sin(m.bp)) - (n === 'p5' ? press * 10 : 0), b.p.z);
+      o.scale.setScalar(b.s);                                                          // cada fotograma parte de su tamaño de base (el foco y el despiece lo cambian después)
       const F = FOCO[n], conFoco = foco && modo === 'ancho';
       fb[n] = THREE.MathUtils.clamp(fb[n] + ((conFoco && foco === n ? 1 : 0) - fb[n]) * Math.min(1, dt * 2.2), 0, 1);
       if (fb[n] > 0.001 && F) { o.position.lerp(F.p, fb[n]); if (F.q) o.quaternion.slerp(F.q, fb[n]); o.scale.setScalar(THREE.MathUtils.lerp(b.s, F.s, fb[n])); }
