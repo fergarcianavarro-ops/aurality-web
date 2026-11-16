@@ -2393,6 +2393,18 @@ let knobTarget = -3 * Math.PI / 6, powerT0 = 0;
 if (cat00.cola.length >= 3 && !radio.on && !SIN00) { radio.canal = -1; knobTarget = angulo(-1); pintaCanal(); }   // con 3 lanzamientos o más en SoundCloud, la radio arranca en el 00
 try { const m = localStorage.getItem('au-canal'), c = +m;                                 // …salvo que ya se hubiera dejado en otro canal: vuelve a él
   if (m !== null && !radio.on && Number.isInteger(c) && c <= 11 && c >= (SIN00 || !cat00.cola.length ? 0 : -1)) { radio.canal = c; knobTarget = angulo(c); pintaCanal(); } } catch (e) {}
+// móvil: la tira de carteles de la portada (lo próximo y los lanzamientos destacados) pasa sola si no se toca, para que se vean todos.
+// Espera unos segundos desde el último toque, avanza un cartel cada pocos segundos y al llegar al final vuelve al primero.
+{ const lat = document.querySelector('.lateral'), ESPERA = 6000, CADA = 4500; let toque = performance.now(), paso = 0, auto = 0;
+  const tocada = () => { toque = performance.now(); };
+  ['pointerdown', 'touchstart', 'wheel'].forEach(ev => lat.addEventListener(ev, tocada, { passive: true }));
+  lat.addEventListener('scroll', () => { if (performance.now() > auto) tocada(); }, { passive: true });   // un desplazamiento que no es el automático: lo está moviendo alguien
+  setInterval(() => { const ahora = performance.now();
+    if (!movilQ.matches || sinMov.matches || document.hidden || lat.hidden || seccion !== 'escucha' || !encendido || document.body.classList.contains('desmontada')) { toque = ahora; return; }
+    if (ahora - toque < ESPERA || ahora - paso < CADA) return;
+    const its = [...lat.querySelectorAll(':scope > :not(.notas), .nota')].filter(e => e.offsetWidth).sort((a, b) => a.offsetLeft - b.offsetLeft); if (its.length < 2) return;   // en el orden en que se ven
+    const x = lat.scrollLeft, pad = its[0].offsetLeft, fin = lat.scrollWidth - lat.clientWidth; let i = x >= fin - 4 ? 0 : its.findIndex(e => e.offsetLeft - pad > x + 8); if (i < 0) i = 0;
+    paso = ahora; auto = ahora + 2500; lat.scrollTo({ left: Math.min(fin, its[i].offsetLeft - pad), behavior: 'smooth' }); }, 1000); }
 // montar la escena ocupa el procesador un buen rato: antes se deja pintar lo que ya está listo (la carga o, en una llegada directa, la ficha)
 await new Promise(ok => { const ya = () => requestAnimationFrame(() => setTimeout(ok, 0)); window.__directo ? setTimeout(ya, 500) : ya(); });
 escena3d: {
