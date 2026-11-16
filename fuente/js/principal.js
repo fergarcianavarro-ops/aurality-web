@@ -2580,7 +2580,7 @@ escena3d: {
   addEventListener('keydown', e => { if (e.key === 'Escape' && abreT && seccion === 'escucha') ponDesp(0); });
   // modo reposo: si nadie toca nada durante un rato en la portada, la máquina se desmonta y se vuelve a montar sola, despacio,
   // y la escena respira como si alguien moviera el ratón. Cualquier gesto se la devuelve a quien la mira.
-  const REPOSO = { espera: 45000, ciclo: 30, abierta: 10 }; let ultimo = performance.now(), reposo = false, repT = 0;
+  const REPOSO = { espera: 45000, esperaMovil: 20000, ciclo: 30, abierta: 10 }; /* en móvil entra antes: la pantalla se atenúa pronto */ let ultimo = performance.now(), reposo = false, repT = 0;
   const toca = () => { ultimo = performance.now(); if (reposo) { reposo = false; document.body.classList.remove('en-reposo'); } };
   ['pointermove', 'pointerdown', 'keydown', 'wheel', 'touchstart'].forEach(ev => addEventListener(ev, toca, { passive: true }));
   // rendimiento: si el aparato no llega a ~24 fps, se baja la resolución
@@ -2598,7 +2598,7 @@ escena3d: {
     expo += ((on ? 1.0 : 0.45) - expo) * Math.min(1, dt * 1.6); renderer.toneMappingExposure = expo;
     lvl += (radio.nivel() - lvl) * Math.min(1, dt * 12); tunePulse = Math.max(0, tunePulse - dt * 0.9); press = Math.max(0, press - dt * 4);
     if (seccion !== 'escucha' || !on) { if (abreT) ponDesp(0); ultimo = now; }
-    else if (!reduce && !reposo && now - ultimo > REPOSO.espera) { reposo = true; repT = now; document.body.classList.add('en-reposo'); }
+    else if (!reduce && !reposo && now - ultimo > (modo === 'alto' ? REPOSO.esperaMovil : REPOSO.espera)) { reposo = true; repT = now; document.body.classList.add('en-reposo'); }
     if (reposo) { const c = ((now - repT) / 1000) % REPOSO.ciclo, v = c > 2 && c < 2 + REPOSO.abierta ? 1 : 0; if (v !== abreT) ponDesp(v);
       const tr = (now - repT) / 1000; mouse.set(Math.sin(tr * 0.21) * 0.55, Math.sin(tr * 0.13 + 1) * 0.35); }
     abre += (abreT - abre) * Math.min(1, dt * 3.2); if (Math.abs(abreT - abre) < 0.0005) abre = abreT;
